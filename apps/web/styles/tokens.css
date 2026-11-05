@@ -1,0 +1,147 @@
+/*
+ * Design tokens. The only place colours, durations and layout sizes are defined.
+ * Rules: docs/design-direction.md. Components use these through Tailwind (see globals.css).
+ * Light is the default; an explicit data-theme wins over the OS setting in both directions.
+ */
+:root {
+  color-scheme: light;
+
+  /* Neutrals: warm stone greys */
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f5f5f4;
+  --hover: #f5f5f4;
+  --border: #e7e5e4;
+  --border-strong: #d6d3d1;
+  --text: #1c1917;
+  --text-muted: #57534e;
+  --text-subtle: #78716c;
+
+  /* Accent: safety amber, used sparingly */
+  --accent: #f59e0b;
+  --accent-hover: #d97706;
+  --accent-on: #1c1917;
+  --accent-text: #b45309;
+  --accent-soft: #fef3c7;
+  --focus: #d97706;
+
+  /* Status: always paired with an icon and a label */
+  --success: #15803d;
+  --success-text: #166534;
+  --success-soft: #dcfce7;
+  --warning: #c2410c;
+  --warning-text: #9a3412;
+  --warning-soft: #ffedd5;
+  --danger: #b91c1c;
+  --danger-text: #991b1b;
+  --danger-soft: #fee2e2;
+  --info: #1d4ed8;
+  --info-text: #1e40af;
+  --info-soft: #dbeafe;
+
+  /* Data */
+  --chart-strong: #44403c;
+  --chart-mid: #a8a29e;
+  --track: #e7e5e4;
+
+  /* Depth: shadows only on popovers, sheets and dialogs */
+  --shadow-pop: 0 1px 2px rgb(28 25 23 / 6%), 0 8px 24px rgb(28 25 23 / 10%);
+  --scrim: rgb(12 10 9 / 40%);
+
+  /* Photos (login and project cards only) */
+  --photo-overlay: linear-gradient(180deg, rgb(12 10 9 / 45%) 0%, rgb(12 10 9 / 78%) 100%);
+  --photo-caption: rgb(255 255 255 / 85%);
+  --photo-fallback: #292524;
+  --on-photo: #fafaf9;
+
+  /* Motion: 120-200ms, ease-out. The count-up is the one documented exception. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-count: 600ms;
+  --dur-shimmer: 1200ms;
+
+  /* Layout */
+  --sidebar-w: 240px;
+  --sidebar-collapsed: 56px;
+  --topbar-h: 56px;
+  --content-max: 1440px;
+  --sheet-w: 480px;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0c0a09;
+  --surface: #161412;
+  --surface-raised: #1c1917;
+  --surface-sunken: #110f0e;
+  --hover: #221f1d;
+  --border: #2a2624;
+  --border-strong: #3a3532;
+  --text: #f5f5f4;
+  --text-muted: #a8a29e;
+  --text-subtle: #918a84;
+  --accent: #fbbf24;
+  --accent-hover: #f59e0b;
+  --accent-on: #1c1917;
+  --accent-text: #fbbf24;
+  --accent-soft: rgb(251 191 36 / 14%);
+  --focus: #fbbf24;
+  --success: #4ade80;
+  --success-text: #4ade80;
+  --success-soft: rgb(74 222 128 / 12%);
+  --warning: #fb923c;
+  --warning-text: #fb923c;
+  --warning-soft: rgb(251 146 60 / 14%);
+  --danger: #f87171;
+  --danger-text: #f87171;
+  --danger-soft: rgb(248 113 113 / 14%);
+  --info: #60a5fa;
+  --info-text: #60a5fa;
+  --info-soft: rgb(96 165 250 / 14%);
+  --chart-strong: #d6d3d1;
+  --chart-mid: #78716c;
+  --track: #2a2624;
+  --shadow-pop: 0 1px 2px rgb(0 0 0 / 40%), 0 12px 32px rgb(0 0 0 / 50%);
+  --scrim: rgb(0 0 0 / 55%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0c0a09;
+    --surface: #161412;
+    --surface-raised: #1c1917;
+    --surface-sunken: #110f0e;
+    --hover: #221f1d;
+    --border: #2a2624;
+    --border-strong: #3a3532;
+    --text: #f5f5f4;
+    --text-muted: #a8a29e;
+    --text-subtle: #918a84;
+    --accent: #fbbf24;
+    --accent-hover: #f59e0b;
+    --accent-on: #1c1917;
+    --accent-text: #fbbf24;
+    --accent-soft: rgb(251 191 36 / 14%);
+    --focus: #fbbf24;
+    --success: #4ade80;
+    --success-text: #4ade80;
+    --success-soft: rgb(74 222 128 / 12%);
+    --warning: #fb923c;
+    --warning-text: #fb923c;
+    --warning-soft: rgb(251 146 60 / 14%);
+    --danger: #f87171;
+    --danger-text: #f87171;
+    --danger-soft: rgb(248 113 113 / 14%);
+    --info: #60a5fa;
+    --info-text: #60a5fa;
+    --info-soft: rgb(96 165 250 / 14%);
+    --chart-strong: #d6d3d1;
+    --chart-mid: #78716c;
+    --track: #2a2624;
+    --shadow-pop: 0 1px 2px rgb(0 0 0 / 40%), 0 12px 32px rgb(0 0 0 / 50%);
+    --scrim: rgb(0 0 0 / 55%);
+  }
+}

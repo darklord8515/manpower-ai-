@@ -1,0 +1,9 @@
+.next
+node_modules
+e2e/screenshots
+test-results
+playwright-report
+components/brand/logo-markup.ts
+public/brand
+package-lock.json
+next-env.d.ts
