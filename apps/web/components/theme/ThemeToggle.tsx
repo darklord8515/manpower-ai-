@@ -33,8 +33,8 @@ export function ThemeToggle() {
       className="relative inline-grid size-8 place-items-center rounded-control border border-transparent text-muted transition-colors hover:bg-hover hover:text-fg"
       aria-label="Switch between light and dark theme"
     >
-      <Moon className="theme-icon-moon size-[18px]" aria-hidden="true" />
-      <Sun className="theme-icon-sun size-[18px]" aria-hidden="true" />
+      <Moon className="theme-icon-moon size-4.5" aria-hidden="true" />
+      <Sun className="theme-icon-sun size-4.5" aria-hidden="true" />
     </button>
   );
 }

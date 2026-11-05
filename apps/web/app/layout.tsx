@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { Providers } from "@/components/Providers";
 import "./globals.css";
 
 const plexSans = IBM_Plex_Sans({
@@ -35,7 +36,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       </head>
-      <body className="min-h-screen">{children}</body>
+      <body className="min-h-screen">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

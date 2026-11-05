@@ -100,8 +100,7 @@ test.describe("interaction", () => {
     await page.emulateMedia({ colorScheme: "light" });
     await page.goto("/");
 
-    const background = () =>
-      page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    const background = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
     const lightBackground = await background();
 
     await page.keyboard.press("Tab");
