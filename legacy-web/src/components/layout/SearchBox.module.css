@@ -1,0 +1,124 @@
+.root {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 420px;
+}
+
+.icon {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 11px;
+  color: var(--color-ink-3);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.input {
+  width: 100%;
+  height: 36px;
+  padding-inline: 34px 64px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-canvas);
+  font-size: var(--text-md);
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease);
+}
+
+.input::placeholder {
+  color: var(--color-ink-3);
+}
+
+.input:hover {
+  border-color: var(--color-line-strong);
+}
+
+.input:focus-visible {
+  background: var(--color-surface);
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 1px var(--color-brand);
+}
+
+.hint {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: 8px;
+  padding: 1px 5px;
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-ink-3);
+  font-family: inherit;
+  font-size: var(--text-xs);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.panel {
+  position: absolute;
+  inset-block-start: calc(100% + var(--space-1));
+  inset-inline: 0;
+  z-index: 40;
+  min-width: 280px;
+  padding: var(--space-1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-float);
+}
+
+.panel[hidden] {
+  display: none;
+}
+
+.result {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.result[aria-selected='true'] {
+  background: var(--color-hover);
+}
+
+.resultName {
+  font-weight: var(--weight-medium);
+}
+
+.resultMeta {
+  color: var(--color-ink-3);
+  font-size: var(--text-xs);
+}
+
+.empty {
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 639px) {
+  /* A zero basis lets search shrink, so the bell and profile stay on the same line. */
+  .root {
+    flex: 1 1 0;
+  }
+
+  .input {
+    padding-inline-end: var(--space-2);
+    font-size: var(--text-lg);
+  }
+
+  .hint {
+    display: none;
+  }
+
+  .panel {
+    position: fixed;
+    inset-block-start: calc(var(--header-offset) + var(--space-1));
+    inset-inline: var(--space-3);
+    min-width: 0;
+  }
+}

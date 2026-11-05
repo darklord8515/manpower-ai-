@@ -1,0 +1,133 @@
+.approvals {
+  border-block-start: 1px solid var(--color-line);
+}
+
+.approval {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-4) var(--panel-padding);
+  border-block-end: 1px solid var(--color-line);
+}
+
+.approvalMeta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 var(--space-2);
+  color: var(--color-ink-3);
+  font-size: var(--text-xs);
+}
+
+.due {
+  white-space: nowrap;
+}
+
+.due[data-today='true'] {
+  color: var(--color-brand);
+  font-weight: var(--weight-medium);
+}
+
+.approvalTitle {
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+
+/* The operational effect is the main thing to read after the request itself. */
+.impact {
+  margin-block: var(--space-1);
+  padding: 6px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-canvas);
+  font-size: var(--text-sm);
+  text-wrap: pretty;
+}
+
+.impactLine[data-worsens='true'] {
+  color: var(--color-brand);
+  font-weight: var(--weight-medium);
+}
+
+.facts {
+  color: var(--color-ink-2);
+  font-size: var(--text-xs);
+  text-wrap: pretty;
+}
+
+.risks {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-block-start: var(--space-1);
+}
+
+.risk {
+  display: flex;
+  gap: 5px;
+  color: var(--color-ink-2);
+  font-size: var(--text-xs);
+  text-wrap: pretty;
+}
+
+.riskIcon {
+  flex: none;
+  margin-block-start: 2px;
+  color: var(--color-warn);
+}
+
+.buttons {
+  display: inline-flex;
+  flex: none;
+  gap: var(--space-1);
+  margin-inline-start: auto;
+}
+
+.requester {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--color-ink-3);
+  font-size: var(--text-xs);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  margin-block-start: var(--space-2);
+}
+
+.decided {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--panel-padding);
+  border-block-end: 1px solid var(--color-line);
+  background: #fafafa;
+  font-size: var(--text-sm);
+}
+
+.decidedIcon {
+  flex: none;
+  color: var(--color-ink-2);
+}
+
+.decidedText {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-ink-2);
+}
+
+.decidedText strong {
+  color: var(--color-ink);
+  font-weight: var(--weight-medium);
+}
+
+.note {
+  padding: var(--space-3) var(--panel-padding);
+  color: var(--color-ink-3);
+  font-size: var(--text-xs);
+  text-wrap: pretty;
+}

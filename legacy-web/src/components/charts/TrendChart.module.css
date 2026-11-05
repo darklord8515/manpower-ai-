@@ -1,0 +1,80 @@
+.chart {
+  position: relative;
+  min-width: 0;
+}
+
+.svg {
+  display: block;
+  border-radius: var(--radius-sm);
+  touch-action: pan-y;
+}
+
+.grid {
+  stroke: var(--color-line);
+  stroke-width: 1;
+}
+
+.axis {
+  fill: var(--color-ink-3);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.target {
+  stroke: var(--color-brand);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.targetLabel {
+  fill: var(--color-brand);
+  font-size: 11px;
+  font-weight: var(--weight-medium);
+}
+
+.line {
+  fill: none;
+  stroke: var(--chart-1);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.point {
+  fill: var(--chart-1);
+  stroke: var(--color-surface);
+  stroke-width: 2;
+}
+
+.endLabel {
+  fill: var(--color-ink);
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.cursor {
+  stroke: var(--chart-3);
+  stroke-width: 1;
+}
+
+.tooltip {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  width: max-content;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-ink);
+  color: #ffffff;
+  font-size: var(--text-xs);
+  transform: translateX(-50%);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.tooltip strong {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}

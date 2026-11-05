@@ -1,0 +1,89 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 1640px;
+  margin-inline: auto;
+  padding: var(--space-5) var(--space-6) var(--space-8);
+}
+
+/* Stacked by default, with decisions before analysis. */
+.columns {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.primary,
+.rail {
+  display: contents;
+}
+
+.approvals {
+  order: 1;
+}
+
+.alerts {
+  order: 2;
+}
+
+.utilization {
+  order: 3;
+}
+
+.projects {
+  order: 4;
+}
+
+.timeline {
+  order: 5;
+}
+
+.transitions {
+  order: 6;
+}
+
+.forecast {
+  order: 7;
+}
+
+.activity {
+  order: 8;
+}
+
+.footer {
+  max-width: 90ch;
+  padding-block-start: var(--space-2);
+  color: var(--color-ink-3);
+  font-size: var(--text-xs);
+  text-wrap: pretty;
+}
+
+@container content (max-width: 639px) {
+  .page {
+    padding: var(--space-4) var(--space-3) var(--space-7);
+  }
+}
+
+/* Responds to the space left by the sidebar, so collapsing it can bring back the rail. */
+@container content (min-width: 1000px) {
+  .columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+  }
+
+  .primary,
+  .rail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+}
+
+@container content (min-width: 1160px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr) 348px;
+  }
+}

@@ -1,0 +1,35 @@
+.bar {
+  display: flex;
+  gap: 2px;
+  width: 100%;
+}
+
+.bar > span {
+  min-width: 2px;
+}
+
+.bar > span:first-child {
+  border-start-start-radius: 1px;
+  border-end-start-radius: 1px;
+}
+
+.bar > span:last-child {
+  border-start-end-radius: 1px;
+  border-end-end-radius: 1px;
+}
+
+.bar[data-size='sm'] {
+  height: 4px;
+}
+
+.bar[data-size='lg'] {
+  height: 16px;
+}
+
+.bar[data-size='lg'] > span {
+  min-width: 6px;
+}
+
+.bar > span[data-outlined='true'] {
+  box-shadow: inset 0 0 0 1px var(--chart-2);
+}

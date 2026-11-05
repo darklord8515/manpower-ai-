@@ -1,0 +1,63 @@
+.topbar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: var(--topbar-height);
+  padding-inline: var(--space-6);
+  background: var(--color-surface);
+  border-block-end: 1px solid var(--color-line);
+}
+
+.demo {
+  flex: none;
+  margin-inline-start: auto;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+.end {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+@media (max-width: 639px) {
+  .topbar {
+    flex-wrap: wrap;
+    gap: 0 var(--space-1);
+    height: auto;
+    min-height: var(--header-offset);
+    padding-inline: var(--space-2);
+  }
+
+  .topbar > * {
+    margin-block: 10px;
+  }
+
+  /* A full-width strip under the bar, so the label never competes with search on a phone. */
+  .topbar > .demo {
+    order: 5;
+    flex-basis: calc(100% + 2 * var(--space-2));
+    margin: 0 calc(-1 * var(--space-2));
+    border-radius: 0;
+    line-height: 20px;
+    text-align: center;
+  }
+
+  .topbar > .end {
+    margin-inline-start: auto;
+  }
+
+  .end {
+    gap: var(--space-1);
+  }
+}

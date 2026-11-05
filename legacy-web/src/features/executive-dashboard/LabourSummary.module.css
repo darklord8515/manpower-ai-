@@ -1,0 +1,48 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0 var(--panel-padding) var(--space-4);
+}
+
+.coverage {
+  color: var(--color-ink-3);
+  font-size: var(--text-xs);
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: var(--space-2) var(--space-3);
+}
+
+.fact {
+  min-width: 0;
+}
+
+.fact dt {
+  color: var(--color-ink-3);
+  font-size: var(--text-xs);
+}
+
+.fact dd {
+  display: flex;
+  flex-direction: column;
+}
+
+.value {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+}
+
+.value[data-emphasis='true'] {
+  color: var(--color-brand);
+}
+
+.note {
+  color: var(--color-ink-3);
+  font-size: var(--text-xs);
+  line-height: 1.3;
+}

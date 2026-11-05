@@ -1,0 +1,109 @@
+.detail {
+  container: labour-detail / inline-size;
+  background: #fafafa;
+}
+
+.inner {
+  padding: var(--space-2) var(--panel-padding) var(--space-3);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.table th,
+.table td {
+  padding: 5px var(--space-2);
+  border-block-end: 1px solid var(--color-line);
+  text-align: end;
+}
+
+.table th:first-child {
+  padding-inline-start: 0;
+  font-weight: var(--weight-regular);
+  text-align: start;
+}
+
+.table tr > :last-child {
+  padding-inline-end: 0;
+}
+
+.table thead th {
+  color: var(--color-ink-3);
+  font-weight: var(--weight-medium);
+}
+
+.table tbody tr[data-short='true'] th {
+  font-weight: var(--weight-medium);
+}
+
+.table tbody tr[data-short='true'] .shortCell {
+  font-weight: var(--weight-semibold);
+}
+
+.table tfoot th,
+.table tfoot td {
+  border-block-end: 0;
+  font-weight: var(--weight-semibold);
+}
+
+.uncoveredCell[data-open='true'] {
+  color: var(--color-brand);
+  font-weight: var(--weight-semibold);
+}
+
+.note {
+  margin-block-start: var(--space-2);
+  color: var(--color-ink-3);
+  font-size: var(--text-xs);
+  text-wrap: pretty;
+}
+
+/* On narrow screens the trade name takes its own line, so the five figures keep their width. */
+@container labour-detail (max-width: 459px) {
+  .inner {
+    padding-inline: var(--space-4);
+  }
+
+  .table,
+  .table thead,
+  .table tbody,
+  .table tfoot {
+    display: block;
+  }
+
+  .table tr {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding-block: 5px;
+    border-block-end: 1px solid var(--color-line);
+  }
+
+  .table th,
+  .table td {
+    padding: 0;
+    border: 0;
+    text-align: start;
+  }
+
+  .table tr > :last-child {
+    padding: 0;
+  }
+
+  .table thead th:first-child {
+    display: none;
+  }
+
+  .table tbody th,
+  .table tfoot th {
+    grid-column: 1 / -1;
+    margin-block-end: 2px;
+  }
+
+  .table tfoot tr {
+    border-block-end: 0;
+  }
+}

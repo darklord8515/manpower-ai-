@@ -1,0 +1,37 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0 var(--panel-padding) var(--panel-padding);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--space-4);
+  color: var(--color-ink-3);
+  font-size: var(--text-xs);
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.line,
+.dashed {
+  width: 16px;
+  height: 0;
+  border-block-start: 2px solid var(--chart-1);
+}
+
+.dashed {
+  border-block-start: 1px dashed var(--color-brand);
+}
+
+.note {
+  color: var(--color-ink-3);
+  font-size: var(--text-xs);
+  text-wrap: pretty;
+}

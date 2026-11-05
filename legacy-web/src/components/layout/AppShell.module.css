@@ -1,0 +1,91 @@
+.shell {
+  --sidebar-width: var(--sidebar-expanded);
+  min-height: 100dvh;
+}
+
+.shell[data-collapsed='true'] {
+  --sidebar-width: var(--sidebar-collapsed);
+}
+
+.skip {
+  position: fixed;
+  inset-block-start: var(--space-2);
+  inset-inline-start: var(--space-2);
+  z-index: 70;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-ink);
+  color: #ffffff;
+  transform: translateY(-200%);
+}
+
+.skip:focus-visible {
+  transform: none;
+}
+
+.main {
+  min-width: 0;
+  margin-inline-start: var(--sidebar-width);
+  transition: margin-inline-start var(--duration-base) var(--ease);
+}
+
+.content {
+  container: content / inline-size;
+}
+
+.content:focus {
+  box-shadow: none;
+}
+
+/*
+ * The curved edge where the workspace meets the sidebar. Each piece is a square of sidebar colour with
+ * a transparent circle cut out. They are fixed to the screen, so the page keeps its normal scrolling and
+ * nothing is clipped, and they follow the sidebar's width when it collapses.
+ */
+.corner {
+  position: fixed;
+  inset-inline-start: var(--sidebar-width);
+  z-index: 35;
+  width: var(--workspace-radius);
+  height: var(--workspace-radius);
+  pointer-events: none;
+  transition: inset-inline-start var(--duration-base) var(--ease);
+}
+
+.cornerTop {
+  inset-block-start: 0;
+  background: radial-gradient(
+    circle at 100% 100%,
+    transparent calc(var(--workspace-radius) - 0.5px),
+    var(--sidebar-bg) var(--workspace-radius)
+  );
+}
+
+.cornerBottom {
+  inset-block-end: 0;
+  background: radial-gradient(
+    circle at 100% 0,
+    transparent calc(var(--workspace-radius) - 0.5px),
+    var(--sidebar-bg) var(--workspace-radius)
+  );
+}
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgb(36 36 36 / 40%);
+  animation: fade var(--duration-base) var(--ease);
+}
+
+@media (max-width: 1023px) {
+  .main {
+    margin-inline-start: 0;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
