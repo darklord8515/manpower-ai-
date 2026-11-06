@@ -90,3 +90,125 @@ export async function haveSession(page: Page) {
     .context()
     .addCookies([{ name: "cq_session", value: "test", url: "http://localhost:3100" }]);
 }
+
+// --------------------------------------------------------------------------- workers
+
+const NAMES = [
+  "Sanjeev Rana",
+  "Omar Khan",
+  "Farhan Khan",
+  "Ali Ahmed",
+  "Dinesh Pandey",
+  "Irfan Sheikh",
+];
+const STATUSES = ["deployed", "deployed", "available", "mobilizing", "deployed", "unavailable"];
+
+/** 30 people: enough for a second page (25 per page). EMP-0088 is Sanjeev Rana, visa ending in 7 days. */
+export const WORKER_ROWS = Array.from({ length: 30 }, (_, i) => {
+  const code = i === 0 ? "EMP-0088" : `EMP-${String(500 + i).padStart(4, "0")}`;
+  const days = i === 0 ? 7 : 120 + i * 9;
+  return {
+    code,
+    name: i < NAMES.length ? NAMES[i] : `Worker Number ${i}`,
+    trade: ["Mason", "Carpenter", "Painter"][i % 3],
+    level: (i % 5) + 1,
+    status: STATUSES[i % STATUSES.length],
+    project: STATUSES[i % STATUSES.length] === "deployed" ? `RAK-0${(i % 6) + 1}` : null,
+    phone: `+971 50 ${100 + i} ${1000 + i}`,
+    next_document: {
+      type: i % 2 ? "medical_fitness" : "residency_visa",
+      expiry: "2026-11-12",
+      days_left: days,
+    },
+  };
+});
+
+const WORKER_DETAIL = {
+  ...WORKER_ROWS[0],
+  documents: [
+    {
+      type: "residency_visa",
+      number: "•••• 7711",
+      can_reveal: true,
+      expiry: "2026-11-12",
+      days_left: 7,
+      status: "verified",
+    },
+    {
+      type: "medical_fitness",
+      number: "•••• 4410",
+      can_reveal: true,
+      expiry: "2027-06-01",
+      days_left: 208,
+      status: "verified",
+    },
+  ],
+  assignments: [
+    {
+      project_code: "RAK-01",
+      project_name: "Jebel Approach Road, Package 2",
+      starts: "2026-03-01",
+      ends: "2027-01-31",
+      status: "active",
+    },
+  ],
+  risks: [
+    {
+      kind: "ends_before_assignment",
+      severity: "warning",
+      document_type: "residency_visa",
+      expiry: "2026-11-12",
+      project_code: "RAK-01",
+      days_short: 80,
+      message: "Residency visa ends 12 Nov 2026, before the job on RAK-01 ends (31 Jan 2027).",
+    },
+  ],
+};
+
+const FACETS = {
+  trades: [
+    { value: "Carpenter", count: 10 },
+    { value: "Mason", count: 10 },
+    { value: "Painter", count: 10 },
+  ],
+  statuses: [
+    { value: "deployed", count: 15 },
+    { value: "available", count: 5 },
+    { value: "mobilizing", count: 5 },
+    { value: "unavailable", count: 5 },
+  ],
+  projects: [
+    { value: "RAK-01", count: 3 },
+    { value: "RAK-02", count: 3 },
+  ],
+  documents: { expired: 2, expiring_30: 4 },
+};
+
+/** The Workers endpoints, with search, status filter and paging done the way the API does them. */
+export async function mockWorkers(page: Page) {
+  await page.route("**/api/workers/facets", (r) => json(r, FACETS));
+  await page.route("**/api/workers/export.csv**", (r) =>
+    r.fulfill({
+      status: 200,
+      contentType: "text/csv",
+      body: "Code,Name\r\nEMP-0088,Sanjeev Rana\r\n",
+    }),
+  );
+  await page.route(/\/api\/workers\/EMP-[0-9]+\/documents\/[a-z_]+\/reveal$/, (r) =>
+    json(r, { number: "784-1988-1234567-1" }),
+  );
+  await page.route(/\/api\/workers\/EMP-0088$/, (r) => json(r, WORKER_DETAIL));
+  await page.route(/\/api\/workers\?/, (r) => {
+    const params = new URL(r.request().url()).searchParams;
+    const q = (params.get("q") ?? "").toLowerCase();
+    const status = params.get("status");
+    const rows = WORKER_ROWS.filter(
+      (w) =>
+        (!q || w.name.toLowerCase().includes(q) || w.code.toLowerCase().includes(q)) &&
+        (!status || w.status === status),
+    );
+    const offset = Number(params.get("offset") ?? 0);
+    const limit = Number(params.get("limit") ?? 25);
+    json(r, { total: rows.length, items: rows.slice(offset, offset + limit) });
+  });
+}

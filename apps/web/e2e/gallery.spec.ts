@@ -176,7 +176,9 @@ test.describe("mobile (390px)", () => {
     const sheet = page.getByRole("dialog");
     await expect(sheet).toBeVisible();
     const box = await sheet.boundingBox();
-    expect(box?.width).toBeLessThanOrEqual(390);
+    // Half a pixel of slack: the box is measured while the sheet is still sliding in, and the
+    // browser reports 390.00001 for a 390px sheet.
+    expect(box?.width).toBeLessThanOrEqual(390.5);
     await page.screenshot({ path: "e2e/screenshots/gallery-sheet-390-dark.png" });
   });
 });

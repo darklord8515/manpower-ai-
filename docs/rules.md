@@ -81,7 +81,10 @@ the demo changes the date the validators use, nothing else.
 | `PERM_REQUIRED` | Every route and tool declares one `resource:action`; missing permission → 403 / refused tool call. | |
 | `SCOPE_FILTER` | Employees, assignments, mobilizations and documents are filtered by the caller's scope from `user_project_access`. | One exception: `CANDIDATE_POOL`. |
 | `CANDIDATE_POOL` | A caller with `staffing:create` may search the company-wide available pool, in the candidate projection only: name, employee code, trade, skill level, availability window, `documents_valid`. Never document numbers, nationality, date of birth, phone or camp. | Approved 2026-11-05. |
-| `MASK_DOC_NUMBER` | `doc_number` only with `employee:read_sensitive` in scope (employees: their own). | |
+| `MASK_DOC_NUMBER` | `doc_number` only with `employee:read_sensitive` in scope (employees: their own). A profile always carries the masked form (`•••• 1234`); the full number comes only from `POST /workers/{code}/documents/{type}/reveal`. | |
+| `NUMBER_REVEAL_AUDITED` | Every reveal writes `document.number_revealed` (user, roles, document id, IP) to the audit log; a refused or out-of-scope reveal writes nothing and returns 403 / 404. The screen hides the number again after 30 seconds. | Tested. |
+| `EXPORT_NO_NUMBERS` | The Workers CSV never contains a `doc_number` or anything the narrow projection hides; it is audited as `workers.exported`; cells that start with `= + - @` are defused. | Narrow projection gets 403. |
+| `DOC_RISK_PYTHON_ONLY` | A worker profile lists document risks ("Residency visa ends 12 Nov 2026, before the job on RAK-01 ends"): expired, or ending before a live assignment (or the project end for an open-ended one). Worded and dated in Python, never by a model. | |
 | `MASK_CONTRACT_VALUE` | `contract_value_aed` only with `project:read_financial`. | |
 | `LOGISTICS_PROJECTION` | Logistics Coordinator employee data = name, code, trade, phone, camp. | |
 | `LLM_REDACT` | `doc_number`, contract values and phone numbers are removed before any model call. | |

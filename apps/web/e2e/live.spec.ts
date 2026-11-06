@@ -103,3 +103,36 @@ test("a real password works, when DEMO_PASSWORD is provided to the test", async 
   await expect(page).toHaveURL(/\/$/);
   await expect(heading(page)).toContainText("Noura");
 });
+
+test("Workers: the real directory, filters, a profile and the eye icon", async ({ page }) => {
+  await signInAs(page, /HR Manager/);
+  await page.getByRole("link", { name: "Workers" }).first().click();
+  await expect(page.getByText("150 people")).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Everyone · 150/ })).toBeVisible();
+  await page.getByRole("button", { name: /^Available · 21/ }).click();
+  await expect(page.getByText("21 people match")).toBeVisible();
+  await page.getByRole("button", { name: "Clear filters" }).click();
+
+  await page.getByLabel("Search workers").fill("Sanjeev");
+  await page
+    .getByRole("table")
+    .getByRole("button", { name: /Sanjeev Rana/ })
+    .click();
+  const sheet = page.getByRole("dialog");
+  await expect(
+    sheet.getByText(/Residency visa ends 12 Nov 2026, before the job on RAK-01/),
+  ).toBeVisible();
+  await sheet.getByRole("button", { name: /^Documents/ }).click();
+  await expect(sheet.getByTestId("number-residency_visa")).toHaveText(/^•••• /);
+  await sheet.getByRole("button", { name: "Show emirates id number" }).click();
+  await expect(sheet.getByTestId("number-residency_visa")).toHaveText(/^784-198\d-\d{7}-\d$/);
+});
+
+test("Workers: the HR Executive sees masked numbers and no eye", async ({ page }) => {
+  await signInAs(page, /HR Executive/);
+  await page.goto("/workers?worker=EMP-0088");
+  const sheet = page.getByRole("dialog");
+  await sheet.getByRole("button", { name: /^Documents/ }).click();
+  await expect(sheet.getByTestId("number-residency_visa")).toHaveText(/^•••• /);
+  await expect(sheet.getByRole("button", { name: /Show emirates id number/ })).toHaveCount(0);
+});

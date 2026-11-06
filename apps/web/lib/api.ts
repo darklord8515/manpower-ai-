@@ -1,4 +1,14 @@
-import type { DemoRole, ExpiringList, Me, PublicConfig, Summary } from "./api-types";
+import type {
+  DemoRole,
+  ExpiringList,
+  Me,
+  PublicConfig,
+  Summary,
+  WorkerDetail,
+  WorkerFacets,
+  WorkerList,
+} from "./api-types";
+import { toApiParams, type WorkersQuery } from "./workers-query";
 
 /** An error from the API, with what the screen needs to explain it. */
 export class ApiError extends Error {
@@ -68,6 +78,17 @@ export const api = {
   summary: () => request<Summary>("/summary"),
   expiring: (window: "expired" | "d30" | "d60" | "d90") =>
     request<ExpiringList>(`/documents/expiring?window=${window}`),
+  workers: (query: WorkersQuery) => request<WorkerList>(`/workers?${toApiParams(query)}`),
+  workerFacets: () => request<WorkerFacets>("/workers/facets"),
+  worker: (code: string) => request<WorkerDetail>(`/workers/${encodeURIComponent(code)}`),
+  /** The eye icon: one number in full. The API records who looked. */
+  revealNumber: (code: string, documentType: string) =>
+    request<{ number: string }>(
+      `/workers/${encodeURIComponent(code)}/documents/${encodeURIComponent(documentType)}/reveal`,
+      { method: "POST" },
+    ),
+  /** A link the browser downloads (same site, so the sign-in cookie goes with it). */
+  workersCsvUrl: (query: WorkersQuery) => `/api/workers/export.csv?${toApiParams(query, false)}`,
 };
 
 /** Only paths on our own site may be used as a "go here after signing in" target. */

@@ -15,8 +15,9 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { KpiTile } from "@/components/ui/KpiTile";
 import { SkeletonLoader } from "@/components/ui/SkeletonLoader";
-import { StatusChip, type Tone } from "@/components/ui/StatusChip";
+import { StatusChip } from "@/components/ui/StatusChip";
 import type { ExpiringDocument, ProjectRow, Summary } from "@/lib/api-types";
+import { DOCUMENT_NAME, timeLeft } from "@/lib/documents";
 import { formatDate } from "@/lib/format";
 import { ExpiryChart, ProjectsChart, WorkforceDonut } from "./charts";
 import { Hero } from "./Hero";
@@ -28,23 +29,8 @@ const ROLE_LABEL: Record<string, string> = {
   ceo: "MD / CEO",
 };
 
-const DOCUMENT_NAME: Record<string, string> = {
-  residency_visa: "Residency visa",
-  medical_fitness: "Medical fitness",
-  labour_card: "Labour card",
-  passport: "Passport",
-  work_permit: "Work permit",
-};
-
 function plural(n: number, one: string, many = `${one}s`) {
   return `${n} ${n === 1 ? one : many}`;
-}
-
-function timeLeft(days: number): { tone: Tone; label: string } {
-  if (days < 0) return { tone: "danger", label: `Expired ${-days} d ago` };
-  if (days <= 30) return { tone: "danger", label: `${days} d left` };
-  if (days <= 60) return { tone: "warning", label: `${days} d left` };
-  return { tone: "info", label: `${days} d left` };
 }
 
 const DUE_COLUMNS: Column<ExpiringDocument>[] = [

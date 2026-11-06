@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -50,7 +51,8 @@ class WorkerList(BaseModel):
 
 class DocumentDetail(BaseModel):
     type: str
-    number: str | None  # masked without employee:read_sensitive
+    number: str | None  # always masked here; POST .../reveal returns it in full (audited)
+    can_reveal: bool  # the caller holds employee:read_sensitive and the document has a number
     expiry: date | None
     days_left: int | None
     status: str
@@ -64,9 +66,38 @@ class AssignmentDetail(BaseModel):
     status: str
 
 
+class Risk(BaseModel):
+    """A document problem, worded and dated by Python (never by a model)."""
+
+    kind: Literal["expired", "ends_before_assignment"]
+    severity: Literal["critical", "warning"]
+    document_type: str
+    expiry: date
+    project_code: str | None
+    days_short: int | None  # how many days the document ends before the job does
+    message: str
+
+
 class WorkerDetail(WorkerRow):
     documents: list[DocumentDetail]
     assignments: list[AssignmentDetail]
+    risks: list[Risk]
+
+
+class WorkerNumber(BaseModel):
+    number: str
+
+
+class Facet(BaseModel):
+    value: str
+    count: int
+
+
+class WorkerFacets(BaseModel):
+    trades: list[Facet]
+    statuses: list[Facet]  # empty for the narrow projection
+    projects: list[Facet]  # empty for the narrow projection
+    documents: dict[str, int]  # workers with an expired document / one running out in 30 days
 
 
 class ExpiringDocument(BaseModel):

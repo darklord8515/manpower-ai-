@@ -32,9 +32,15 @@ type Props<T> = {
   onSelectedChange?: (selected: Set<string>) => void;
   /** Below 640px the table becomes a list of these cards. */
   mobileCard?: (row: T) => ReactNode;
+  /**
+   * Server-side sorting: pass the current sort and a change handler. The table then shows the rows
+   * in the order given and only reports header clicks.
+   */
+  sort?: Sort;
+  onSortChange?: (sort: Sort) => void;
 };
 
-type Sort = { key: string; dir: "asc" | "desc" } | null;
+export type Sort = { key: string; dir: "asc" | "desc" } | null;
 
 export function DataTable<T>({
   caption,
@@ -48,12 +54,17 @@ export function DataTable<T>({
   selected,
   onSelectedChange,
   mobileCard,
+  sort: controlledSort,
+  onSortChange,
 }: Props<T>) {
-  const [sort, setSort] = useState<Sort>(null);
+  const [localSort, setLocalSort] = useState<Sort>(null);
+  const serverSorted = onSortChange !== undefined;
+  const sort = serverSorted ? (controlledSort ?? null) : localSort;
+  const setSort = serverSorted ? onSortChange : setLocalSort;
 
   const sorted = useMemo(() => {
     const column = columns.find((c) => c.key === sort?.key);
-    if (!sort || !column?.sortValue) return rows;
+    if (serverSorted || !sort || !column?.sortValue) return rows;
     const value = column.sortValue;
     const factor = sort.dir === "asc" ? 1 : -1;
     return [...rows].sort((a, b) => {
@@ -61,7 +72,7 @@ export function DataTable<T>({
       const y = value(b);
       return (x < y ? -1 : x > y ? 1 : 0) * factor;
     });
-  }, [rows, columns, sort]);
+  }, [rows, columns, sort, serverSorted]);
 
   if (loading)
     return <SkeletonLoader label={`Loading ${caption}`} variant="rows" count={5} className="p-4" />;
@@ -89,11 +100,9 @@ export function DataTable<T>({
     onSelectedChange?.(next);
   }
   function cycleSort(key: string) {
-    setSort((current) => {
-      if (current?.key !== key) return { key, dir: "asc" };
-      if (current.dir === "asc") return { key, dir: "desc" };
-      return null;
-    });
+    if (sort?.key !== key) setSort({ key, dir: "asc" });
+    else if (sort.dir === "asc") setSort({ key, dir: "desc" });
+    else setSort(null);
   }
 
   return (

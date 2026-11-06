@@ -63,8 +63,13 @@ def full_profile(user: AuthUser) -> bool:
     )
 
 
+def masked(number: str | None) -> str | None:
+    """A number with all but the last four characters hidden."""
+    return None if number is None else f"•••• {number[-4:]}"
+
+
 def mask_number(user: AuthUser, number: str | None) -> str | None:
     """Passport and Emirates ID numbers: full only with employee:read_sensitive."""
     if number is None or user.can("employee:read_sensitive"):
         return number
-    return f"•••• {number[-4:]}"
+    return masked(number)

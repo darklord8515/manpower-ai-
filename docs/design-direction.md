@@ -261,6 +261,19 @@ One screen for HR to turn open staffing requests into approved workers.
 - Reserved rows show "Reserved · SR-… · depends on …". If a dependency breaks, the row shows the
   critical alert inline.
 
+### Workers (HR, Operations, CEO)
+- **List:** search (`/` focuses it), a status strip with counts (Everyone, Available, On a project,
+  Mobilizing, Not available), Trade / Project / Documents filters with counts, server-side sorting and
+  paging (25 a page), ticked rows with "Copy phone numbers", "Download CSV" of the current view.
+  The whole view lives in the address bar (`?status=available&trade=Mason&page=2&worker=EMP-0088`),
+  so it can be shared or reloaded.
+- **Profile:** a right sheet (Esc closes, focus returns to the row) with Overview, Documents and
+  Projects. Overview opens with "Needs attention": documents that are expired or end before the job does.
+- **Numbers:** masked (`•••• 4821`) until the eye is pressed; the API records who looked; it hides
+  again after 30 seconds. No eye without `employee:read_sensitive`.
+- **Narrow projection (logistics):** name, code, trade and phone only; no filters, no export.
+- **Phone (390px):** the table becomes cards; the sheet fills the width.
+
 ## Quality checklist (check every screen before "done")
 - Aligned to the 4px grid; no orphan spacing values.
 - One accent use per region; status colours only mean status.

@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import re
 import uuid
 from collections.abc import Callable, Iterator
 from datetime import date
+from typing import Any
 
 import pytest
 from argon2 import PasswordHasher
@@ -17,6 +19,7 @@ from app.config import AppEnv, Settings, get_settings
 from app.db import get_session
 from app.main import create_app
 from app.routes import auth as auth_routes
+from app.routes.workers import csv_cell
 from app.seed.data import SEED_TODAY
 from app.seed.load import seed_demo
 
@@ -294,9 +297,10 @@ def test_an_employee_sees_only_themselves_and_has_no_project_access(
     assert client.get("/workers/EMP-0107").status_code == 404
     assert client.get("/projects").status_code == 403  # no project:read for this role
     own = client.get("/workers/EMP-0142").json()
-    assert all(
-        not (d["number"] or "").startswith("••••") for d in own["documents"]
-    )  # own numbers in full
+    assert all((d["number"] or "").startswith("••••") for d in own["documents"])
+    assert all(d["can_reveal"] for d in own["documents"])  # may reveal their own numbers...
+    assert client.post("/workers/EMP-0142/documents/residency_visa/reveal").status_code == 200
+    assert client.post("/workers/EMP-0107/documents/residency_visa/reveal").status_code == 404
 
 
 def test_a_role_without_the_permission_is_forbidden_not_hidden(
@@ -340,25 +344,96 @@ def test_personal_data_is_never_cached(client: TestClient) -> None:
 # --------------------------------------------------------------------------- masking
 
 
-def _numbers(client: TestClient) -> list[str]:
-    worker = client.get("/workers/EMP-0088").json()
-    return [d["number"] for d in worker["documents"]]
+def _profile(client: TestClient, code: str = "EMP-0088") -> dict[str, Any]:
+    return client.get(f"/workers/{code}").json()
 
 
-def test_document_numbers_are_in_full_only_with_the_sensitive_permission(
-    make_client: Callable[..., TestClient],
+def test_profile_numbers_are_masked_for_everyone_and_only_revealed_on_request(
+    make_client: Callable[..., TestClient], migrated_db: Engine
 ) -> None:
     manager, executive, ceo = make_client(), make_client(), make_client()
     sign_in(manager, HR_MANAGER)
     sign_in(executive, HR_EXECUTIVE)
     sign_in(ceo, CEO)
-    full = _numbers(manager)
-    assert all(n and not n.startswith("••••") for n in full)
-    assert _numbers(ceo) == full
-    masked = _numbers(executive)
-    assert all(n.startswith("•••• ") and len(n) == 9 for n in masked)
-    assert [m[-4:] for m in masked] == [f[-4:] for f in full]
-    assert not any(f in executive.get("/workers/EMP-0088").text for f in full)
+    for who in (manager, ceo, executive):
+        numbers = [d["number"] for d in _profile(who)["documents"]]
+        assert all(n and n.startswith("•••• ") and len(n) == 9 for n in numbers)
+    assert all(d["can_reveal"] for d in _profile(manager)["documents"])
+    assert not any(d["can_reveal"] for d in _profile(executive)["documents"])
+
+    revealed = manager.post("/workers/EMP-0088/documents/residency_visa/reveal")
+    assert revealed.status_code == 200
+    assert re.fullmatch(r"784-198\d-\d{7}-\d", revealed.json()["number"])
+    assert revealed.headers["cache-control"] == "no-store"
+    assert executive.post("/workers/EMP-0088/documents/residency_visa/reveal").status_code == 403
+    assert manager.post("/workers/EMP-9999/documents/residency_visa/reveal").status_code == 404
+    assert manager.post("/workers/EMP-0088/documents/nonsense/reveal").status_code == 404
+    with migrated_db.connect() as c:
+        rows = c.execute(
+            text(
+                "SELECT role_codes, entity_type FROM audit_log "
+                "WHERE action = 'document.number_revealed'"
+            )
+        ).all()
+    assert len(rows) == 1 and rows[0][1] == "employee_document"  # only the allowed one is logged
+
+
+def test_facets_count_the_directory_for_the_filter_chips(client: TestClient) -> None:
+    sign_in(client, HR_MANAGER)
+    facets = client.get("/workers/facets").json()
+    by_status = {f["value"]: f["count"] for f in facets["statuses"]}
+    assert by_status == {"deployed": 112, "available": 21, "mobilizing": 9, "unavailable": 8}
+    assert sum(f["count"] for f in facets["trades"]) == 150
+    assert {f["value"] for f in facets["projects"]} >= {"RAK-01", "RAK-03"}
+    assert facets["documents"]["expired"] == 2
+
+
+def test_facets_for_a_narrow_projection_reveal_no_status_or_project(
+    client: TestClient, migrated_db: Engine
+) -> None:
+    add_user(migrated_db, "logistics@constructiq.test", "logistics_coordinator")
+    sign_in(client, "logistics@constructiq.test")
+    facets = client.get("/workers/facets").json()
+    assert sum(f["count"] for f in facets["trades"]) == 150
+    assert facets["statuses"] == [] and facets["projects"] == []
+    assert facets["documents"] == {"expired": 0, "expiring_30": 0}
+
+
+def test_the_profile_names_documents_that_end_before_the_job_does(client: TestClient) -> None:
+    sign_in(client, HR_MANAGER)
+    risks = _profile(client)["risks"]  # EMP-0088: residency visa ends 12 Nov 2026, on RAK-01
+    visa = [r for r in risks if r["document_type"] == "residency_visa"]
+    assert visa and visa[0]["kind"] == "ends_before_assignment"
+    assert "RAK-01" in visa[0]["message"] and "12 Nov 2026" in visa[0]["message"]
+    expired = client.get("/documents/expiring", params={"window": "expired"}).json()["items"][0]
+    kinds = [r["kind"] for r in _profile(client, expired["worker_code"])["risks"]]
+    assert "expired" in kinds
+
+
+def test_the_directory_can_be_exported_without_numbers_and_is_audited(
+    client: TestClient, migrated_db: Engine
+) -> None:
+    sign_in(client, HR_MANAGER)
+    response = client.get("/workers/export.csv", params={"status": "available"})
+    assert response.status_code == 200 and response.headers["content-type"].startswith("text/csv")
+    body = response.content.decode("utf-8-sig")  # Excel needs the BOM; here we read past it
+    lines = body.strip().splitlines()
+    assert lines[0] == "Code,Name,Trade,Level,Status,Project,Phone,Next document,Expires"
+    assert len(lines) == 1 + 21
+    assert "784-" not in body
+    with migrated_db.connect() as c:
+        assert (
+            c.execute(
+                text("SELECT count(*) FROM audit_log WHERE action = 'workers.exported'")
+            ).scalar_one()
+            == 1
+        )
+
+
+def test_a_spreadsheet_formula_in_a_cell_is_defused() -> None:
+    assert csv_cell("=HYPERLINK(1)") == "'=HYPERLINK(1)"
+    assert csv_cell("+1") == "'+1" and csv_cell("@x") == "'@x" and csv_cell("-2") == "'-2"
+    assert csv_cell("Mason") == "Mason" and csv_cell(None) == ""
 
 
 # --------------------------------------------------------------------------- documents and projects
