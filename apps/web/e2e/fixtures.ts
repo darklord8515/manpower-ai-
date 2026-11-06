@@ -6,9 +6,35 @@ export const HR_USER = {
   email: "noura.demo@constructiq.test",
   full_name: "Noura Demo",
   roles: ["hr_manager"],
-  permissions: ["employee:read", "project:read", "project:write", "staffing:read", "forecast:read"],
+  permissions: [
+    "employee:read",
+    "project:read",
+    "project:write",
+    "staffing:read",
+    "forecast:read",
+    "assignment:approve",
+    "recruitment:read",
+    "recruitment:create",
+  ],
   demo_mode: true,
   landing: "hr",
+};
+
+/** The HR Executive can read the forecast and recruitment but not approve or raise anything. */
+export const EXEC_USER = {
+  ...HR_USER,
+  id: "33333333-3333-4333-8333-333333333333",
+  email: "priya.demo@constructiq.test",
+  full_name: "Priya Demo",
+  roles: ["hr_executive"],
+  permissions: [
+    "employee:read",
+    "project:read",
+    "project:write",
+    "staffing:read",
+    "forecast:read",
+    "recruitment:read",
+  ],
 };
 
 export const CEO_USER = {
@@ -17,7 +43,14 @@ export const CEO_USER = {
   email: "layla.demo@constructiq.test",
   full_name: "Layla Demo",
   roles: ["ceo"],
-  permissions: ["employee:read", "project:read", "staffing:read", "forecast:read"],
+  permissions: [
+    "employee:read",
+    "project:read",
+    "staffing:read",
+    "forecast:read",
+    "assignment:approve",
+    "recruitment:read",
+  ],
   landing: "executive",
 };
 
@@ -285,6 +318,15 @@ export function forecastFor(code: string, start = "2027-02-12") {
             days_after_start: 14,
           },
         ],
+        reserved: [
+          {
+            code: "EMP-0180",
+            name: "Sunil Perera",
+            starts_on: "2027-02-12",
+            moving_from: "RAK-05",
+            moving_from_ends: "2026-12-15",
+          },
+        ],
         arriving: [
           {
             stage: "visa_processing",
@@ -337,6 +379,7 @@ export function forecastFor(code: string, start = "2027-02-12") {
         sources: [],
         late_candidates: [],
         arriving: [],
+        reserved: [],
         excluded: [],
         advice: {
           verdict: "covered_with_dependencies",
@@ -363,6 +406,7 @@ export function forecastFor(code: string, start = "2027-02-12") {
         sources: [],
         late_candidates: [],
         arriving: [],
+        reserved: [],
         excluded: [],
         advice: {
           verdict: "covered",
@@ -419,4 +463,158 @@ export async function mockProjects(page: Page) {
     const code = url.pathname.split("/")[3];
     return json(r, forecastFor(code, url.searchParams.get("start") ?? "2027-02-12"));
   });
+}
+
+// --------------------------------------------------------------------------- recruitment, reserve, release
+
+const request = (n: number, changes: Record<string, unknown> = {}) => ({
+  id: `00000000-0000-4000-8000-00000000000${n}`,
+  request_no: `RR-2026-000${n}`,
+  project_code: "RAK-07",
+  project_name: "Shamal Logistics Hub",
+  project_starts_on: "2027-02-12",
+  trade_code: "general_labour",
+  trade: "General labour",
+  headcount: 3,
+  needed_by: "2027-01-13",
+  stage: "open",
+  stage_label: "Future requirement",
+  source: "overseas",
+  expected_arrival: null,
+  arrives_late: false,
+  reason: "Planned hiring for the new logistics hub",
+  replaces_code: null,
+  replaces_name: null,
+  created_at: "2026-11-05T08:00:00Z",
+  ...changes,
+});
+
+export const RECRUITMENT = {
+  today: "2026-11-05",
+  requests: [
+    request(1, {
+      stage: "visa_processing",
+      stage_label: "Visa processing",
+      expected_arrival: "2027-03-02",
+      arrives_late: true,
+      headcount: 1,
+    }),
+    request(2, {
+      trade_code: "mason",
+      trade: "Mason",
+      stage: "offer_issued",
+      stage_label: "Offer issued",
+      headcount: 2,
+      expected_arrival: "2027-02-01",
+    }),
+    request(3, {
+      project_code: "RAK-01",
+      project_name: "Jebel Approach Road",
+      project_starts_on: "2026-03-01",
+      trade_code: "steel_fixer",
+      trade: "Steel fixer",
+      stage: "sourcing",
+      stage_label: "Under recruitment",
+      source: "local",
+      headcount: 1,
+      replaces_code: "EMP-0125",
+      replaces_name: "Suresh Nair",
+    }),
+    request(4, { stage: "filled", stage_label: "Active", headcount: 2, trade: "Painter" }),
+  ],
+  leaving: [
+    {
+      code: "EMP-0152",
+      name: "Nabin Magar",
+      trade_code: "steel_fixer",
+      trade: "Steel fixer",
+      project_code: null,
+      kind: "contract_end",
+      on: "2027-03-15",
+      detail: "Contract ends 15 Mar 2027",
+    },
+    {
+      code: "EMP-0595",
+      name: "Farhan Khan",
+      trade_code: "general_labour",
+      trade: "General labour",
+      project_code: "RAK-01",
+      kind: "exit",
+      on: "2026-12-15",
+      detail: "Leaving on 15 Dec 2026 (terminated)",
+    },
+  ],
+};
+
+/** What the API would answer to reserve, release and the recruitment requests. */
+export async function mockRecruitment(page: Page, data: typeof RECRUITMENT = RECRUITMENT) {
+  const sent: { reserve: unknown[]; release: unknown[]; raise: unknown[]; advance: unknown[] } = {
+    reserve: [],
+    release: [],
+    raise: [],
+    advance: [],
+  };
+  await page.route(/\/api\/projects\/[A-Z0-9-]+\/reserve$/, (r) => {
+    const body = r.request().postDataJSON() as { employee_codes: string[] };
+    sent.reserve.push(body);
+    const results = body.employee_codes.map((code) =>
+      code === "EMP-0172"
+        ? {
+            code,
+            name: "Gopal Das",
+            outcome: "refused",
+            reason: "Residency visa ends 9 Mar 2027",
+          }
+        : {
+            code,
+            name: code === "EMP-0170" ? "Ram Bahadur" : "Someone",
+            outcome: "reserved",
+            reason: null,
+            starts_on: "2027-02-12",
+            moving_from: code === "EMP-0540" ? "RAK-05" : null,
+            moving_from_ends: code === "EMP-0540" ? "2026-12-15" : null,
+          },
+    );
+    return json(r, {
+      results,
+      reserved: results.filter((x) => x.outcome === "reserved").length,
+    });
+  });
+  await page.route(/\/api\/projects\/[A-Z0-9-]+\/release$/, (r) => {
+    const body = r.request().postDataJSON() as { employee_codes: string[] };
+    sent.release.push(body);
+    return json(r, { released: body.employee_codes, not_found: [] });
+  });
+  await page.route(/\/api\/recruitment-requests$/, (r) => {
+    if (r.request().method() === "POST") {
+      const body = r.request().postDataJSON() as Record<string, unknown>;
+      sent.raise.push(body);
+      return json(
+        r,
+        request(5, {
+          headcount: body.headcount,
+          trade: "General labour",
+          source: body.source,
+          needed_by: body.needed_by,
+          reason: body.reason,
+        }),
+        201,
+      );
+    }
+    return json(r, data);
+  });
+  await page.route(/\/api\/recruitment-requests\/[0-9a-f-]+\/advance$/, (r) => {
+    const body = r.request().postDataJSON() as { to: string; count?: number };
+    sent.advance.push(body);
+    const id = r.request().url().split("/").slice(-2)[0];
+    const original = data.requests.find((x) => x.id === id) ?? data.requests[0];
+    const count = body.count ?? original.headcount;
+    const advanced = { ...original, stage: body.to, headcount: count };
+    return json(r, {
+      advanced,
+      remaining:
+        count < original.headcount ? { ...original, headcount: original.headcount - count } : null,
+    });
+  });
+  return sent;
 }

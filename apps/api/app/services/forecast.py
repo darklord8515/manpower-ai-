@@ -31,6 +31,7 @@ from app.schemas import (
     ForecastSource,
     LateCandidate,
     ProjectForecast,
+    ReservedWorker,
     TradeForecast,
 )
 
@@ -205,12 +206,33 @@ def forecast_project(
                 """SELECT e.primary_trade_id AS trade_id, count(DISTINCT a.employee_id) AS n
                    FROM employee_assignments a JOIN employees e ON e.id = a.employee_id
                    WHERE a.project_id = :pid AND a.status IN ('planned', 'active')
-                     AND a.period @> CAST(:start AS date)
+                     AND a.period && daterange(:start, :end, '[)')
                    GROUP BY 1"""
             ),
-            {"pid": project["id"], "start": start},
+            {"pid": project["id"], "start": start, "end": window_end},
         ).mappings()
     }
+    planned_here: dict[uuid.UUID, list[ReservedWorker]] = defaultdict(list)
+    for r in session.execute(
+        text(
+            """SELECT e.primary_trade_id AS trade_id, e.employee_code AS code, e.full_name AS name,
+                      lower(a.period) AS starts_on, dp.code AS moving_from,
+                      (upper(d.period) - 1) AS moving_from_ends
+               FROM employee_assignments a JOIN employees e ON e.id = a.employee_id
+               LEFT JOIN employee_assignments d ON d.id = a.depends_on_assignment_id
+               LEFT JOIN projects dp ON dp.id = d.project_id
+               WHERE a.project_id = :pid AND a.status = 'planned'
+               ORDER BY lower(a.period), e.employee_code"""
+        ),
+        {"pid": project["id"]},
+    ).mappings():
+        planned_here[r["trade_id"]].append(
+            ReservedWorker(
+                code=r["code"], name=r["name"], starts_on=r["starts_on"],
+                moving_from=r["moving_from"], moving_from_ends=r["moving_from_ends"],
+            )
+        )  # fmt: skip
+
     arrivals: dict[uuid.UUID, list[Arrival]] = defaultdict(list)
     for r in session.execute(
         text(
@@ -372,6 +394,7 @@ def forecast_project(
                 sources=sources,
                 late_candidates=late,
                 arriving=coming,
+                reserved=planned_here.get(need["id"], []),
                 excluded=excluded,
                 advice=recruitment_advice(
                     needed=needed,

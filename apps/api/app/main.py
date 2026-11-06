@@ -10,7 +10,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import Settings, get_settings, validate_for_environment
-from app.routes import auth, documents, forecast, health, projects, workers
+from app.routes import (
+    auth,
+    documents,
+    forecast,
+    health,
+    projects,
+    recruitment,
+    reservations,
+    workers,
+)
 
 # Routes that need no login. Everything else must declare require("resource:action") (or
 # authenticated()). tests/test_route_guard.py fails if a route is added without a decision.
@@ -78,6 +87,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(documents.router)
     app.include_router(projects.router)
     app.include_router(forecast.router)
+    app.include_router(reservations.router)
+    app.include_router(recruitment.router)
     return app
 
 

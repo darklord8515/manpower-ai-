@@ -307,6 +307,7 @@ def _load_workers(
            VALUES (:id, :employee_id, 'annual', daterange(:first, :last, '[]'), true, true)""",
         leave_rows,
     )
+    starts = {p.code: p.starts for p in PROJECTS}
     requester = demo_id("user", "hr_manager")
     _insert(
         connection,
@@ -321,7 +322,12 @@ def _load_workers(
                 "id": demo_id("recruitment", f"{project}:{trade}"),
                 "no": f"RR-2026-{n:04d}",
                 "project_id": projects[project], "trade_id": trades[trade],
-                "headcount": headcount, "needed_by": arrival - timedelta(days=30),
+                "headcount": headcount,
+                # A project that has not started needs people a month before it does; one that is
+                # already running needs them when they arrive.
+                "needed_by": (
+                    arrival if starts[project] <= SEED_TODAY else arrival - timedelta(days=30)
+                ),
                 "reason": f"Planned hiring of {headcount} {trade.lower()} for {project}",
                 "status": stage, "requested_by": requester, "source": source,
                 "arrival": arrival,

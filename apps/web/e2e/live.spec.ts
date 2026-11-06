@@ -195,3 +195,80 @@ test("Projects: HR adds a project and sees its forecast straight away", async ({
   await expect(mason.getByText("30", { exact: true }).first()).toBeVisible();
   await expect(mason.getByText(/^Recruit \d+: locally by/)).toBeVisible(); // 30 masons is more than the company has
 });
+
+test("Recruitment: the seeded pipeline and who is leaving with nobody to replace them", async ({
+  page,
+}) => {
+  await signInAs(page, /HR Manager/);
+  await page.getByRole("link", { name: "Recruitment" }).first().click();
+  await expect(page.getByText("4 people on the way in 3 requests")).toBeVisible();
+  const row = (no: string) => page.locator("table tbody tr").filter({ hasText: no });
+  await expect(row("RR-2026-0001").getByText("Visa processing")).toBeVisible();
+  await expect(row("RR-2026-0001").getByText("late", { exact: true })).toBeVisible();
+  await expect(row("RR-2026-0003").getByText("Replaces Suresh Nair")).toBeVisible();
+  await expect(page.getByText("Contract ends 15 Mar 2027")).toBeVisible();
+  await expect(page.getByText(/Leaving on 31 Jan 2027/)).toHaveCount(0); // already being replaced
+});
+
+test("Recruitment: the HR Executive can read it but cannot press anything", async ({ page }) => {
+  await signInAs(page, /HR Executive/);
+  await page.goto("/recruitment");
+  await expect(page.locator("table tbody tr").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Move RR/ })).toHaveCount(0);
+  const refused = await page.request.post("/api/recruitment-requests", {
+    data: {
+      trade: "mason",
+      headcount: 1,
+      needed_by: "2027-01-13",
+      reason: "Not allowed to raise this",
+    },
+    headers: { Origin: "http://localhost:3100" },
+  });
+  expect(refused.status()).toBe(403);
+});
+
+// These two change the database (a request, a set of reservations). Run `make reset-demo` afterwards.
+test("Recruitment: HR raises a request from the forecast and moves it along", async ({ page }) => {
+  await signInAs(page, /HR Manager/);
+  await page.goto("/projects/RAK-07/forecast");
+  const labour = page.getByRole("region", { name: "General labour" });
+  await labour.getByRole("button", { name: "Raise recruitment request" }).click();
+  const sheet = page.getByRole("dialog");
+  await sheet.getByLabel("Reason").fill("One more labourer for the logistics hub");
+  await sheet.getByRole("button", { name: "Raise request" }).click();
+  await expect(labour.getByText(/RR-2026-\d+ was raised for 1 general labour\./)).toBeVisible();
+
+  await page.goto("/recruitment");
+  const mine = page.locator("table tbody tr").filter({ hasText: "One more" });
+  await expect(page.locator("table tbody tr")).toHaveCount(4);
+  await page
+    .locator("table tbody tr")
+    .last()
+    .getByRole("button", { name: /^Move RR/ })
+    .click();
+  await page.getByRole("dialog").getByRole("button", { name: "Move", exact: true }).click();
+  await expect(page.getByText(/1 person moved to under recruitment/)).toBeVisible();
+  expect(await mine.count()).toBeLessThanOrEqual(1);
+});
+
+test("Reserve: HR holds the masons for RAK-07, and the forecast moves them to Already assigned", async ({
+  page,
+}) => {
+  await signInAs(page, /HR Manager/);
+  await page.goto("/projects/RAK-07/forecast");
+  const mason = page.getByRole("region", { name: "Mason" });
+  await mason.getByRole("button", { name: "Reserve people" }).click();
+  const sheet = page.getByRole("dialog");
+  await expect(sheet.getByText(/You will reserve 10 people\./)).toBeVisible();
+  await sheet.getByRole("button", { name: "Reserve 10" }).click();
+  await expect(sheet.getByText("10 of 10 reserved.")).toBeVisible();
+  await sheet.getByRole("button", { name: "Done" }).click();
+  await mason.getByRole("button", { name: "Show people" }).click();
+  await expect(mason.getByRole("heading", { name: "Reserved (10)" })).toBeVisible();
+  await expect(mason.getByText(/after leaving RAK-05/).first()).toBeVisible();
+  await mason
+    .getByRole("button", { name: /^Release / })
+    .first()
+    .click();
+  await expect(mason.getByRole("heading", { name: "Reserved (9)" })).toBeVisible();
+});

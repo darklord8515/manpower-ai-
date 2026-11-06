@@ -9,6 +9,7 @@ import {
   Clock,
   Link2,
   RotateCcw,
+  UserCheck,
   UserPlus,
   UserX,
 } from "lucide-react";
@@ -18,11 +19,14 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { StatusChip, type Tone } from "@/components/ui/StatusChip";
 import { BUTTON, FIELD } from "@/components/ui/button-styles";
-import { api } from "@/lib/api";
+import { useUser } from "@/components/auth/AuthProvider";
+import { RecruitSheet } from "@/components/recruitment/RecruitSheet";
+import { api, ApiError } from "@/lib/api";
 import type { Advice, ProjectForecast, TradeForecast } from "@/lib/api-types";
 import { formatDate } from "@/lib/format";
 import { useLoad } from "@/lib/use-load";
 import { forgetAdded, wasJustAdded } from "./just-added";
+import { ReserveSheet } from "./ReserveSheet";
 
 const VERDICT: Record<
   Advice["verdict"],
@@ -61,19 +65,57 @@ function People({
   trade,
   start,
   bufferDays,
+  onRelease,
 }: {
   trade: TradeForecast;
   start: string;
   bufferDays: number;
+  /** Present only for people who may approve assignments. */
+  onRelease?: (code: string, name: string) => void;
 }) {
   const free = trade.sources.filter((s) => s.kind === "available_now");
   const ending = trade.sources.filter((s) => s.kind === "ending_before_start");
   const total =
-    trade.deployable + trade.late_candidates.length + trade.excluded.length + trade.arriving.length;
+    trade.deployable +
+    trade.late_candidates.length +
+    trade.excluded.length +
+    trade.arriving.length +
+    trade.reserved.length;
   if (total === 0)
     return <p className="m-0 text-sm text-muted">Nobody with this trade is on file.</p>;
   return (
     <div className="flex flex-col gap-4 text-sm">
+      {trade.reserved.length > 0 && (
+        <section aria-label="Reserved">
+          <h4 className="m-0 mb-1 text-sm font-semibold">Reserved ({trade.reserved.length})</h4>
+          <p className="m-0 mb-2 text-xs text-muted">
+            Held for this project and already counted in &quot;Already assigned&quot;.
+          </p>
+          <ul className="m-0 flex list-none flex-col gap-1 p-0">
+            {trade.reserved.map((r) => (
+              <li key={r.code} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span>
+                  {r.name} <span className="font-mono text-xs text-subtle">{r.code}</span>
+                </span>
+                <span className="text-xs text-muted">
+                  from {formatDate(r.starts_on)}
+                  {r.moving_from ? `, after leaving ${r.moving_from}` : ""}
+                </span>
+                {onRelease && (
+                  <button
+                    type="button"
+                    className="text-xs text-accent-text underline"
+                    onClick={() => onRelease(r.code, r.name)}
+                    aria-label={`Release ${r.name}`}
+                  >
+                    Release
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {free.map((s) => (
         <section key="free" aria-label="Free now">
           <h4 className="m-0 mb-1 text-sm font-semibold">Free now ({s.workers.length})</h4>
@@ -197,10 +239,41 @@ function People({
   );
 }
 
-function TradeCard({ trade, forecast }: { trade: TradeForecast; forecast: ProjectForecast }) {
+function TradeCard({
+  trade,
+  forecast,
+  onChanged,
+}: {
+  trade: TradeForecast;
+  forecast: ProjectForecast;
+  onChanged: () => void;
+}) {
+  const user = useUser();
+  const canReserve = user.permissions.includes("assignment:approve");
+  const canRecruit = user.permissions.includes("recruitment:create");
   const [open, setOpen] = useState(false);
+  const [reserving, setReserving] = useState(0); // opens the sheet; a new number resets its form
+  const [recruiting, setRecruiting] = useState(0);
+  const [done, setDone] = useState("");
+  const [problem, setProblem] = useState("");
   const verdict = VERDICT[trade.advice.verdict];
   const id = `trade-${trade.trade_code}`;
+  const code = forecast.project.code;
+  const nobodyToReserve =
+    trade.sources.every((s) => s.workers.length === 0) && trade.late_candidates.length === 0;
+
+  async function release(workerCode: string, name: string) {
+    setProblem("");
+    try {
+      const result = await api.release(code, [workerCode]);
+      if (result.released.length === 0) setProblem(`${name} was not reserved on this project.`);
+      else setDone(`${name} was released.`);
+      onChanged();
+    } catch (error) {
+      setProblem(error instanceof ApiError ? error.message : "Couldn’t release. Try again.");
+    }
+  }
+
   return (
     <section
       aria-labelledby={`${id}-title`}
@@ -220,28 +293,118 @@ function TradeCard({ trade, forecast }: { trade: TradeForecast; forecast: Projec
         <Stat label="Gap" value={trade.gap} danger={trade.gap > 0} />
       </dl>
       <p className="m-0 mt-3 text-sm">{trade.advice.headline}</p>
-      <button
-        type="button"
-        className={`${BUTTON} mt-3`}
-        aria-expanded={open}
-        aria-controls={`${id}-people`}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <ChevronDown
-          className={`size-4 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
-          aria-hidden="true"
-        />
-        {open ? "Hide people" : "Show people"}
-      </button>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          className={BUTTON}
+          aria-expanded={open}
+          aria-controls={`${id}-people`}
+          onClick={() => setOpen((v) => !v)}
+        >
+          <ChevronDown
+            className={`size-4 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+            aria-hidden="true"
+          />
+          {open ? "Hide people" : "Show people"}
+        </button>
+        <button
+          type="button"
+          className={BUTTON}
+          disabled={!canReserve || nobodyToReserve}
+          title={
+            !canReserve
+              ? "Reserving needs permission to approve assignments (HR Manager)."
+              : nobodyToReserve
+                ? "Nobody can be reserved for this trade."
+                : undefined
+          }
+          onClick={() => setReserving((n) => n + 1)}
+        >
+          <UserCheck className="size-4" aria-hidden="true" />
+          Reserve people
+        </button>
+        <button
+          type="button"
+          className={BUTTON}
+          disabled={!canRecruit}
+          title={!canRecruit ? "Raising a request needs the HR Manager." : undefined}
+          onClick={() => setRecruiting((n) => n + 1)}
+        >
+          <UserPlus className="size-4" aria-hidden="true" />
+          Raise recruitment request
+        </button>
+        {(!canReserve || !canRecruit) && (
+          <span className="text-xs text-muted">Some actions need the HR Manager.</span>
+        )}
+      </div>
+      {done && (
+        <p
+          role="status"
+          className="m-0 mt-3 rounded-control bg-success-soft px-3 py-2 text-sm text-success-text"
+        >
+          {done}
+        </p>
+      )}
+      {problem && (
+        <p
+          role="alert"
+          className="m-0 mt-3 rounded-control bg-danger-soft px-3 py-2 text-sm text-danger-text"
+        >
+          {problem}
+        </p>
+      )}
       {open && (
         <div id={`${id}-people`} className="mt-3 border-t border-border pt-3">
-          <People trade={trade} start={forecast.start} bufferDays={forecast.buffer_days} />
+          <People
+            trade={trade}
+            start={forecast.start}
+            bufferDays={forecast.buffer_days}
+            onRelease={canReserve ? release : undefined}
+          />
         </div>
+      )}
+      {reserving > 0 && (
+        <ReserveSheet
+          key={`reserve-${reserving}`}
+          open
+          onClose={() => setReserving(0)}
+          forecast={forecast}
+          trade={trade}
+          onChanged={() => {
+            setDone("");
+            onChanged();
+          }}
+        />
+      )}
+      {recruiting > 0 && (
+        <RecruitSheet
+          key={`recruit-${recruiting}`}
+          open
+          onClose={() => setRecruiting(0)}
+          defaults={{
+            project: code,
+            projectName: forecast.project.name,
+            tradeCode: trade.trade_code,
+            tradeName: trade.trade,
+            headcount: Math.max(trade.uncovered_gap, 1),
+            localBy: trade.advice.recruit_by,
+            overseasBy: trade.advice.recruit_by_overseas,
+            today: forecast.today,
+            reason: `${Math.max(trade.uncovered_gap, 1)} ${trade.trade.toLowerCase()} needed for ${forecast.project.name} from ${formatDate(forecast.start)}`,
+          }}
+          onRaised={(row) => {
+            setRecruiting(0);
+            setProblem("");
+            setDone(
+              `${row.request_no} was raised for ${row.headcount} ${row.trade.toLowerCase()}.`,
+            );
+            onChanged();
+          }}
+        />
       )}
     </section>
   );
 }
-
 function ForecastSkeleton() {
   return (
     <div className="flex flex-col gap-4" aria-busy="true">
@@ -377,7 +540,12 @@ export function ForecastScreen({ code }: { code: string }) {
           ) : (
             <div className="flex flex-col gap-3">
               {data.trades.map((trade) => (
-                <TradeCard key={trade.trade_code} trade={trade} forecast={data} />
+                <TradeCard
+                  key={trade.trade_code}
+                  trade={trade}
+                  forecast={data}
+                  onChanged={forecast.retry}
+                />
               ))}
             </div>
           )}

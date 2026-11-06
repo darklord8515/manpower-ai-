@@ -125,6 +125,7 @@ test.describe("the app", () => {
       "Home",
       "Workers",
       "Projects",
+      "Recruitment",
     ]);
   });
 

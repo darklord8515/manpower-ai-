@@ -2,8 +2,15 @@ import type {
   DemoRole,
   ExpiringList,
   Me,
+  AdvanceResult,
   NewProject,
+  NewRecruitment,
   ProjectForecast,
+  RecruitmentList,
+  RecruitmentRow,
+  ReleaseResult,
+  ReserveResponse,
+  RecruitmentStage,
   ProjectRow,
   PublicConfig,
   Summary,
@@ -95,6 +102,30 @@ export const api = {
     request<ProjectForecast>(
       `/projects/${encodeURIComponent(code)}/forecast${start ? `?start=${start}` : ""}`,
     ),
+  reserve: (code: string, trade: string, employeeCodes: string[], start?: string) =>
+    request<ReserveResponse>(`/projects/${encodeURIComponent(code)}/reserve`, {
+      method: "POST",
+      body: JSON.stringify({ trade, employee_codes: employeeCodes, start: start || null }),
+    }),
+  release: (code: string, employeeCodes: string[]) =>
+    request<ReleaseResult>(`/projects/${encodeURIComponent(code)}/release`, {
+      method: "POST",
+      body: JSON.stringify({ employee_codes: employeeCodes }),
+    }),
+  recruitment: () => request<RecruitmentList>("/recruitment-requests"),
+  raiseRecruitment: (body: NewRecruitment) =>
+    request<RecruitmentRow>("/recruitment-requests", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  advanceRecruitment: (
+    id: string,
+    body: { to: RecruitmentStage; count?: number; expected_arrival?: string | null },
+  ) =>
+    request<AdvanceResult>(`/recruitment-requests/${encodeURIComponent(id)}/advance`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   workers: (query: WorkersQuery) => request<WorkerList>(`/workers?${toApiParams(query)}`),
   workerFacets: () => request<WorkerFacets>("/workers/facets"),
   worker: (code: string) => request<WorkerDetail>(`/workers/${encodeURIComponent(code)}`),

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -222,6 +222,16 @@ class Arrival(BaseModel):
     late: bool  # expected after the project starts, so not counted against the gap
 
 
+class ReservedWorker(BaseModel):
+    """Someone already planned onto this project (a reservation HR can release)."""
+
+    code: str
+    name: str
+    starts_on: date
+    moving_from: str | None  # the project they leave first, if any
+    moving_from_ends: date | None
+
+
 class Advice(BaseModel):
     verdict: Literal["covered", "covered_with_dependencies", "recruitment_pending", "recruit"]
     headline: str  # worded in Python from the numbers below
@@ -247,6 +257,7 @@ class TradeForecast(BaseModel):
     sources: list[ForecastSource]
     late_candidates: list[LateCandidate]
     arriving: list[Arrival]
+    reserved: list[ReservedWorker]
     excluded: list[ExcludedWorker]
     advice: Advice
 
@@ -318,3 +329,118 @@ class NewProject(BaseModel):
             if first < self.starts_on or last > self.ends_on:
                 raise ValueError("A trade's dates must sit inside the project's dates.")
         return self
+
+
+# ----------------------------------------------------------------------------- reserve and release
+
+
+class ReserveRequest(BaseModel):
+    trade: str = Field(min_length=1, max_length=60)  # trade code
+    employee_codes: list[str] = Field(min_length=1, max_length=100)
+    start: date | None = None  # the what-if start date the screen was showing
+
+    @field_validator("employee_codes")
+    @classmethod
+    def _unique(cls, value: list[str]) -> list[str]:
+        return list(dict.fromkeys(c.strip() for c in value if c.strip()))
+
+
+class ReserveResult(BaseModel):
+    code: str
+    name: str
+    outcome: Literal["reserved", "refused"]
+    reason: str | None  # why a person was refused
+    starts_on: date | None = None
+    moving_from: str | None = None
+    moving_from_ends: date | None = None
+
+
+class ReserveResponse(BaseModel):
+    results: list[ReserveResult]
+    reserved: int
+
+
+class ReleaseRequest(BaseModel):
+    employee_codes: list[str] = Field(min_length=1, max_length=100)
+
+
+class ReleaseResult(BaseModel):
+    released: list[str]
+    not_found: list[str]  # not reserved on this project (nothing was changed)
+
+
+# ----------------------------------------------------------------------------- recruitment
+
+Stage = Literal[
+    "open", "sourcing", "offer_issued", "visa_processing", "arrived", "filled", "cancelled"
+]
+
+
+class RecruitmentRow(BaseModel):
+    id: str
+    request_no: str
+    project_code: str | None
+    project_name: str | None
+    project_starts_on: date | None
+    trade_code: str
+    trade: str
+    headcount: int
+    needed_by: date
+    stage: Stage
+    stage_label: str
+    source: Literal["local", "overseas"]
+    expected_arrival: date | None
+    arrives_late: bool  # expected after the project starts
+    reason: str
+    replaces_code: str | None
+    replaces_name: str | None
+    created_at: datetime
+
+
+class LeavingWorker(BaseModel):
+    """Someone going, with nobody being recruited to replace them yet."""
+
+    code: str
+    name: str
+    trade_code: str
+    trade: str
+    project_code: str | None
+    kind: Literal["exit", "contract_end", "absconded"]
+    on: date
+    detail: str
+
+
+class RecruitmentList(BaseModel):
+    today: date  # the server's date (it can be the simulated demo date)
+    requests: list[RecruitmentRow]
+    leaving: list[LeavingWorker]
+
+
+class NewRecruitment(BaseModel):
+    project: str | None = Field(default=None, max_length=20)  # project code
+    trade: str = Field(min_length=1, max_length=60)  # trade code
+    headcount: int = Field(ge=1, le=500)
+    needed_by: date
+    source: Literal["local", "overseas"] = "overseas"
+    expected_arrival: date | None = None
+    replaces: str | None = Field(default=None, max_length=20)  # employee code
+    reason: str = Field(max_length=500)
+
+    @field_validator("reason")
+    @classmethod
+    def _reason(cls, value: str) -> str:
+        value = value.strip()
+        if len(value) < 10:
+            raise ValueError("Give a reason of at least 10 characters.")
+        return value
+
+
+class AdvanceRecruitment(BaseModel):
+    to: Stage
+    count: int | None = Field(default=None, ge=1, le=500)  # how many move; default all
+    expected_arrival: date | None = None
+
+
+class AdvanceResult(BaseModel):
+    advanced: RecruitmentRow
+    remaining: RecruitmentRow | None  # the people who did not move, when only some did

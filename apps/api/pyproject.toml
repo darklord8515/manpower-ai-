@@ -38,6 +38,7 @@ ignore = ["S101"]  # asserts are fine in tests
 "tests/**" = ["S105", "S106"]  # fake secrets in tests
 "app/seed/data.py" = ["E501"]  # one worker per line keeps the demo data easy to compare
 "tests/test_forecast.py" = ["E501"]  # one worker per line, with the date it finishes, reads as a table
+"tests/world.py" = ["E501"]  # SQL and one scenario line per person
 # These build SQL from fixed fragments (the scope condition, a sort whitelist). User input only ever
 # travels as bind parameters, and tests/test_security_queries.py checks hostile input stays inert.
 "app/routes/*.py" = ["S608"]

@@ -1,4 +1,4 @@
-import { Building2, LayoutDashboard, Users, type LucideIcon } from "lucide-react";
+import { Building2, LayoutDashboard, UserPlus, Users, type LucideIcon } from "lucide-react";
 
 export type NavItem = {
   id: string;
@@ -32,6 +32,14 @@ export const NAV: NavItem[] = [
     icon: Building2,
     group: "Work",
     requires: "project:read",
+  },
+  {
+    id: "recruitment",
+    label: "Recruitment",
+    href: "/recruitment",
+    icon: UserPlus,
+    group: "Work",
+    requires: "recruitment:read",
   },
 ];
 

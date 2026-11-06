@@ -6,7 +6,9 @@ The application role may INSERT into audit_log but never UPDATE or DELETE.
 from __future__ import annotations
 
 import ipaddress
+import json
 import uuid
+from typing import Any
 
 from fastapi import Request
 from sqlalchemy import text
@@ -30,11 +32,16 @@ def write_audit(
     entity_type: str,
     user: AuthUser | None = None,
     entity_id: uuid.UUID | None = None,
+    before: dict[str, Any] | None = None,
+    after: dict[str, Any] | None = None,
 ) -> None:
     session.execute(
         text(
-            """INSERT INTO audit_log (user_id, role_codes, action, entity_type, entity_id, ip)
-               VALUES (:user_id, :roles, :action, :entity_type, :entity_id, CAST(:ip AS inet))"""
+            """INSERT INTO audit_log
+                   (user_id, role_codes, action, entity_type, entity_id,
+                    before_json, after_json, ip)
+               VALUES (:user_id, :roles, :action, :entity_type, :entity_id,
+                       CAST(:before AS jsonb), CAST(:after AS jsonb), CAST(:ip AS inet))"""
         ),
         {
             "user_id": user.id if user else None,
@@ -42,6 +49,8 @@ def write_audit(
             "action": action,
             "entity_type": entity_type,
             "entity_id": entity_id,
+            "before": json.dumps(before, default=str) if before is not None else None,
+            "after": json.dumps(after, default=str) if after is not None else None,
             "ip": _client_ip(request),
         },
     )

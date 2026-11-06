@@ -277,6 +277,21 @@ One screen for HR to turn open staffing requests into approved workers.
 - **What if:** a start-date field re-runs the forecast; "Back to project start" returns. The date is in the
   address bar. Reserve transfers and Raise recruitment request are the next slice and are not shown yet.
 
+### Reserve, raise a request and Recruitment (HR)
+- **On each trade card** three buttons: Show people, **Reserve people**, **Raise recruitment request**. Without the
+  permission a button is disabled with its reason (tooltip and the line "Some actions need the HR Manager"); it is never
+  hidden, so HR knows the action exists. Reserve is also disabled when nobody can be reserved.
+- **Reserve sheet:** everyone the forecast allows, free-now and finishing-before-start ticked, "could join late" unticked
+  and shown in warning text. A plain sentence says what will happen ("You will reserve 4 people. 2 start only after they
+  finish on another project..."). After confirming, each person is listed as reserved (with the start and where they come
+  from) or refused (with the server's reason). Under Show people, **Reserved (n)** lists them with a Release link.
+- **Raise sheet:** how many (default the uncovered gap), local or overseas, needed by (follows the lead time of the chosen
+  source, never in the past), expected arrival, reason. Errors under the field; focus goes to the first. It states that
+  it contacts nobody.
+- **Recruitment screen:** a "Leaving, with nobody to replace them" card with a Raise replacement button each, then a table
+  of requests with the pipeline stage chip, local or overseas, expected arrival with a warning "late" chip, and the one
+  next step ("Move to visa processing") plus Cancel. Moving asks how many (splitting if fewer) and an optional new arrival
+  date; cancelling asks first. Tabs: In progress, Finished or cancelled. Phone: cards.
 ### Workers (HR, Operations, CEO)
 - **List:** search (`/` focuses it), a status strip with counts (Everyone, Available, On a project,
   Mobilizing, Not available), Trade / Project / Documents filters with counts, server-side sorting and

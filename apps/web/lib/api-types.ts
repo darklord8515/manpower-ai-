@@ -207,6 +207,7 @@ export type TradeForecast = {
   sources: ForecastSource[];
   late_candidates: LateCandidate[];
   arriving: Arrival[];
+  reserved: ReservedWorker[];
   excluded: ExcludedWorker[];
   advice: Advice;
 };
@@ -226,3 +227,80 @@ export type ProjectForecast = {
   late_window_days: number;
   trades: TradeForecast[];
 };
+
+export type ReservedWorker = {
+  code: string;
+  name: string;
+  starts_on: string;
+  moving_from: string | null;
+  moving_from_ends: string | null;
+};
+
+export type ReserveResult = {
+  code: string;
+  name: string;
+  outcome: "reserved" | "refused";
+  reason: string | null;
+  starts_on?: string | null;
+  moving_from?: string | null;
+  moving_from_ends?: string | null;
+};
+
+export type ReserveResponse = { results: ReserveResult[]; reserved: number };
+
+export type ReleaseResult = { released: string[]; not_found: string[] };
+
+export type RecruitmentStage =
+  "open" | "sourcing" | "offer_issued" | "visa_processing" | "arrived" | "filled" | "cancelled";
+
+export type RecruitmentRow = {
+  id: string;
+  request_no: string;
+  project_code: string | null;
+  project_name: string | null;
+  project_starts_on: string | null;
+  trade_code: string;
+  trade: string;
+  headcount: number;
+  needed_by: string;
+  stage: RecruitmentStage;
+  stage_label: string;
+  source: "local" | "overseas";
+  expected_arrival: string | null;
+  arrives_late: boolean;
+  reason: string;
+  replaces_code: string | null;
+  replaces_name: string | null;
+  created_at: string;
+};
+
+export type LeavingWorker = {
+  code: string;
+  name: string;
+  trade_code: string;
+  trade: string;
+  project_code: string | null;
+  kind: "exit" | "contract_end" | "absconded";
+  on: string;
+  detail: string;
+};
+
+export type RecruitmentList = {
+  /** The server's date, which can be the simulated demo date. */
+  today: string;
+  requests: RecruitmentRow[];
+  leaving: LeavingWorker[];
+};
+
+export type NewRecruitment = {
+  project?: string | null;
+  trade: string;
+  headcount: number;
+  needed_by: string;
+  source: "local" | "overseas";
+  expected_arrival?: string | null;
+  replaces?: string | null;
+  reason: string;
+};
+
+export type AdvanceResult = { advanced: RecruitmentRow; remaining: RecruitmentRow | null };
