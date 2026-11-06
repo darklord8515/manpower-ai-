@@ -64,15 +64,23 @@ class AssignmentDetail(BaseModel):
     starts: date
     ends: date | None
     status: str
+    moving_from: str | None = None  # a planned transfer: the project they leave first
+    moving_from_ends: date | None = None  # their last day there
 
 
 class Risk(BaseModel):
     """A document problem, worded and dated by Python (never by a model)."""
 
-    kind: Literal["expired", "ends_before_assignment"]
+    kind: Literal[
+        "expired",
+        "ends_before_assignment",
+        "contract_ends",
+        "leaving",
+        "absconded",
+    ]
     severity: Literal["critical", "warning"]
-    document_type: str
-    expiry: date
+    document_type: str | None  # None for contract and exit risks
+    expiry: date  # the date the risk is about: the document, the contract end or the exit day
     project_code: str | None
     days_short: int | None  # how many days the document ends before the job does
     message: str
@@ -82,6 +90,10 @@ class WorkerDetail(WorkerRow):
     documents: list[DocumentDetail]
     assignments: list[AssignmentDetail]
     risks: list[Risk]
+    employment_status: str | None = None
+    contract_end_on: date | None = None
+    exit_on: date | None = None
+    exit_reason: str | None = None
 
 
 class WorkerNumber(BaseModel):
@@ -193,16 +205,31 @@ class LateCandidate(Candidate):
 class ExcludedWorker(BaseModel):
     code: str
     name: str
-    reason: Literal["on_leave", "documents", "already_reserved", "unavailable"]
+    reason: Literal["on_leave", "documents", "already_reserved", "unavailable", "leaving"]
     detail: str
+
+
+class Arrival(BaseModel):
+    """People already being recruited for this trade: where they are in the pipeline and when."""
+
+    stage: Literal["open", "sourcing", "offer_issued", "visa_processing", "arrived"]
+    stage_label: str
+    stage_phrase: str  # for sentences: "in visa processing"
+    headcount: int
+    source: Literal["local", "overseas"]
+    expected_arrival: date | None
+    days_after_start: int | None
+    late: bool  # expected after the project starts, so not counted against the gap
 
 
 class Advice(BaseModel):
     verdict: Literal["covered", "covered_with_dependencies", "recruitment_pending", "recruit"]
     headline: str  # worded in Python from the numbers below
     recruit_count: int = 0
-    recruit_by: date | None = None
+    recruit_by: date | None = None  # local hiring (the nearer deadline)
     recruit_by_passed: bool = False
+    recruit_by_overseas: date | None = None  # overseas hiring takes longer, so earlier
+    recruit_by_overseas_passed: bool = False
     could_start_late: int = 0  # people who finish just after the start and could join late
     max_delay_days: int | None = None
     recruit_instead: int = 0  # how many to recruit if the late ones are waited for
@@ -219,6 +246,7 @@ class TradeForecast(BaseModel):
     uncovered_gap: int
     sources: list[ForecastSource]
     late_candidates: list[LateCandidate]
+    arriving: list[Arrival]
     excluded: list[ExcludedWorker]
     advice: Advice
 

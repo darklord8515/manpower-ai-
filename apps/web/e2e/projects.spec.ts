@@ -46,7 +46,7 @@ test("the forecast says what to do for each trade, in words made from the number
   await expect(labour.getByText("Recruit 1", { exact: true })).toBeVisible();
   await expect(
     labour.getByText(
-      "Recruit 1 by 13 Jan 2027, or wait for 1 who finishes within 14 days of the start.",
+      /Recruit 1: locally by 13 Jan 2027, or overseas by 14 Dec 2026, or wait for 1 who finishes within 14 days of the start\./,
     ),
   ).toBeVisible();
   await expect(
@@ -66,6 +66,9 @@ test("the people behind a trade are listed, with who could join late", async ({ 
   await expect(labour.getByRole("heading", { name: "Could join late (1)" })).toBeVisible();
   await expect(labour.getByText("14 d after the start")).toBeVisible();
   await expect(labour.getByText("Residency visa ends 9 Mar 2027")).toBeVisible();
+  await expect(labour.getByRole("heading", { name: "On the way (1)" })).toBeVisible();
+  await expect(labour.getByText("arrives 2 Mar 2027, 18 d after the start")).toBeVisible();
+  await expect(labour.getByText("Contract ends 15 Mar 2027")).toBeVisible();
   await labour.getByRole("button", { name: "Hide people" }).click();
   await expect(labour.getByText("Free now (2)")).toHaveCount(0);
 });

@@ -53,7 +53,12 @@ company data in any environment. Alerts are never inserted by hand: the seed run
 so the seeded alerts prove the detectors work.
 
 - ~150 employees, 12 trades, 7 projects with sites, 2 camps, 10 vehicles, one user per role.
-- **RAK-07 (future project), starts 12 Feb 2027**, outdoor site, needs 10 masons, 8 steel fixers,
+- **Contracts, exits and recruitment (from the client's trackers):** some workers have a contract end date or a
+  planned exit (resigned, terminated, absconded); the forecast does not count them and says why. Recruitment
+  requests carry the client's pipeline (future requirement, under recruitment, offer issued, visa processing,
+  arrived) with an expected arrival and local / overseas source; the forecast lists them as "On the way" and names
+  any who arrive after the start. Demo: one steel fixer resigns on 31 Jan 2027, one has a contract ending 15 Mar
+  2027, and one general labourer is in visa processing, arriving 2 Mar 2027 (18 days after RAK-07 starts).- **RAK-07 (future project), starts 12 Feb 2027**, outdoor site, needs 10 masons, 8 steel fixers,
   6 general labour. The seed (EARLY_ENDS, LEAVES in `app/seed/data.py`) gives these forecast results from the
   simulated 5 Nov 2026 (locked by `tests/test_forecast.py`): masons covered but 8 of 10 depend on RAK-05 and RAK-02
   finishing, with 3 people finishing 4 days before and 8 and 12 days after the start; general labour 1 short with

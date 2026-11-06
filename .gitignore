@@ -15,3 +15,9 @@ coverage/
 
 # Source pictures for the Home hero (large); the web-ready WebP versions are committed instead
 /assets/hero-source/*.png
+
+# Real company files (spreadsheets, exports). Confidential: never committed.
+/private-data/
+*.xlsx
+*.xls
+*.csv.private

@@ -143,4 +143,4 @@ def test_the_trade_list_for_the_form(client: TestClient) -> None:
     sign_in(client, HR_MANAGER)
     trades = client.get("/trades").json()
     assert [t["name"] for t in trades] == sorted(t["name"] for t in trades)
-    assert {"code": "steel_fixer", "name": "Steel fixer"} in trades and len(trades) == 8
+    assert {"code": "steel_fixer", "name": "Steel fixer"} in trades and len(trades) == 24

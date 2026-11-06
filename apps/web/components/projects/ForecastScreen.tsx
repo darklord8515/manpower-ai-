@@ -39,6 +39,7 @@ const VERDICT: Record<
 };
 
 const REASON: Record<string, string> = {
+  leaving: "Leaving",
   on_leave: "On leave",
   documents: "Documents",
   already_reserved: "Already planned elsewhere",
@@ -67,7 +68,8 @@ function People({
 }) {
   const free = trade.sources.filter((s) => s.kind === "available_now");
   const ending = trade.sources.filter((s) => s.kind === "ending_before_start");
-  const total = trade.deployable + trade.late_candidates.length + trade.excluded.length;
+  const total =
+    trade.deployable + trade.late_candidates.length + trade.excluded.length + trade.arriving.length;
   if (total === 0)
     return <p className="m-0 text-sm text-muted">Nobody with this trade is on file.</p>;
   return (
@@ -137,6 +139,40 @@ function People({
                 />
                 {!c.documents_valid && (
                   <StatusChip tone="danger" icon={CircleAlert} label="documents end early" />
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {trade.arriving.length > 0 && (
+        <section aria-label="On the way">
+          <h4 className="m-0 mb-1 text-sm font-semibold">
+            On the way ({trade.arriving.reduce((sum, a) => sum + a.headcount, 0)})
+          </h4>
+          <p className="m-0 mb-2 text-xs text-muted">
+            People already being recruited for this trade. Those who arrive by the start close the
+            gap; those who arrive later do not.
+          </p>
+          <ul className="m-0 flex list-none flex-col gap-1 p-0">
+            {trade.arriving.map((a, i) => (
+              <li key={`${a.stage}:${i}`} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span>
+                  {a.headcount} {a.headcount === 1 ? "person" : "people"}{" "}
+                  <span className="text-muted">
+                    · {a.stage_label}, {a.source === "local" ? "local" : "overseas"}
+                  </span>
+                </span>
+                {a.expected_arrival && (
+                  <StatusChip
+                    tone={a.late ? "warning" : "success"}
+                    icon={a.late ? CalendarClock : CircleCheck}
+                    label={
+                      a.late
+                        ? `arrives ${formatDate(a.expected_arrival)}, ${a.days_after_start} d after the start`
+                        : `arrives ${formatDate(a.expected_arrival)}, in time`
+                    }
+                  />
                 )}
               </li>
             ))}

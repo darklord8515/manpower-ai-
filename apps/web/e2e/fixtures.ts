@@ -285,6 +285,18 @@ export function forecastFor(code: string, start = "2027-02-12") {
             days_after_start: 14,
           },
         ],
+        arriving: [
+          {
+            stage: "visa_processing",
+            stage_label: "Visa processing",
+            stage_phrase: "in visa processing",
+            headcount: 1,
+            source: "overseas",
+            expected_arrival: "2027-03-02",
+            days_after_start: 18,
+            late: true,
+          },
+        ],
         excluded: [
           {
             code: "EMP-0172",
@@ -292,14 +304,22 @@ export function forecastFor(code: string, start = "2027-02-12") {
             reason: "documents",
             detail: "Residency visa ends 9 Mar 2027",
           },
+          {
+            code: "EMP-0152",
+            name: "Nabin Magar",
+            reason: "leaving",
+            detail: "Contract ends 15 Mar 2027",
+          },
         ],
         advice: {
           verdict: "recruit",
           headline:
-            "Recruit 1 by 13 Jan 2027, or wait for 1 who finishes within 14 days of the start.",
+            "Recruit 1: locally by 13 Jan 2027, or overseas by 14 Dec 2026, or wait for 1 who finishes within 14 days of the start. 1 in visa processing arrives 2 Mar 2027, 18 days after the start.",
           recruit_count: 1,
           recruit_by: "2027-01-13",
           recruit_by_passed: false,
+          recruit_by_overseas: "2026-12-14",
+          recruit_by_overseas_passed: false,
           could_start_late: 1,
           max_delay_days: 14,
           recruit_instead: 0,
@@ -316,6 +336,7 @@ export function forecastFor(code: string, start = "2027-02-12") {
         uncovered_gap: 0,
         sources: [],
         late_candidates: [],
+        arriving: [],
         excluded: [],
         advice: {
           verdict: "covered_with_dependencies",
@@ -323,6 +344,8 @@ export function forecastFor(code: string, start = "2027-02-12") {
           recruit_count: 0,
           recruit_by: null,
           recruit_by_passed: false,
+          recruit_by_overseas: null,
+          recruit_by_overseas_passed: false,
           could_start_late: 0,
           max_delay_days: null,
           recruit_instead: 0,
@@ -339,6 +362,7 @@ export function forecastFor(code: string, start = "2027-02-12") {
         uncovered_gap: 0,
         sources: [],
         late_candidates: [],
+        arriving: [],
         excluded: [],
         advice: {
           verdict: "covered",
@@ -346,6 +370,8 @@ export function forecastFor(code: string, start = "2027-02-12") {
           recruit_count: 0,
           recruit_by: null,
           recruit_by_passed: false,
+          recruit_by_overseas: null,
+          recruit_by_overseas_passed: false,
           could_start_late: 0,
           max_delay_days: null,
           recruit_instead: 0,

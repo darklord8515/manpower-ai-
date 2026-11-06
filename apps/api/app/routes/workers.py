@@ -17,7 +17,7 @@ from app.auth.deps import AuthUser, get_clock, require
 from app.auth.scope import employee_scope, full_profile, masked
 from app.clock import Clock
 from app.db import get_session
-from app.labels import DOCUMENT_LABEL, document_label
+from app.labels import DOCUMENT_LABEL, EXIT_LABEL, document_label
 from app.schemas import (
     AssignmentDetail,
     DocumentBrief,
@@ -316,6 +316,66 @@ def _risks(
     return risks
 
 
+def _people_risks(
+    employee: dict[str, Any], assignments: list[dict[str, Any]], today: date
+) -> list[Risk]:
+    """Contract ends and exits, worded here. Same idea as the document risks."""
+    risks: list[Risk] = []
+    live = [a for a in assignments if a["status"] in ("planned", "active") and a["end"]]
+    exit_on: date | None = employee["exit_on"]
+    contract_end: date | None = employee["contract_end_on"]
+    if employee["employment_status"] == "absconded":
+        when = f" on {_day(exit_on)}" if exit_on else ""
+        risks.append(
+            Risk(
+                kind="absconded", severity="critical", document_type=None,
+                expiry=exit_on or today, project_code=None, days_short=None,
+                message=f"Left without notice{when}.",
+            )
+        )  # fmt: skip
+        return risks
+    if exit_on is not None:
+        why = EXIT_LABEL.get(employee["exit_reason"] or "other", "leaving")
+        if exit_on < today:
+            message = f"Left the company on {_day(exit_on)} ({why})."
+        else:
+            message = f"Leaving the company on {_day(exit_on)} ({why})."
+        project = next((a for a in live if a["end"] > exit_on), None)
+        if project:
+            message += (
+                f" That is before the job on {project['code']} ends ({_day(project['end'])})."
+            )
+        risks.append(
+            Risk(
+                kind="leaving", severity="critical" if exit_on < today else "warning",
+                document_type=None, expiry=exit_on,
+                project_code=project["code"] if project else None,
+                days_short=(project["end"] - exit_on).days if project else None, message=message,
+            )
+        )  # fmt: skip
+    if contract_end is not None:
+        project = next((a for a in live if a["end"] > contract_end), None)
+        if contract_end < today:
+            message = f"Contract ended on {_day(contract_end)}."
+        elif project:
+            message = (
+                f"Contract ends {_day(contract_end)}, before the job on {project['code']} "
+                f"ends ({_day(project['end'])})."
+            )
+        else:
+            return risks  # the contract outlasts every job: nothing to warn about
+        risks.append(
+            Risk(
+                kind="contract_ends", severity="critical" if contract_end < today else "warning",
+                document_type=None, expiry=contract_end,
+                project_code=project["code"] if project else None,
+                days_short=(project["end"] - contract_end).days if project else None,
+                message=message,
+            )
+        )  # fmt: skip
+    return risks
+
+
 @router.get("/{code}")
 def get_worker(code: str, session: SessionDep, clock: ClockDep, user: Reader) -> WorkerDetail:
     today = clock.today()
@@ -366,9 +426,12 @@ def get_worker(code: str, session: SessionDep, clock: ClockDep, user: Reader) ->
                 """SELECT pr.code, pr.name, lower(a.period) AS starts,
                           (upper(a.period) - 1) AS ends,
                           coalesce(upper(a.period) - 1, pr.ends_on) AS "end",
-                          a.status::text AS status
+                          a.status::text AS status,
+                          dp.code AS moving_from, (upper(d.period) - 1) AS moving_from_ends
                    FROM employee_assignments a JOIN projects pr ON pr.id = a.project_id
                    JOIN employees e ON e.id = a.employee_id
+                   LEFT JOIN employee_assignments d ON d.id = a.depends_on_assignment_id
+                   LEFT JOIN projects dp ON dp.id = d.project_id
                    WHERE e.employee_code = :code ORDER BY lower(a.period) DESC"""
             ),
             {"code": code},
@@ -377,16 +440,34 @@ def get_worker(code: str, session: SessionDep, clock: ClockDep, user: Reader) ->
     assignments = [
         AssignmentDetail(
             project_code=a["code"], project_name=a["name"], starts=a["starts"], ends=a["ends"],
-            status=a["status"],
+            status=a["status"], moving_from=a["moving_from"],
+            moving_from_ends=a["moving_from_ends"],
         )
         for a in raw_assignments
     ]  # fmt: skip
+    employee = (
+        session.execute(
+            text(
+                """SELECT employment_status::text AS employment_status, contract_end_on, exit_on,
+                          exit_reason::text AS exit_reason
+                   FROM employees WHERE employee_code = :code"""
+            ),
+            {"code": code},
+        )
+        .mappings()
+        .one()
+    )
     base = _row(row, today)
     return WorkerDetail(
         **base.model_dump(),
         documents=documents,
         assignments=assignments,
-        risks=_risks(raw_documents, raw_assignments, today),
+        risks=_risks(raw_documents, raw_assignments, today)
+        + _people_risks(dict(employee), raw_assignments, today),
+        employment_status=employee["employment_status"],
+        contract_end_on=employee["contract_end_on"],
+        exit_on=employee["exit_on"],
+        exit_reason=employee["exit_reason"],
     )
 
 

@@ -16,16 +16,36 @@ DOC_TYPE_CODE = {
     "Labour card": "labour_card",
 }
 
-ALL_TRADES = [
-    "Equipment operator",
-    "Electrician",
-    "Carpenter",
-    "General labour",
-    "Mason",
-    "Painter",
-    "Plumber",
-    "Steel fixer",
-]
+# Trade -> trade group, the way the client groups them (Structure, Finishes, MEP, Plant & Transport,
+# Supervision, General). The first eight are the trades the demo workers hold; the rest give the
+# Add-project form the choices a real contractor needs (nobody on file, so the forecast says recruit).
+TRADE_GROUPS: dict[str, str] = {
+    "Steel fixer": "Structure",
+    "Carpenter": "Structure",
+    "Shuttering carpenter": "Structure",
+    "Scaffolder": "Structure",
+    "Rigger": "Structure",
+    "Welder": "Structure",
+    "Mason": "Finishes",
+    "Tile mason": "Finishes",
+    "Painter": "Finishes",
+    "Electrician": "MEP",
+    "Plumber": "MEP",
+    "AC technician": "MEP",
+    "Ductman": "MEP",
+    "Pipe fitter": "MEP",
+    "Equipment operator": "Plant & Transport",
+    "Tower crane operator": "Plant & Transport",
+    "Hoist operator": "Plant & Transport",
+    "Driver light": "Plant & Transport",
+    "Driver heavy": "Plant & Transport",
+    "Chargehand": "Supervision",
+    "Foreman": "Supervision",
+    "General labour": "General",
+    "Helper": "General",
+    "Flagman": "General",
+}
+ALL_TRADES = list(TRADE_GROUPS)
 
 TRADES_FOR_GEN = ["General labour", "Mason", "Carpenter", "Electrician", "Painter"]
 
@@ -161,6 +181,30 @@ SOON_OFFSETS = [
     63, 64, 66, 70, 72, 73, 75, 78, 80, 82, 84, 86, 88, 90,
 ]  # fmt: skip
 EXPIRED_OFFSETS = (-4, -11)
+
+# Contracts and exits. Named workers by code; generated workers by (project, trade), the first free one.
+# The named ones are free steel fixers (the surplus), so the RAK-07 story for masons and labour is
+# unchanged: they show up under "Not counted" with the reason.
+NAMED_CONTRACT_ENDS: dict[str, date] = {"EMP-0152": date(2027, 3, 15)}
+NAMED_EXITS: dict[str, tuple[date, str]] = {"EMP-0125": (date(2027, 1, 31), "resigned")}
+GENERATED_CONTRACT_ENDS: tuple[tuple[str, str, date], ...] = (
+    ("RAK-01", "Equipment operator", date(2026, 12, 31)),  # ends before the job does
+    ("RAK-04", "Electrician", date(2027, 1, 20)),
+    ("RAK-01", "General labour", date(2027, 6, 30)),
+)
+GENERATED_EXITS: tuple[tuple[str, str, date, str], ...] = (
+    ("RAK-01", "General labour", date(2026, 12, 15), "terminated"),
+)
+# The first generated worker who is "on leave" has in fact left without notice.
+ABSCONDED_ON = date(2026, 10, 30)
+
+# Recruitment already in progress: (project, trade, headcount, stage, source, expected arrival,
+# the named worker it replaces or None). One arrives after RAK-07 starts, which no spreadsheet shows.
+RECRUITMENT: tuple[tuple[str, str, int, str, str, date, str | None], ...] = (
+    ("RAK-07", "General labour", 1, "visa_processing", "overseas", date(2027, 3, 2), None),
+    ("RAK-07", "Mason", 2, "offer_issued", "overseas", date(2027, 3, 1), None),
+    ("RAK-01", "Steel fixer", 1, "sourcing", "local", date(2027, 2, 1), "EMP-0125"),
+)
 
 # People released from a project before it ends: (project, trade, last day). The first matching
 # worker on that project is used, so the data repeats. They make the RAK-07 forecast (starts

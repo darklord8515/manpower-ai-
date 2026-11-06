@@ -68,8 +68,11 @@ class Settings(BaseSettings):
     forecast_late_window_days: int = Field(default=21, ge=0, le=90)
     # Documents a worker must hold, valid through the cover window, to count as deployable.
     forecast_required_docs: str = "residency_visa,medical_fitness"
-    # Recruitment is asked for this many days before a project starts.
-    recruit_lead_days: int = Field(default=30, ge=0, le=365)
+    # Recruitment is asked for this many days before a project starts. Overseas hiring (MOHRE quota,
+    # offer, entry permit, medical, residency) takes about twice as long as local. These are
+    # assumptions to confirm with HR, not law.
+    recruit_lead_days_local: int = Field(default=30, ge=0, le=365)
+    recruit_lead_days_overseas: int = Field(default=60, ge=0, le=365)
     approval_wait_hours: int = Field(default=24, ge=1, le=240)
 
     # Secrets (never committed; read from .env or the host's secret store)

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarClock, CircleAlert, Phone, UserX } from "lucide-react";
+import { ArrowRightLeft, CalendarClock, CircleAlert, Phone, UserX } from "lucide-react";
 import { useState } from "react";
 import { SlidingTabs } from "@/components/motion/SlidingTabs";
 import { DetailSheet } from "@/components/ui/DetailSheet";
@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { SkeletonLoader } from "@/components/ui/SkeletonLoader";
 import { StatusChip } from "@/components/ui/StatusChip";
-import type { WorkerDetail } from "@/lib/api-types";
+import type { WorkerDetail, WorkerRisk } from "@/lib/api-types";
 import { DOCUMENT_NAME, NUMBER_NAME, timeLeft } from "@/lib/documents";
 import { formatDate } from "@/lib/format";
 import { RevealNumber } from "./RevealNumber";
@@ -16,6 +16,23 @@ import { useWorkerDetail } from "./useWorkers";
 import { WorkerStatusChip } from "./WorkerStatusChip";
 
 type TabId = "overview" | "documents" | "assignments";
+
+const EXIT_REASON: Record<string, string> = {
+  resigned: "Resigned",
+  terminated: "Terminated",
+  absconded: "Left without notice",
+  contract_ended: "Contract ended",
+  other: "Other",
+};
+
+/** The chip beside each "Needs attention" line: what kind of problem it is. */
+const RISK_LABEL: Record<WorkerRisk["kind"], Record<WorkerRisk["severity"], string>> = {
+  expired: { critical: "Expired", warning: "Expired" },
+  ends_before_assignment: { critical: "Ends early", warning: "Ends early" },
+  contract_ends: { critical: "Contract ended", warning: "Contract ends early" },
+  leaving: { critical: "Left", warning: "Leaving" },
+  absconded: { critical: "Left without notice", warning: "Left without notice" },
+};
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -37,13 +54,13 @@ function Overview({ worker }: { worker: WorkerDetail }) {
           <ul className="m-0 flex list-none flex-col gap-2 p-0">
             {worker.risks.map((risk) => (
               <li
-                key={`${risk.kind}:${risk.document_type}:${risk.project_code ?? ""}`}
+                key={`${risk.kind}:${risk.document_type ?? ""}:${risk.project_code ?? ""}`}
                 className="flex items-start gap-2 rounded-control border border-border bg-sunken p-3 text-sm"
               >
                 <StatusChip
                   tone={risk.severity === "critical" ? "danger" : "warning"}
                   icon={risk.severity === "critical" ? CircleAlert : CalendarClock}
-                  label={risk.severity === "critical" ? "Expired" : "Ends early"}
+                  label={RISK_LABEL[risk.kind][risk.severity]}
                   className="shrink-0"
                 />
                 <span>{risk.message}</span>
@@ -63,6 +80,19 @@ function Overview({ worker }: { worker: WorkerDetail }) {
             <span className="text-subtle">None</span>
           )}
         </Fact>
+        {worker.contract_end_on && (
+          <Fact label="Contract ends">{formatDate(worker.contract_end_on)}</Fact>
+        )}
+        {worker.exit_on && (
+          <Fact label={worker.exit_reason === "absconded" ? "Left on" : "Leaving on"}>
+            {formatDate(worker.exit_on)}
+            {worker.exit_reason && (
+              <span className="ml-2 text-xs font-normal text-muted">
+                {EXIT_REASON[worker.exit_reason] ?? worker.exit_reason}
+              </span>
+            )}
+          </Fact>
+        )}
         <Fact label="Phone">
           {worker.phone ? (
             <a
@@ -150,6 +180,13 @@ function Assignments({ worker }: { worker: WorkerDetail }) {
           <p className="mt-1 mb-0 text-xs text-muted">
             {formatDate(a.starts)} to {a.ends ? formatDate(a.ends) : "no end date"}
           </p>
+          {a.moving_from && (
+            <p className="mt-1 mb-0 flex items-center gap-1.5 text-xs text-info-text">
+              <ArrowRightLeft className="size-3.5" aria-hidden="true" />
+              Moving from {a.moving_from}
+              {a.moving_from_ends ? `, last day there ${formatDate(a.moving_from_ends)}` : ""}
+            </p>
+          )}
         </li>
       ))}
     </ul>

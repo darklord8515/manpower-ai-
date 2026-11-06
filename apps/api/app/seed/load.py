@@ -7,7 +7,7 @@ schema (roles, permissions, role mapping, work rules, agents) is never touched.
 from __future__ import annotations
 
 import uuid
-from datetime import timedelta
+from datetime import date, timedelta
 from typing import Any
 
 from argon2 import PasswordHasher
@@ -15,12 +15,19 @@ from sqlalchemy import Connection, text
 
 from app.config import ConfigError, Settings
 from app.seed.data import (
+    ABSCONDED_ON,
     ALL_TRADES,
     DOC_TYPE_CODE,
     EARLY_ENDS,
+    GENERATED_CONTRACT_ENDS,
+    GENERATED_EXITS,
     LEAVES,
+    NAMED_CONTRACT_ENDS,
+    NAMED_EXITS,
     PROJECTS,
+    RECRUITMENT,
     SEED_TODAY,
+    TRADE_GROUPS,
 )
 from app.seed.workers import WorkerSeed, build_workers
 
@@ -45,8 +52,8 @@ _RESET_ORDER = (
     "employee_assignments",
     "employee_documents",
     "employee_skills",
-    "leave_records",
     "recruitment_requests",
+    "leave_records",
     "user_project_access",
     "project_sites",
     "manpower_requirements",
@@ -121,8 +128,11 @@ def seed_demo(connection: Connection, settings: Settings) -> dict[str, int]:
     trades = {name: demo_id("trade", name) for name in trade_names}
     _insert(
         connection,
-        "INSERT INTO trades (id, code, name) VALUES (:id, :code, :name)",
-        [{"id": trades[n], "code": _trade_code(n), "name": n} for n in trade_names],
+        "INSERT INTO trades (id, code, name, category) VALUES (:id, :code, :name, :category)",
+        [
+            {"id": trades[n], "code": _trade_code(n), "name": n, "category": TRADE_GROUPS[n]}
+            for n in trade_names
+        ],
     )
 
     projects = {p.code: demo_id("project", p.code) for p in PROJECTS}
@@ -195,22 +205,44 @@ def _load_workers(
     projects: dict[str, uuid.UUID],
 ) -> None:
     ids = {w.code: demo_id("employee", w.code) for w in workers}
+    # Who is leaving, and whose contract ends, is chosen first so nobody gets two stories.
+    used: set[str] = set()
+    contract_ends: dict[str, date] = dict(NAMED_CONTRACT_ENDS)
+    exits: dict[str, tuple[date, str]] = dict(NAMED_EXITS)
+    for project, trade, ends in GENERATED_CONTRACT_ENDS:
+        contract_ends[_pick(workers, project, trade, used).code] = ends
+    for project, trade, left, reason in GENERATED_EXITS:
+        exits[_pick(workers, project, trade, used).code] = (left, reason)
+    absconded = next(
+        w.code
+        for w in sorted(workers, key=lambda w: w.code)
+        if w.reason == "On leave" and w.code >= "EMP-0501"
+    )
+    exits[absconded] = (ABSCONDED_ON, "absconded")
     _insert(
         connection,
         """INSERT INTO employees
                (id, employee_code, full_name, phone, whatsapp_number, department_id,
-                primary_trade_id, employment_status, availability, joined_on, is_demo)
+                primary_trade_id, employment_status, availability, joined_on,
+                contract_end_on, exit_on, exit_reason, is_demo)
            VALUES (:id, :code, :name, :phone, :phone, :department_id, :trade_id,
                    CAST(:employment AS employment_status),
                    CAST(:availability AS availability_state),
-                   :joined, true)""",
+                   :joined, :contract_end, :exit_on, CAST(:exit_reason AS exit_reason), true)""",
         [
             {
                 "id": ids[w.code], "code": w.code, "name": w.name, "phone": w.phone,
                 "department_id": department_id, "trade_id": trades[w.trade],
-                "employment": "on_leave" if w.reason == "On leave" else "active",
+                "employment": (
+                    "absconded"
+                    if w.code == absconded
+                    else "on_leave" if w.reason == "On leave" else "active"
+                ),
                 "availability": w.status,
                 "joined": SEED_TODAY - timedelta(days=300 + (i * 29) % 1200),
+                "contract_end": contract_ends.get(w.code),
+                "exit_on": exits[w.code][0] if w.code in exits else None,
+                "exit_reason": exits[w.code][1] if w.code in exits else None,
             }
             for i, w in enumerate(workers)
         ],
@@ -242,7 +274,6 @@ def _load_workers(
     )  # fmt: skip
     # Everyone is on their project until it ends, unless released early (EARLY_ENDS).
     last_day = {p.code: p.ends for p in PROJECTS}
-    used: set[str] = set()
     early = {_pick(workers, p, t, used).code: d for p, t, d in EARLY_ENDS}
     _insert(
         connection,
@@ -276,3 +307,28 @@ def _load_workers(
            VALUES (:id, :employee_id, 'annual', daterange(:first, :last, '[]'), true, true)""",
         leave_rows,
     )
+    requester = demo_id("user", "hr_manager")
+    _insert(
+        connection,
+        """INSERT INTO recruitment_requests
+               (id, request_no, project_id, trade_id, headcount, needed_by, reason, status,
+                requested_by, source, expected_arrival, replaces_employee_id, is_demo)
+           VALUES (:id, :no, :project_id, :trade_id, :headcount, :needed_by, :reason,
+                   CAST(:status AS recruitment_status), :requested_by,
+                   CAST(:source AS recruit_source), :arrival, :replaces, true)""",
+        [
+            {
+                "id": demo_id("recruitment", f"{project}:{trade}"),
+                "no": f"RR-2026-{n:04d}",
+                "project_id": projects[project], "trade_id": trades[trade],
+                "headcount": headcount, "needed_by": arrival - timedelta(days=30),
+                "reason": f"Planned hiring of {headcount} {trade.lower()} for {project}",
+                "status": stage, "requested_by": requester, "source": source,
+                "arrival": arrival,
+                "replaces": ids[replaces] if replaces else None,
+            }
+            for n, (project, trade, headcount, stage, source, arrival, replaces) in enumerate(
+                RECRUITMENT, start=1
+            )
+        ],
+    )  # fmt: skip

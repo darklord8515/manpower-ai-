@@ -89,12 +89,16 @@ export type WorkerAssignment = {
   starts: string;
   ends: string | null;
   status: string;
+  /** A planned transfer: the project they leave first, and their last day there. */
+  moving_from?: string | null;
+  moving_from_ends?: string | null;
 };
 
 export type WorkerRisk = {
-  kind: "expired" | "ends_before_assignment";
+  kind: "expired" | "ends_before_assignment" | "contract_ends" | "leaving" | "absconded";
   severity: "critical" | "warning";
-  document_type: string;
+  /** Null for contract and exit risks. */
+  document_type: string | null;
   expiry: string;
   project_code: string | null;
   days_short: number | null;
@@ -105,6 +109,10 @@ export type WorkerDetail = WorkerRow & {
   documents: WorkerDocument[];
   assignments: WorkerAssignment[];
   risks: WorkerRisk[];
+  employment_status?: string | null;
+  contract_end_on?: string | null;
+  exit_on?: string | null;
+  exit_reason?: string | null;
 };
 
 export type Facet = { value: string; count: number };
@@ -158,8 +166,20 @@ export type LateCandidate = Candidate & {
 export type ExcludedWorker = {
   code: string;
   name: string;
-  reason: "on_leave" | "documents" | "already_reserved" | "unavailable";
+  reason: "on_leave" | "documents" | "already_reserved" | "unavailable" | "leaving";
   detail: string;
+};
+
+export type Arrival = {
+  stage: "open" | "sourcing" | "offer_issued" | "visa_processing" | "arrived";
+  stage_label: string;
+  stage_phrase: string;
+  headcount: number;
+  source: "local" | "overseas";
+  expected_arrival: string | null;
+  days_after_start: number | null;
+  /** Expected after the project starts, so not counted against the gap. */
+  late: boolean;
 };
 
 export type Advice = {
@@ -168,6 +188,8 @@ export type Advice = {
   recruit_count: number;
   recruit_by: string | null;
   recruit_by_passed: boolean;
+  recruit_by_overseas: string | null;
+  recruit_by_overseas_passed: boolean;
   could_start_late: number;
   max_delay_days: number | null;
   recruit_instead: number;
@@ -184,6 +206,7 @@ export type TradeForecast = {
   uncovered_gap: number;
   sources: ForecastSource[];
   late_candidates: LateCandidate[];
+  arriving: Arrival[];
   excluded: ExcludedWorker[];
   advice: Advice;
 };

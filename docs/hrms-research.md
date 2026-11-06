@@ -117,6 +117,39 @@ Poorly: no skill level, visa or trade rules; no construction-specific features f
 6. **Checklist templates for onboarding and offboarding** (Personio, Keka). Later, not MVP.
 7. **Agents inside the same roles and approvals as staff** (Darwinbox MCP; governance framing in [Darwinbox's own agent comparison](https://darwinbox.com/blog/10-best-ai-agent-platforms-hr-teams), vendor-written [V]). Matches our "agents act only through permission-checked tools".
 
+## Contracts, exits, transfers and overseas recruitment (added after reading the client's trackers)
+How the client works today: two Excel trackers, one row per position, dropdown lists that map statuses and trades to
+groups, and a formula dashboard. See `docs/import-formats.md` for the structure (no data). The research below is
+what other tools do and what UAE rules say, tagged as in the rest of this file.
+
+**Contract end dates and alerts**
+- Remote emails the account owner and admins 60 and 45 days before a fixed-term contract ends, and offers renew,
+  terminate or convert; EazeHR alerts HR with a lead time set in settings and exports lapsed contracts; Viindoo shows
+  a contract red within 7 days and can set it to expired on the end date; Cobblestone alerts by a "Notify Days"
+  value; Workday only shows the date in reports. [V: [Remote](https://support.remote.com/hc/en-us/articles/4425007485581-How-will-I-know-when-an-employee-s-fixed-term-contract-is-coming-to-an-end), [EazeHR](https://help.eazework.com/portal/en/kb/articles/managing-contract-dates), [Viindoo](https://viindoo.com/documentation/17.0/applications/human-resources/employee/register-departure/contract-expiry.html), [Cobblestone](https://wiki.cobblestonesoftware.com/docs/contracts-record-alerts), [Workday](https://doc.workday.com/admin-guide/en-us/human-capital-management/staffing/contracts-and-agreements/employee-contracts/dan1370797336154.html)]
+- What none of them do: say **which project** is hurt. CONSTRUCTIQ words it "Contract ends 20 Jan 2027, before the job on
+  RAK-01 ends" and keeps the person out of a forecast they cannot cover.
+
+**Internal transfers**
+- Good tools store a future-dated pending record that becomes current on the effective date, ask both the sending and
+  receiving side to approve, and keep a history. [V: [Sage](https://www.cleverence.com/amp/articles/sage-documentation/setting-up-future-dating-for-team-member-transfers-4827/), [Kissflow](https://kissflow.com/appstore/internal-job-transfer-management-system), [Emgage](https://docs.emgage.work/docs/transfer/single-transfer)]
+- The client's sheets use two rows with one worker ID ("Transfer Out - Planned" / "Transfer In - Planned"). We keep one
+  planned assignment linked to the one it depends on, so nobody is counted twice.
+
+**UAE rules to design around** (secondary sources; confirm on u.ae and MOHRE before relying on a figure)
+- The 2021 labour law (in force 2 Feb 2022) moved private-sector workers to fixed-term contracts. Guides disagree on a
+  3-year cap and a 2022 directive reportedly lifted it, so no cap is hard-coded. Work continuing after expiry without a
+  renewal is treated as renewed on the same terms. [R: [u.ae](https://u.ae/en/information-and-services/jobs/employment-in-the-private-sector/job-offers-and-work-permits-and-contracts/employment-contracts-duration-and-models-in-the-private-sector), [The National](https://www.thenationalnews.com/uae/government/2022/10/07/uae-lifts-three-year-cap-on-private-sector-employment-contracts), [Ogletree](https://ogletree.com/insights/the-new-uae-labor-law-implications-for-employers)]
+- Absconding: an open absence complaint with MOHRE can stop a new work permit and a one-year ban may follow; withdrawal is
+  reviewed, not automatic (the Wego guide cites about 14 working days). We record the status and keep the person out of
+  planning; filing and withdrawing stay with HR. [R: [MOHRE](https://www.mohre.gov.ae/en/our-services/cancellation-of-an-absence-from-work-complaint-absconding-report-2022.aspx), [Emirates247](https://www.emirates247.com/uae-guide/uae-absconding-reports-explained-when-they-can-be-filed-and-how-to-contest-one/4715), [Wego](https://blog.wego.com/cancel-absconding-report-uae/)]
+- Hiring from abroad: MOHRE quota, offer letter, then an entry permit valid about two months; sources give 4 to 8 weeks
+  end to end, but those are commercial estimates. This is why overseas recruitment gets a longer default lead time
+  (60 days) than local (30), both configurable and **to be confirmed with HR**. [R: [Gulf News](https://gulfnews.com/uae/government/uae-ministry-outlines-simple-steps-to-secure-work-permits-for-workers-from-outside-the-country-1.500096345), [Khaleej Times](https://www.khaleejtimes.com/apply-work-permit-overseas-workers)]
+
+**Construction manpower tools:** MSite (requisitions with approvals and skill checks), Bridgit Bench (forecasting and
+pipeline planning) and Lumberfi (union dispatch) cover requests and scheduling; none found tracks visa-processing or
+arrival stages, or checks that a transfer's source job finishes in time. [R/U: [MSite](https://www.msite.com/software/labour-requisitioning), [Bridgit Bench](https://softwareconnect.com/construction-management/bridgit-software), [Lumberfi](https://www.lumberfi.com/neca-labor-central)]
 ## What others do poorly (the opening)
 - Expiry alerts go to HR and name a date, not **which project and which request is hurt**. [V: TrueBays; R: Bayzat]
 - Forward manpower gaps measure hours against crew. None found that also checks **document validity and transfer dependencies**. [V/R: Procore, Float]

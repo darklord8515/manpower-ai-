@@ -297,6 +297,68 @@ def test_the_profile_names_documents_that_end_before_the_job_does(client: TestCl
     assert "expired" in kinds
 
 
+def _code_where(engine: Engine, condition: str) -> str:
+    with engine.connect() as c:
+        sql = f"SELECT employee_code FROM employees WHERE {condition}"  # noqa: S608
+        return str(c.execute(text(sql)).scalar_one())
+
+
+def test_contracts_and_exits_show_up_as_risks_in_the_profile(
+    client: TestClient, migrated_db: Engine
+) -> None:
+    sign_in(client, HR_MANAGER)
+    ends = _profile(client, _code_where(migrated_db, "contract_end_on = '2026-12-31'"))
+    assert ends["contract_end_on"] == "2026-12-31"
+    contract = [r for r in ends["risks"] if r["kind"] == "contract_ends"]
+    assert (
+        contract and contract[0]["severity"] == "warning" and contract[0]["document_type"] is None
+    )
+    assert contract[0]["message"] == (
+        "Contract ends 31 Dec 2026, before the job on RAK-01 ends (31 Aug 2027)."
+    )
+
+    resigned = _profile(client, "EMP-0125")  # Suresh Nair
+    assert (resigned["exit_on"], resigned["exit_reason"]) == ("2027-01-31", "resigned")
+    leaving = [r for r in resigned["risks"] if r["kind"] == "leaving"]
+    assert leaving[0]["message"] == "Leaving the company on 31 Jan 2027 (resigned)."
+
+    gone = _profile(client, _code_where(migrated_db, "employment_status = 'absconded'"))
+    assert gone["employment_status"] == "absconded"
+    assert [r["message"] for r in gone["risks"] if r["kind"] == "absconded"] == [
+        "Left without notice on 30 Oct 2026."
+    ]
+
+
+def test_a_planned_transfer_says_where_the_person_is_moving_from(
+    client: TestClient, migrated_db: Engine
+) -> None:
+    with migrated_db.begin() as c:
+        # Finish the current job on 31 Jan, then plan the move. The database refuses overlaps.
+        c.execute(
+            text(
+                """UPDATE employee_assignments
+                   SET period = daterange(lower(period), '2027-02-01', '[)')
+                   WHERE employee_id = (SELECT id FROM employees WHERE employee_code = 'EMP-0088')
+                     AND status = 'active'"""
+            )
+        )
+        c.execute(
+            text(
+                """INSERT INTO employee_assignments
+                       (employee_id, project_id, period, status, depends_on_assignment_id)
+                   SELECT e.id, p.id, daterange('2027-02-12', NULL, '[)'), 'planned', a.id
+                   FROM employees e
+                   JOIN employee_assignments a ON a.employee_id = e.id AND a.status = 'active'
+                   JOIN projects p ON p.code = 'RAK-07'
+                   WHERE e.employee_code = 'EMP-0088'"""
+            )
+        )
+    sign_in(client, HR_MANAGER)
+    moves = [a for a in _profile(client)["assignments"] if a["project_code"] == "RAK-07"]
+    assert moves[0]["status"] == "planned" and moves[0]["moving_from"] == "RAK-01"
+    assert moves[0]["moving_from_ends"] == "2027-01-31"
+
+
 def test_the_directory_can_be_exported_without_numbers_and_is_audited(
     client: TestClient, migrated_db: Engine
 ) -> None:

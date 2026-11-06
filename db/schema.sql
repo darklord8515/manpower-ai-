@@ -25,7 +25,9 @@ CREATE EXTENSION IF NOT EXISTS citext;       -- case-insensitive emails
 -- ---------------------------------------------------------------------
 -- Enums
 -- ---------------------------------------------------------------------
-CREATE TYPE employment_status  AS ENUM ('active', 'on_leave', 'suspended', 'resigned', 'terminated');
+CREATE TYPE employment_status  AS ENUM ('active', 'on_leave', 'suspended', 'resigned', 'terminated',
+                                        'absconded');
+CREATE TYPE exit_reason        AS ENUM ('resigned', 'terminated', 'absconded', 'contract_ended', 'other');
 CREATE TYPE availability_state AS ENUM ('available', 'deployed', 'mobilizing', 'demobilizing', 'unavailable');
 CREATE TYPE document_type      AS ENUM ('passport', 'residency_visa', 'work_permit', 'labour_card',
                                         'medical_fitness', 'trade_certificate', 'safety_certificate',
@@ -42,7 +44,11 @@ CREATE TYPE approval_status    AS ENUM ('pending', 'approved', 'rejected', 'canc
 CREATE TYPE access_scope       AS ENUM ('own', 'site', 'project', 'department', 'all');
 CREATE TYPE notify_channel     AS ENUM ('in_app', 'email', 'whatsapp');
 CREATE TYPE run_status         AS ENUM ('running', 'succeeded', 'failed', 'refused', 'awaiting_approval');
-CREATE TYPE recruitment_status AS ENUM ('open', 'in_progress', 'filled', 'cancelled');
+-- The pipeline HR already tracks in Excel: Future Requirement, Under Recruitment, Offer Issued,
+-- Visa Processing, Arrived - Pending Deployment, Active.
+CREATE TYPE recruitment_status AS ENUM ('open', 'sourcing', 'offer_issued', 'visa_processing', 'arrived',
+                                        'filled', 'cancelled');
+CREATE TYPE recruit_source     AS ENUM ('local', 'overseas');
 CREATE TYPE alert_type         AS ENUM ('upcoming_shortfall', 'ending_without_next', 'document_expiry',
                                         'mobilization_stuck', 'transfer_dependency_broken',
                                         'approval_waiting', 'midday_ban_conflict');
@@ -126,6 +132,11 @@ CREATE TABLE employees (
     primary_trade_id  uuid REFERENCES trades(id),
     designation       text,
     joined_on         date,
+    -- End of the current contract, and the planned or actual last day with the company.
+    -- Both are optional; the manpower forecast does not count people who have left by then.
+    contract_end_on   date,
+    exit_on           date,
+    exit_reason       exit_reason,
     employment_status employment_status NOT NULL DEFAULT 'active',
     availability      availability_state NOT NULL DEFAULT 'available',
     -- No salary data: the client will not provide it. The sensitive fields are
@@ -317,6 +328,9 @@ CREATE TABLE recruitment_requests (
     needed_by       date NOT NULL,
     reason          text NOT NULL CHECK (length(btrim(reason)) >= 10),
     status          recruitment_status NOT NULL DEFAULT 'open',
+    source          recruit_source NOT NULL DEFAULT 'overseas',
+    expected_arrival date,                       -- when the people are expected on site (visa permitting)
+    replaces_employee_id uuid REFERENCES employees(id), -- a leaver this request replaces
     requested_by    uuid NOT NULL REFERENCES users(id),
     source_alert_id uuid,                        -- FK added after alerts exists
     is_demo         boolean NOT NULL DEFAULT false,
@@ -324,7 +338,7 @@ CREATE TABLE recruitment_requests (
     updated_at      timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX recruitment_requests_open_idx ON recruitment_requests (project_id, trade_id)
-    WHERE status IN ('open', 'in_progress');
+    WHERE status IN ('open', 'sourcing', 'offer_issued', 'visa_processing', 'arrived');
 
 -- ---------------------------------------------------------------------
 -- 5. MOBILIZATION (6)

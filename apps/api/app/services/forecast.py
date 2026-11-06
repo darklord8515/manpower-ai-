@@ -21,9 +21,10 @@ from sqlalchemy.orm import Session
 
 from app.auth.deps import AuthUser
 from app.config import Settings
-from app.labels import document_label
+from app.labels import EXIT_LABEL, OPEN_STAGES, document_label, stage_label, stage_phrase
 from app.schemas import (
     Advice,
+    Arrival,
     Candidate,
     ExcludedWorker,
     ForecastProject,
@@ -42,7 +43,7 @@ def _day(value: date) -> str:
     return f"{value.day} {value:%b %Y}"
 
 
-ExcludedReason = Literal["on_leave", "documents", "already_reserved", "unavailable"]
+ExcludedReason = Literal["on_leave", "documents", "already_reserved", "unavailable", "leaving"]
 
 
 def _excluded(person: Any, reason: ExcludedReason, detail: str) -> ExcludedWorker:
@@ -127,12 +128,14 @@ def forecast_project(
             text(
                 """SELECT e.id, e.employee_code AS code, e.full_name AS name,
                           e.primary_trade_id AS trade_id, e.availability::text AS availability,
+                          e.contract_end_on, e.exit_on, e.exit_reason::text AS exit_reason,
                           es.level
                    FROM employees e
                    LEFT JOIN employee_skills es
                           ON es.employee_id = e.id AND es.trade_id = e.primary_trade_id
                    WHERE e.primary_trade_id = ANY(:trades)
-                     AND e.employment_status NOT IN ('resigned', 'terminated', 'suspended')
+                     AND e.employment_status NOT IN
+                         ('resigned', 'terminated', 'suspended', 'absconded')
                    ORDER BY e.employee_code"""
             ),
             {"trades": trade_ids},
@@ -208,16 +211,30 @@ def forecast_project(
             {"pid": project["id"], "start": start},
         ).mappings()
     }
-    pending = {
-        r["trade_id"]: int(r["n"])
-        for r in session.execute(
-            text(
-                """SELECT trade_id, sum(headcount) AS n FROM recruitment_requests
-                   WHERE project_id = :pid AND status IN ('open', 'in_progress') GROUP BY 1"""
-            ),
-            {"pid": project["id"]},
-        ).mappings()
-    }
+    arrivals: dict[uuid.UUID, list[Arrival]] = defaultdict(list)
+    for r in session.execute(
+        text(
+            """SELECT trade_id, status::text AS stage, headcount, source::text AS source,
+                      expected_arrival
+               FROM recruitment_requests
+               WHERE project_id = :pid AND status::text = ANY(:stages)
+               ORDER BY expected_arrival NULLS LAST, request_no"""
+        ),
+        {"pid": project["id"], "stages": list(OPEN_STAGES)},
+    ).mappings():
+        arrives: date | None = r["expected_arrival"]
+        arrivals[r["trade_id"]].append(
+            Arrival(
+                stage=r["stage"],
+                stage_label=stage_label(r["stage"]),
+                stage_phrase=stage_phrase(r["stage"]),
+                headcount=int(r["headcount"]),
+                source=r["source"],
+                expected_arrival=arrives,
+                days_after_start=(arrives - start).days if arrives else None,
+                late=arrives is not None and arrives > start,
+            )
+        )
 
     by_trade: dict[uuid.UUID, list[Any]] = defaultdict(list)
     for person in people:
@@ -280,6 +297,10 @@ def forecast_project(
             ):
                 continue  # busy well past the start
 
+            leaving = _leaving(person, window_end)
+            if leaving:
+                excluded.append(_excluded(person, "leaving", leaving))
+                continue
             leave = on_leave.get(person["id"])
             if leave:
                 excluded.append(
@@ -335,7 +356,8 @@ def forecast_project(
         from_other = sum(len(s.workers) for s in sources if s.kind == "ending_before_start")
         deployable = len(available) + from_other
         gap = max(needed - assigned - deployable, 0)
-        waiting = pending.get(need["id"], 0)
+        coming = arrivals.get(need["id"], [])
+        waiting = sum(a.headcount for a in coming if not a.late)  # on time: reduces the gap
         uncovered = max(gap - waiting, 0)
         trades.append(
             TradeForecast(
@@ -349,6 +371,7 @@ def forecast_project(
                 uncovered_gap=uncovered,
                 sources=sources,
                 late_candidates=late,
+                arriving=coming,
                 excluded=excluded,
                 advice=recruitment_advice(
                     needed=needed,
@@ -358,10 +381,12 @@ def forecast_project(
                     pending=waiting,
                     uncovered=uncovered,
                     late=late,
+                    arrivals=coming,
                     start=start,
                     must_finish_by=must_finish_by,
                     today=today,
-                    lead_days=settings.recruit_lead_days,
+                    lead_local=settings.recruit_lead_days_local,
+                    lead_overseas=settings.recruit_lead_days_overseas,
                 ),
             )
         )
@@ -383,6 +408,35 @@ def forecast_project(
     )
 
 
+def _leaving(person: Any, window_end: date) -> str | None:
+    """Why this person will not be here for the whole cover window, or None.
+
+    An exit date or a contract end before the window closes means they cannot be counted on.
+    (A renewal is not modelled yet; until HR can edit employees the dates come from the data.)
+    """
+    exit_on: date | None = person["exit_on"]
+    if exit_on is not None and exit_on < window_end:
+        why = EXIT_LABEL.get(person["exit_reason"] or "other", "leaving")
+        return f"Leaving the company on {_day(exit_on)} ({why})"
+    contract_end: date | None = person["contract_end_on"]
+    if contract_end is not None and contract_end < window_end:
+        return f"Contract ends {_day(contract_end)}"
+    return None
+
+
+def _arrival_sentence(late: list[Arrival]) -> str:
+    """Name the recruits who arrive after the project has started."""
+    parts: list[str] = []
+    for a in late:
+        assert a.expected_arrival is not None and a.days_after_start is not None
+        parts.append(
+            f"{a.headcount} {a.stage_phrase} "
+            f"{'arrives' if a.headcount == 1 else 'arrive'} {_day(a.expected_arrival)}, "
+            f"{_days(a.days_after_start)} after the start"
+        )
+    return f" {'; '.join(parts)}." if parts else ""
+
+
 def recruitment_advice(
     *,
     needed: int,
@@ -392,10 +446,12 @@ def recruitment_advice(
     pending: int,
     uncovered: int,
     late: list[LateCandidate],
+    arrivals: list[Arrival],
     start: date,
     must_finish_by: date,
     today: date,
-    lead_days: int,
+    lead_local: int,
+    lead_overseas: int,
 ) -> Advice:
     """What to do about a trade, worded from the numbers (rule RECRUIT_ADVICE_PYTHON_ONLY)."""
     if gap == 0:
@@ -410,37 +466,49 @@ def recruitment_advice(
                 f"by {_day(must_finish_by)}."
             ),
         )
+    late_arrivals = [a for a in arrivals if a.late]
     if uncovered == 0:
+        on_time = [a for a in arrivals if not a.late]
+        details = ", ".join(
+            f"{a.headcount} {a.stage_phrase}"
+            + (f" arrives {_day(a.expected_arrival)}" if a.expected_arrival else "")
+            for a in on_time
+        )
         return Advice(
             verdict="recruitment_pending",
-            headline=f"Short by {gap}. A recruitment request for {pending} is already open.",
+            headline=f"Short by {gap}. Already on the way: {details}."
+            + _arrival_sentence(late_arrivals),
         )
-    recruit_by = start - timedelta(days=lead_days)
-    passed = recruit_by < today
+    local_by = start - timedelta(days=lead_local)
+    overseas_by = start - timedelta(days=lead_overseas)
+    local_passed, overseas_passed = local_by < today, overseas_by < today
     could = min(uncovered, len(late))
     chosen = late[:could]
     delay = max((max(c.days_after_start, 0) for c in chosen), default=None) if chosen else None
     instead = uncovered - could
-    base = f"Recruit {uncovered} by {_day(recruit_by)}"
-    if passed:
-        base += " (that date has passed)"
+    dates = f"Recruit {uncovered}: locally by {_day(local_by)}"
+    dates += " (date passed)" if local_passed else ""
+    dates += f", or overseas by {_day(overseas_by)}"
+    dates += " (date passed)" if overseas_passed else ""
     if could == 0:
-        headline = f"{base}. Nobody else finishes in time."
+        headline = f"{dates}. Nobody else finishes in time."
     elif instead == 0:
         when = "just before the start" if not delay else f"within {_days(delay)} of the start"
         headline = (
-            f"{base}, or wait for {could} who {'finishes' if could == 1 else 'finish'} {when}."
+            f"{dates}, or wait for {could} who {'finishes' if could == 1 else 'finish'} {when}."
         )
     else:
         headline = (
-            f"{base}, or have {could} start up to {_days(delay or 0)} late and recruit {instead}."
+            f"{dates}, or have {could} start up to {_days(delay or 0)} late and recruit {instead}."
         )
     return Advice(
         verdict="recruit",
-        headline=headline,
+        headline=headline + _arrival_sentence(late_arrivals),
         recruit_count=uncovered,
-        recruit_by=recruit_by,
-        recruit_by_passed=passed,
+        recruit_by=local_by,
+        recruit_by_passed=local_passed,
+        recruit_by_overseas=overseas_by,
+        recruit_by_overseas_passed=overseas_passed,
         could_start_late=could,
         max_delay_days=delay,
         recruit_instead=instead,

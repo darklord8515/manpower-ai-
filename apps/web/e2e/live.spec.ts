@@ -150,7 +150,7 @@ test("Projects: the real list and the seeded RAK-07 forecast", async ({ page }) 
   ).toBeVisible();
   await expect(
     page.getByText(
-      "Recruit 1 by 13 Jan 2027, or wait for 1 who finishes within 14 days of the start.",
+      /Recruit 1: locally by 13 Jan 2027, or overseas by 14 Dec 2026, or wait for 1 who finishes within 14 days of the start\. 1 in visa processing arrives 2 Mar 2027, 18 days after the start\./,
     ),
   ).toBeVisible();
   await page.getByLabel("What if it starts on").fill("2027-03-01");
@@ -193,5 +193,5 @@ test("Projects: HR adds a project and sees its forecast straight away", async ({
   await expect(page.getByText(/RAK-\d+ was added\. Here is who could work on it\./)).toBeVisible();
   const mason = page.getByRole("region", { name: "Mason" });
   await expect(mason.getByText("30", { exact: true }).first()).toBeVisible();
-  await expect(mason.getByText(/^Recruit \d+ by/)).toBeVisible(); // 30 masons is more than the company has
+  await expect(mason.getByText(/^Recruit \d+: locally by/)).toBeVisible(); // 30 masons is more than the company has
 });
