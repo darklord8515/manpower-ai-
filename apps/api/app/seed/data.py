@@ -161,3 +161,21 @@ SOON_OFFSETS = [
     63, 64, 66, 70, 72, 73, 75, 78, 80, 82, 84, 86, 88, 90,
 ]  # fmt: skip
 EXPIRED_OFFSETS = (-4, -11)
+
+# People released from a project before it ends: (project, trade, last day). The first matching
+# worker on that project is used, so the data repeats. They make the RAK-07 forecast (starts
+# 12 Feb 2027, 7-day handover buffer) show people who finish just before the buffer closes and a
+# few days after the start.
+EARLY_ENDS: tuple[tuple[str, str, date], ...] = (
+    ("RAK-01", "Mason", date(2027, 2, 8)),  # inside the handover buffer
+    ("RAK-01", "Mason", date(2027, 2, 20)),  # 8 days after the start
+    ("RAK-01", "Mason", date(2027, 2, 24)),  # 12 days after the start
+    ("RAK-06", "Steel fixer", date(2027, 2, 18)),
+    ("RAK-06", "General labour", date(2027, 2, 26)),
+)
+
+# Approved leave: (project, trade, first day, last day). The first matching worker not already used.
+LEAVES: tuple[tuple[str, str, date, date], ...] = (
+    ("RAK-01", "Mason", date(2027, 2, 1), date(2027, 2, 28)),
+    ("RAK-05", "Mason", date(2027, 2, 10), date(2027, 3, 10)),
+)

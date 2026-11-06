@@ -54,7 +54,11 @@ so the seeded alerts prove the detectors work.
 
 - ~150 employees, 12 trades, 7 projects with sites, 2 camps, 10 vehicles, one user per role.
 - **RAK-07 (future project), starts 12 Feb 2027**, outdoor site, needs 10 masons, 8 steel fixers,
-  6 general labour:
+  6 general labour. The seed (EARLY_ENDS, LEAVES in `app/seed/data.py`) gives these forecast results from the
+  simulated 5 Nov 2026 (locked by `tests/test_forecast.py`): masons covered but 8 of 10 depend on RAK-05 and RAK-02
+  finishing, with 3 people finishing 4 days before and 8 and 12 days after the start; general labour 1 short with
+  1 person finishing 14 days after the start; steel fixers covered (15 come off RAK-02 on 31 Jan). The older
+  "4 masons short" story below is superseded:
   - **Steel fixers: covered.** 8 deployable, all on RAK-02 with assignments ending 31 Jan 2027,
     so they "depend on RAK-02 finishing by 5 Feb 2027" (12 Feb − 7-day buffer).
   - **Masons: 4 short.** 6 deployable. Excluded and shown in the forecast: 1 on approved leave in

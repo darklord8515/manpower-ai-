@@ -2,8 +2,12 @@ import type {
   DemoRole,
   ExpiringList,
   Me,
+  NewProject,
+  ProjectForecast,
+  ProjectRow,
   PublicConfig,
   Summary,
+  Trade,
   WorkerDetail,
   WorkerFacets,
   WorkerList,
@@ -54,6 +58,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     try {
       const body = (await response.json()) as { detail?: unknown };
       if (typeof body.detail === "string") detail = body.detail;
+      else if (Array.isArray(body.detail) && body.detail.length > 0) {
+        // FastAPI validation errors: [{ msg: "Value error, The end date must ..." }, ...]
+        const first = body.detail[0] as { msg?: unknown };
+        if (typeof first.msg === "string") detail = first.msg.replace(/^Value error, /, "");
+      }
     } catch {
       /* no JSON body */
     }
@@ -78,6 +87,14 @@ export const api = {
   summary: () => request<Summary>("/summary"),
   expiring: (window: "expired" | "d30" | "d60" | "d90") =>
     request<ExpiringList>(`/documents/expiring?window=${window}`),
+  projects: () => request<ProjectRow[]>("/projects"),
+  trades: () => request<Trade[]>("/trades"),
+  createProject: (project: NewProject) =>
+    request<ProjectRow>("/projects", { method: "POST", body: JSON.stringify(project) }),
+  forecast: (code: string, start?: string) =>
+    request<ProjectForecast>(
+      `/projects/${encodeURIComponent(code)}/forecast${start ? `?start=${start}` : ""}`,
+    ),
   workers: (query: WorkersQuery) => request<WorkerList>(`/workers?${toApiParams(query)}`),
   workerFacets: () => request<WorkerFacets>("/workers/facets"),
   worker: (code: string) => request<WorkerDetail>(`/workers/${encodeURIComponent(code)}`),

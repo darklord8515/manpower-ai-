@@ -706,6 +706,8 @@ FROM (VALUES
  ('hr_manager','alert:act','all'),
  ('hr_manager','mobilization:create','all'), ('hr_manager','mobilization:approve','all'),
  ('hr_manager','rules:write','all'), ('hr_manager','ai:use','all'),
+ -- HR plans the work: it adds new projects and their manpower requirements.
+ ('hr_manager','project:write','all'),
 
  ('hr_executive','employee:read','all'), ('hr_executive','employee:write','all'),
  ('hr_executive','document:verify','all'), ('hr_executive','document:upload','all'),
@@ -713,6 +715,7 @@ FROM (VALUES
  ('hr_executive','mobilization:read','all'), ('hr_executive','ai:use','all'),
  ('hr_executive','forecast:read','all'), ('hr_executive','recruitment:read','all'),
  ('hr_executive','alert:read','all'), ('hr_executive','alert:act','all'),
+ ('hr_executive','project:write','all'),
 
  ('project_manager','employee:read','project'), ('project_manager','project:read','project'),
  ('project_manager','staffing:read','project'), ('project_manager','staffing:create','project'),

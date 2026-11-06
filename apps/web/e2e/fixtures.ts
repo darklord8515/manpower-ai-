@@ -6,7 +6,7 @@ export const HR_USER = {
   email: "noura.demo@constructiq.test",
   full_name: "Noura Demo",
   roles: ["hr_manager"],
-  permissions: ["employee:read", "project:read", "staffing:read"],
+  permissions: ["employee:read", "project:read", "project:write", "staffing:read", "forecast:read"],
   demo_mode: true,
   landing: "hr",
 };
@@ -17,6 +17,7 @@ export const CEO_USER = {
   email: "layla.demo@constructiq.test",
   full_name: "Layla Demo",
   roles: ["ceo"],
+  permissions: ["employee:read", "project:read", "staffing:read", "forecast:read"],
   landing: "executive",
 };
 
@@ -210,5 +211,186 @@ export async function mockWorkers(page: Page) {
     const offset = Number(params.get("offset") ?? 0);
     const limit = Number(params.get("limit") ?? 25);
     json(r, { total: rows.length, items: rows.slice(offset, offset + limit) });
+  });
+}
+
+// --------------------------------------------------------------------------- projects and the forecast
+
+const PROJECT_LIST = [
+  ...SUMMARY.projects,
+  {
+    code: "RAK-07",
+    name: "Shamal Logistics Hub",
+    status: "planning",
+    starts: "2027-02-12",
+    ends: "2027-12-31",
+    planned: 24,
+    deployed: 0,
+  },
+];
+
+const worker = (code: string, name: string, level = 3) => ({
+  code,
+  name,
+  level,
+  documents_valid: true,
+});
+
+/** The shape of GET /projects/{code}/forecast, with the numbers the seed gives RAK-07. */
+export function forecastFor(code: string, start = "2027-02-12") {
+  return {
+    project: {
+      code,
+      name: code === "RAK-07" ? "Shamal Logistics Hub" : "Al Hamra Marina Towers",
+      status: "planning",
+      starts_on: "2027-02-12",
+      ends_on: "2027-12-31",
+    },
+    today: "2026-11-05",
+    start,
+    window_end: "2027-05-13",
+    buffer_days: 7,
+    late_window_days: 21,
+    trades: [
+      {
+        trade_code: "general_labour",
+        trade: "General labour",
+        needed: 6,
+        already_assigned: 0,
+        deployable: 5,
+        recruitment_pending: 0,
+        gap: 1,
+        uncovered_gap: 1,
+        sources: [
+          {
+            kind: "available_now",
+            project_code: null,
+            ends_on: null,
+            must_finish_by: null,
+            workers: [worker("EMP-0170", "Ram Bahadur", 2), worker("EMP-0171", "Abdul Karim", 1)],
+          },
+          {
+            kind: "ending_before_start",
+            project_code: "RAK-05",
+            ends_on: "2026-12-15",
+            must_finish_by: "2027-02-05",
+            workers: [worker("EMP-0540", "Naresh Das"), worker("EMP-0541", "Omar Ali")],
+          },
+        ],
+        late_candidates: [
+          {
+            ...worker("EMP-0584", "Tariq Mondal"),
+            project_code: "RAK-06",
+            ends_on: "2027-02-26",
+            days_after_start: 14,
+          },
+        ],
+        excluded: [
+          {
+            code: "EMP-0172",
+            name: "Gopal Das",
+            reason: "documents",
+            detail: "Residency visa ends 9 Mar 2027",
+          },
+        ],
+        advice: {
+          verdict: "recruit",
+          headline:
+            "Recruit 1 by 13 Jan 2027, or wait for 1 who finishes within 14 days of the start.",
+          recruit_count: 1,
+          recruit_by: "2027-01-13",
+          recruit_by_passed: false,
+          could_start_late: 1,
+          max_delay_days: 14,
+          recruit_instead: 0,
+        },
+      },
+      {
+        trade_code: "mason",
+        trade: "Mason",
+        needed: 10,
+        already_assigned: 0,
+        deployable: 10,
+        recruitment_pending: 0,
+        gap: 0,
+        uncovered_gap: 0,
+        sources: [],
+        late_candidates: [],
+        excluded: [],
+        advice: {
+          verdict: "covered_with_dependencies",
+          headline: "Covered, but 8 still depend on other projects finishing by 5 Feb 2027.",
+          recruit_count: 0,
+          recruit_by: null,
+          recruit_by_passed: false,
+          could_start_late: 0,
+          max_delay_days: null,
+          recruit_instead: 0,
+        },
+      },
+      {
+        trade_code: "steel_fixer",
+        trade: "Steel fixer",
+        needed: 8,
+        already_assigned: 0,
+        deployable: 21,
+        recruitment_pending: 0,
+        gap: 0,
+        uncovered_gap: 0,
+        sources: [],
+        late_candidates: [],
+        excluded: [],
+        advice: {
+          verdict: "covered",
+          headline: "Covered by people who are free now.",
+          recruit_count: 0,
+          recruit_by: null,
+          recruit_by_passed: false,
+          could_start_late: 0,
+          max_delay_days: null,
+          recruit_instead: 0,
+        },
+      },
+    ],
+  };
+}
+
+export const TRADES = [
+  { code: "carpenter", name: "Carpenter" },
+  { code: "general_labour", name: "General labour" },
+  { code: "mason", name: "Mason" },
+  { code: "steel_fixer", name: "Steel fixer" },
+];
+
+/** Projects, trades, adding a project (as RAK-08) and the forecast. */
+export async function mockProjects(page: Page) {
+  await page.route(/\/api\/projects$/, (r) => {
+    if (r.request().method() === "POST") {
+      const sent = r.request().postDataJSON() as {
+        name: string;
+        starts_on: string;
+        ends_on: string;
+      };
+      return json(
+        r,
+        {
+          code: "RAK-08",
+          name: sent.name,
+          status: "planning",
+          starts: sent.starts_on,
+          ends: sent.ends_on,
+          planned: 18,
+          deployed: 0,
+        },
+        201,
+      );
+    }
+    return json(r, PROJECT_LIST);
+  });
+  await page.route("**/api/trades", (r) => json(r, TRADES));
+  await page.route(/\/api\/projects\/[A-Z0-9-]+\/forecast/, (r) => {
+    const url = new URL(r.request().url());
+    const code = url.pathname.split("/")[3];
+    return json(r, forecastFor(code, url.searchParams.get("start") ?? "2027-02-12"));
   });
 }

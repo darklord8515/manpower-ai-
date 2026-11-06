@@ -64,6 +64,12 @@ class Settings(BaseSettings):
     transfer_buffer_days: int = Field(default=7, ge=0, le=60)
     forecast_doc_horizon_days: int = Field(default=90, ge=1, le=365)
     forecast_window_days: int = Field(default=120, ge=1, le=730)
+    # People finishing up to this many days AFTER a project starts are offered as "could join late".
+    forecast_late_window_days: int = Field(default=21, ge=0, le=90)
+    # Documents a worker must hold, valid through the cover window, to count as deployable.
+    forecast_required_docs: str = "residency_visa,medical_fitness"
+    # Recruitment is asked for this many days before a project starts.
+    recruit_lead_days: int = Field(default=30, ge=0, le=365)
     approval_wait_hours: int = Field(default=24, ge=1, le=240)
 
     # Secrets (never committed; read from .env or the host's secret store)
@@ -97,6 +103,10 @@ class Settings(BaseSettings):
             port=self.postgres_port,
             database="constructiq",
         ).render_as_string(hide_password=False)
+
+    @property
+    def required_document_types(self) -> list[str]:
+        return [d.strip() for d in self.forecast_required_docs.split(",") if d.strip()]
 
     @property
     def cors_origin_list(self) -> list[str]:

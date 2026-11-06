@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, type LucideIcon } from "lucide-react";
+import { Building2, LayoutDashboard, Users, type LucideIcon } from "lucide-react";
 
 export type NavItem = {
   id: string;
@@ -13,7 +13,7 @@ export type NavItem = {
 
 /**
  * Only screens that exist are listed: the sidebar never links to something unbuilt.
- * Documents, Requests, Forecast and Projects join this list as each one is built.
+ * Documents and Requests join this list as each one is built.
  */
 export const NAV: NavItem[] = [
   { id: "home", label: "Home", href: "/", icon: LayoutDashboard, group: "" },
@@ -24,6 +24,14 @@ export const NAV: NavItem[] = [
     icon: Users,
     group: "People",
     requires: "employee:read",
+  },
+  {
+    id: "projects",
+    label: "Projects",
+    href: "/projects",
+    icon: Building2,
+    group: "Work",
+    requires: "project:read",
   },
 ];
 

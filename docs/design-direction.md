@@ -261,6 +261,22 @@ One screen for HR to turn open staffing requests into approved workers.
 - Reserved rows show "Reserved · SR-… · depends on …". If a dependency breaks, the row shows the
   critical alert inline.
 
+### Projects and the forecast, as built (HR, Operations, CEO)
+- **Projects:** a table (code and name, status chip, dates, "27 of 30" with "3 short" in the danger tone, a
+  Forecast button). **Add project** (accent button, only with `project:write`) opens a right sheet: name,
+  start and end date, outdoor site, and a list of trades with a headcount each (each trade once; rows can be
+  added and removed). Mistakes are explained under the field and focus goes to the first one; a refusal from
+  the server is shown above the buttons. On success the forecast opens with "RAK-08 was added".
+- **Forecast:** one card per trade: Needed, Already assigned, Deployable, Recruitment pending, Gap (danger
+  text above 0) and a status chip: Covered (success), Covered, depends on others (info), Recruiting (info),
+  Recruit N (danger tint, with an icon). Under the numbers, one sentence worded by Python: "Recruit 4 by
+  13 Jan 2027, or have 2 start up to 12 days late and recruit 2." **Show people** lists Free now, From
+  <project> (with a "depends on <project> finishing by ..." chip), **Could join late** (finishing just inside
+  the handover buffer or up to 21 days after the start, shown with the days; never counted), and Not counted
+  (on leave, documents, planned elsewhere, not available) with the reason.
+- **What if:** a start-date field re-runs the forecast; "Back to project start" returns. The date is in the
+  address bar. Reserve transfers and Raise recruitment request are the next slice and are not shown yet.
+
 ### Workers (HR, Operations, CEO)
 - **List:** search (`/` focuses it), a status strip with counts (Everyone, Available, On a project,
   Mobilizing, Not available), Trade / Project / Documents filters with counts, server-side sorting and

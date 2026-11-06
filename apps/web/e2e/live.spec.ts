@@ -136,3 +136,62 @@ test("Workers: the HR Executive sees masked numbers and no eye", async ({ page }
   await expect(sheet.getByTestId("number-residency_visa")).toHaveText(/^•••• /);
   await expect(sheet.getByRole("button", { name: /Show emirates id number/ })).toHaveCount(0);
 });
+
+test("Projects: the real list and the seeded RAK-07 forecast", async ({ page }) => {
+  await signInAs(page, /HR Manager/);
+  await page.getByRole("link", { name: "Projects" }).first().click();
+  await expect(page.getByText(/^\d+ projects, \d+ in planning$/)).toBeVisible();
+  const row = page.locator("table tbody tr").filter({ hasText: "RAK-07" });
+  await expect(row.getByText("Planning")).toBeVisible();
+  await row.getByRole("link", { name: "Forecast" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Shamal Logistics Hub");
+  await expect(
+    page.getByText("Covered, but 8 still depend on other projects finishing by 5 Feb 2027."),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "Recruit 1 by 13 Jan 2027, or wait for 1 who finishes within 14 days of the start.",
+    ),
+  ).toBeVisible();
+  await page.getByLabel("What if it starts on").fill("2027-03-01");
+  await expect(page).toHaveURL(/start=2027-03-01/);
+  await expect(page.getByText(/Who could work here from 1 Mar 2027/)).toBeVisible();
+});
+
+test("Projects: the MD/CEO cannot add a project, even by asking the API directly", async ({
+  page,
+}) => {
+  await signInAs(page, /MD \/ CEO/);
+  await page.goto("/projects");
+  await expect(page.locator("table tbody tr").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add project" })).toHaveCount(0);
+  const refused = await page.request.post("/api/projects", {
+    data: {
+      name: "Not allowed",
+      starts_on: "2027-04-01",
+      ends_on: "2027-05-01",
+      lines: [{ trade: "mason", headcount: 1 }],
+    },
+    headers: { Origin: "http://localhost:3100" },
+  });
+  expect(refused.status()).toBe(403);
+});
+
+// Last on purpose: it adds a real project (RAK-08, RAK-09, ... on each run) to the database.
+test("Projects: HR adds a project and sees its forecast straight away", async ({ page }) => {
+  await signInAs(page, /HR Manager/);
+  await page.goto("/projects");
+  await page.getByRole("button", { name: "Add project" }).click();
+  const sheet = page.getByRole("dialog");
+  await sheet.getByLabel("Project name").fill("Live Test Tower");
+  await sheet.getByLabel("Starts").fill("2027-04-01");
+  await sheet.getByLabel("Ends").fill("2028-03-31");
+  await sheet.getByLabel("Trade 1", { exact: true }).selectOption("mason");
+  await sheet.getByLabel("How many 1").fill("30");
+  await sheet.getByRole("button", { name: "Create project" }).click();
+  await expect(page).toHaveURL(/\/projects\/RAK-\d+\/forecast/);
+  await expect(page.getByText(/RAK-\d+ was added\. Here is who could work on it\./)).toBeVisible();
+  const mason = page.getByRole("region", { name: "Mason" });
+  await expect(mason.getByText("30", { exact: true }).first()).toBeVisible();
+  await expect(mason.getByText(/^Recruit \d+ by/)).toBeVisible(); // 30 masons is more than the company has
+});

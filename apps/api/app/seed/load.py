@@ -14,7 +14,14 @@ from argon2 import PasswordHasher
 from sqlalchemy import Connection, text
 
 from app.config import ConfigError, Settings
-from app.seed.data import ALL_TRADES, DOC_TYPE_CODE, PROJECTS, SEED_TODAY
+from app.seed.data import (
+    ALL_TRADES,
+    DOC_TYPE_CODE,
+    EARLY_ENDS,
+    LEAVES,
+    PROJECTS,
+    SEED_TODAY,
+)
 from app.seed.workers import WorkerSeed, build_workers
 
 _NAMESPACE = uuid.UUID("6d1f3c0a-5b7e-4d0e-9a52-0c1f7a6b9e11")  # fixed, so ids repeat on reseed
@@ -39,6 +46,7 @@ _RESET_ORDER = (
     "employee_documents",
     "employee_skills",
     "leave_records",
+    "recruitment_requests",
     "user_project_access",
     "project_sites",
     "manpower_requirements",
@@ -75,6 +83,24 @@ def _trade_code(name: str) -> str:
 def _insert(connection: Connection, sql: str, rows: list[dict[str, Any]]) -> None:
     if rows:
         connection.execute(text(sql), rows)
+
+
+def _pick(workers: list[WorkerSeed], project: str, trade: str, used: set[str]) -> WorkerSeed:
+    """The first generated, deployed worker on `project` with `trade` not already used.
+
+    Generated workers only (EMP-0501 up): the named demo workers keep the stories they were given.
+    """
+    for w in sorted(workers, key=lambda w: w.code):
+        if (
+            w.status == "deployed"
+            and w.project == project
+            and w.trade == trade
+            and w.code >= "EMP-0501"
+            and w.code not in used
+        ):
+            used.add(w.code)
+            return w
+    raise ConfigError(f"The seed has no free {trade} on {project}")
 
 
 def seed_demo(connection: Connection, settings: Settings) -> dict[str, int]:
@@ -214,15 +240,20 @@ def _load_workers(
             for d in w.docs
         ],
     )  # fmt: skip
+    # Everyone is on their project until it ends, unless released early (EARLY_ENDS).
+    last_day = {p.code: p.ends for p in PROJECTS}
+    used: set[str] = set()
+    early = {_pick(workers, p, t, used).code: d for p, t, d in EARLY_ENDS}
     _insert(
         connection,
         """INSERT INTO employee_assignments (id, employee_id, project_id, period, status, is_demo)
-           VALUES (:id, :employee_id, :project_id, daterange(:starts, NULL, '[)'),
+           VALUES (:id, :employee_id, :project_id, daterange(:starts, :ends, '[]'),
                    CAST(:status AS assignment_status), true)""",
         [
             {
                 "id": demo_id("assignment", w.code), "employee_id": ids[w.code],
                 "project_id": projects[w.project],
+                "ends": early.get(w.code, last_day[w.project]),
                 "starts": SEED_TODAY + timedelta(days=3)
                 if w.status == "mobilizing"
                 else SEED_TODAY - timedelta(days=40 + int(w.code[-3:]) % 220),
@@ -232,3 +263,16 @@ def _load_workers(
             if w.project and w.status in ("deployed", "mobilizing")
         ],
     )  # fmt: skip
+    leave_rows: list[dict[str, Any]] = []
+    for project, trade, first_day, last_day_of_leave in LEAVES:
+        w = _pick(workers, project, trade, used)
+        leave_rows.append(
+            {"id": demo_id("leave", w.code), "employee_id": ids[w.code],
+             "first": first_day, "last": last_day_of_leave}
+        )  # fmt: skip
+    _insert(
+        connection,
+        """INSERT INTO leave_records (id, employee_id, leave_type, period, approved, is_demo)
+           VALUES (:id, :employee_id, 'annual', daterange(:first, :last, '[]'), true, true)""",
+        leave_rows,
+    )

@@ -5,15 +5,23 @@ from __future__ import annotations
 
 import os
 import uuid
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
 
 import pytest
 from alembic.config import Config
+from fastapi.testclient import TestClient
 from sqlalchemy import Engine, create_engine, text
+from sqlalchemy.orm import Session, sessionmaker
 
 from alembic import command
+from app.auth.throttle import LoginThrottle
 from app.config import ConfigError, get_settings
+from app.db import get_session
+from app.main import create_app
+from app.routes import auth as auth_routes
+from app.seed.load import seed_demo
+from tests.support import make_settings
 
 API_ROOT = Path(__file__).resolve().parents[1]
 
@@ -53,3 +61,42 @@ def migrated_db(admin_engine: Engine) -> Iterator[Engine]:
     engine.dispose()
     with admin_engine.connect() as connection:
         connection.execute(text(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)'))
+
+
+@pytest.fixture
+def make_client(
+    migrated_db: Engine, monkeypatch: pytest.MonkeyPatch
+) -> Iterator[Callable[..., TestClient]]:
+    """Builds clients on one freshly seeded database; settings can be overridden per client."""
+    monkeypatch.setattr(auth_routes, "throttle", LoginThrottle())
+    sessions = sessionmaker(bind=migrated_db, expire_on_commit=False)
+    clients: list[TestClient] = []
+    seeded = False
+
+    def build(**overrides: object) -> TestClient:
+        nonlocal seeded
+        settings = make_settings(**overrides)
+        if not seeded:
+            with migrated_db.begin() as connection:
+                seed_demo(connection, settings)
+            seeded = True
+        app = create_app(settings)
+
+        def session() -> Iterator[Session]:
+            with sessions() as s:
+                yield s
+
+        app.dependency_overrides[get_session] = session
+        app.dependency_overrides[get_settings] = lambda: settings
+        client = TestClient(app)
+        clients.append(client)
+        return client
+
+    yield build
+    for client in clients:
+        client.close()
+
+
+@pytest.fixture
+def client(make_client: Callable[..., TestClient]) -> TestClient:
+    return make_client()

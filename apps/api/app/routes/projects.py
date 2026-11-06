@@ -2,19 +2,30 @@
 
 from __future__ import annotations
 
+import uuid
 from datetime import date, timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.auth.deps import AuthUser, get_clock, require
+from app.audit import write_audit
+from app.auth.deps import AuthUser, authenticated, get_clock, require
 from app.auth.scope import employee_scope, full_profile
 from app.clock import Clock
 from app.db import get_session
 from app.routes.documents import expiring
-from app.schemas import ExpiryCounts, ExpiryWeek, ProjectRow, Summary, WorkforceCounts
+from app.schemas import (
+    ExpiryCounts,
+    ExpiryWeek,
+    NewProject,
+    ProjectRow,
+    Summary,
+    Trade,
+    WorkforceCounts,
+)
 
 router = APIRouter(tags=["projects"])
 
@@ -61,6 +72,82 @@ def list_projects(
     session: SessionDep, user: Annotated[AuthUser, Depends(require("project:read"))]
 ) -> list[ProjectRow]:
     return _projects(session, user)
+
+
+def _insert_project(session: Session, body: NewProject) -> tuple[uuid.UUID, str]:
+    """Insert the project under the next free RAK-NN code. Returns (id, code)."""
+    for _ in range(3):  # two people adding at once could pick the same number
+        try:
+            row = session.execute(
+                text(
+                    """INSERT INTO projects (code, name, status, starts_on, ends_on, description)
+                       SELECT 'RAK-' || lpad(
+                                  (coalesce(max(substring(code FROM 5)::int), 0) + 1)::text,
+                                  2, '0'),
+                              :name, 'planning', :starts, :ends, :description
+                       FROM projects WHERE code ~ '^RAK-[0-9]+$'
+                       RETURNING id, code"""
+                ),
+                {"name": body.name, "starts": body.starts_on, "ends": body.ends_on,
+                 "description": body.description},
+            ).one()  # fmt: skip
+            return row[0], str(row[1])
+        except IntegrityError:
+            session.rollback()
+    raise HTTPException(
+        status.HTTP_409_CONFLICT, "Another project was added at the same time. Try again."
+    )
+
+
+@router.get("/trades")
+def list_trades(
+    session: SessionDep, _user: Annotated[AuthUser, Depends(authenticated())]
+) -> list[Trade]:
+    """The trades a project can ask for (the Add-project form's choices)."""
+    rows = session.execute(text("SELECT code, name FROM trades ORDER BY name")).mappings()
+    return [Trade(code=r["code"], name=r["name"]) for r in rows]
+
+
+@router.post("/projects", status_code=status.HTTP_201_CREATED)
+def create_project(
+    body: NewProject,
+    request: Request,
+    session: SessionDep,
+    user: Annotated[AuthUser, Depends(require("project:write"))],
+) -> ProjectRow:
+    """A new project in planning, with the trades it needs. HR runs the forecast next."""
+    codes = [line.trade for line in body.lines]
+    known = {
+        r["code"]: r["id"]
+        for r in session.execute(
+            text("SELECT id, code FROM trades WHERE code = ANY(:codes)"), {"codes": codes}
+        ).mappings()
+    }
+    unknown = [c for c in codes if c not in known]
+    if unknown:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT, f"Unknown trade: {', '.join(unknown)}"
+        )
+    project_id, project_code = _insert_project(session, body)
+    session.execute(
+        text(
+            """INSERT INTO project_sites (project_id, name, outdoor, default_shift_start,
+                                          default_shift_end)
+               VALUES (:project_id, :name, :outdoor, '06:00', '12:30')"""
+        ),
+        {"project_id": project_id, "name": body.site_name or body.name, "outdoor": body.outdoor},
+    )
+    for line in body.lines:
+        session.execute(
+            text(
+                """INSERT INTO manpower_requirements (project_id, trade_id, headcount, period)
+                   VALUES (:project_id, :trade_id, :headcount, daterange(:starts, :ends, '[]'))"""
+            ),
+            {"project_id": project_id, "trade_id": known[line.trade], "headcount": line.headcount,
+             "starts": line.starts_on or body.starts_on, "ends": line.ends_on or body.ends_on},
+        )  # fmt: skip
+    write_audit(session, request, "project.created", "project", user, entity_id=project_id)
+    return next(p for p in _projects(session, user) if p.code == project_code)
 
 
 @router.get("/summary")

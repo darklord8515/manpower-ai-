@@ -3,129 +3,16 @@
 from __future__ import annotations
 
 import re
-import uuid
-from collections.abc import Callable, Iterator
+from collections.abc import Callable
 from datetime import date
 from typing import Any
 
-import pytest
-from argon2 import PasswordHasher
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine, text
-from sqlalchemy.orm import Session, sessionmaker
 
-from app.auth.throttle import LoginThrottle
-from app.config import AppEnv, Settings, get_settings
-from app.db import get_session
-from app.main import create_app
-from app.routes import auth as auth_routes
 from app.routes.workers import csv_cell
 from app.seed.data import SEED_TODAY
-from app.seed.load import seed_demo
-
-PASSWORD = "a-demo-password-for-tests"  # noqa: S105
-HR_MANAGER = "noura.demo@constructiq.test"
-HR_EXECUTIVE = "priya.demo@constructiq.test"
-CEO = "layla.demo@constructiq.test"
-
-
-def _settings(**overrides: object) -> Settings:
-    values: dict[str, object] = {
-        "app_env": AppEnv.TEST,
-        "demo_mode": True,
-        "simulated_clock": True,
-        "demo_password": PASSWORD,
-        "secret_key": "k" * 40,
-        "cors_origins": "http://localhost:3000",
-    }
-    values.update(overrides)
-    return Settings(**values)  # type: ignore[arg-type]
-
-
-@pytest.fixture
-def make_client(
-    migrated_db: Engine, monkeypatch: pytest.MonkeyPatch
-) -> Iterator[Callable[..., TestClient]]:
-    """Builds clients on one freshly seeded database; settings can be overridden per client."""
-    monkeypatch.setattr(auth_routes, "throttle", LoginThrottle())
-    sessions = sessionmaker(bind=migrated_db, expire_on_commit=False)
-    clients: list[TestClient] = []
-    seeded = False
-
-    def build(**overrides: object) -> TestClient:
-        nonlocal seeded
-        settings = _settings(**overrides)
-        if not seeded:
-            with migrated_db.begin() as connection:
-                seed_demo(connection, settings)
-            seeded = True
-        app = create_app(settings)
-
-        def session() -> Iterator[Session]:
-            with sessions() as s:
-                yield s
-
-        app.dependency_overrides[get_session] = session
-        app.dependency_overrides[get_settings] = lambda: settings
-        client = TestClient(app)
-        clients.append(client)
-        return client
-
-    yield build
-    for client in clients:
-        client.close()
-
-
-@pytest.fixture
-def client(make_client: Callable[..., TestClient]) -> TestClient:
-    return make_client()
-
-
-def sign_in(client: TestClient, email: str, password: str = PASSWORD) -> None:
-    response = client.post("/auth/login", json={"email": email, "password": password})
-    assert response.status_code == 200, response.text
-
-
-def add_user(
-    engine: Engine,
-    email: str,
-    role: str,
-    employee_code: str | None = None,
-    projects: tuple[str, ...] = (),
-) -> None:
-    """A user with one role, optionally linked to a worker and with access to projects."""
-    user_id = uuid.uuid4()
-    with engine.begin() as c:
-        employee = (
-            c.execute(
-                text("SELECT id FROM employees WHERE employee_code = :c"), {"c": employee_code}
-            ).scalar_one()
-            if employee_code
-            else None
-        )
-        c.execute(
-            text(
-                """INSERT INTO users (id, email, full_name, password_hash, employee_id, is_demo)
-                   VALUES (:id, :email, :name, :hash, :employee, true)"""
-            ),
-            {"id": user_id, "email": email, "name": email.split("@")[0],
-             "hash": PasswordHasher().hash(PASSWORD), "employee": employee},
-        )  # fmt: skip
-        c.execute(
-            text(
-                "INSERT INTO user_roles (user_id, role_id) SELECT :u, id FROM roles WHERE code = :r"
-            ),
-            {"u": user_id, "r": role},
-        )
-        for code in projects:
-            c.execute(
-                text(
-                    """INSERT INTO user_project_access (user_id, project_id)
-                       SELECT :u, id FROM projects WHERE code = :p"""
-                ),
-                {"u": user_id, "p": code},
-            )
-
+from tests.support import CEO, HR_EXECUTIVE, HR_MANAGER, PASSWORD, add_user, sign_in
 
 # --------------------------------------------------------------------------- sign in
 

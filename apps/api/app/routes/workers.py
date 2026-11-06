@@ -17,6 +17,7 @@ from app.auth.deps import AuthUser, get_clock, require
 from app.auth.scope import employee_scope, full_profile, masked
 from app.clock import Clock
 from app.db import get_session
+from app.labels import DOCUMENT_LABEL, document_label
 from app.schemas import (
     AssignmentDetail,
     DocumentBrief,
@@ -63,19 +64,7 @@ LEFT JOIN LATERAL (
     ORDER BY d.expiry_date LIMIT 1) nd ON TRUE
 """
 
-DOCUMENT_LABEL = {
-    "residency_visa": "Residency visa",
-    "medical_fitness": "Medical fitness",
-    "labour_card": "Labour card",
-    "passport": "Passport",
-    "work_permit": "Work permit",
-}
-
 WorkerStatus = Literal["available", "deployed", "mobilizing", "demobilizing", "unavailable"]
-
-
-def _label(doc_type: str) -> str:
-    return DOCUMENT_LABEL.get(doc_type, doc_type.replace("_", " ").capitalize())
 
 
 def _day(value: date) -> str:
@@ -274,7 +263,7 @@ def export_workers(
                 for v in (
                     r["code"], r["name"], r["trade"], r["level"], r["status"], r["project"],
                     r["phone"],
-                    _label(r["next_type"]) if r["next_type"] else None,
+                    document_label(r["next_type"]) if r["next_type"] else None,
                     r["next_expiry"].isoformat() if r["next_expiry"] else None,
                 )
             ]
@@ -296,7 +285,7 @@ def _risks(
         expiry: date | None = d["expiry"]
         if expiry is None:
             continue
-        label = _label(d["type"])
+        label = document_label(d["type"])
         if expiry < today:
             ago = (today - expiry).days
             unit = "day" if ago == 1 else "days"
@@ -374,8 +363,10 @@ def get_worker(code: str, session: SessionDep, clock: ClockDep, user: Reader) ->
         dict(a)
         for a in session.execute(
             text(
-                """SELECT pr.code, pr.name, lower(a.period) AS starts, upper(a.period) AS ends,
-                          coalesce(upper(a.period), pr.ends_on) AS "end", a.status::text AS status
+                """SELECT pr.code, pr.name, lower(a.period) AS starts,
+                          (upper(a.period) - 1) AS ends,
+                          coalesce(upper(a.period) - 1, pr.ends_on) AS "end",
+                          a.status::text AS status
                    FROM employee_assignments a JOIN projects pr ON pr.id = a.project_id
                    JOIN employees e ON e.id = a.employee_id
                    WHERE e.employee_code = :code ORDER BY lower(a.period) DESC"""
