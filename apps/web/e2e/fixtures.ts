@@ -705,3 +705,98 @@ export async function mockRecruitment(page: Page, data: typeof RECRUITMENT = REC
   });
   return sent;
 }
+
+// --------------------------------------------------------------------------- the Documents screen
+
+type DocRow = {
+  worker_code: string;
+  worker_name: string;
+  trade: string;
+  project: string | null;
+  phone: string | null;
+  type: string;
+  expiry: string;
+  days_left: number;
+  job_ends: string | null;
+  ends_before_job: boolean;
+};
+
+const doc = (
+  worker_code: string,
+  worker_name: string,
+  type: string,
+  days_left: number,
+  project: string | null,
+  job_ends: string | null,
+  ends_before_job: boolean,
+): DocRow => ({
+  worker_code,
+  worker_name,
+  trade: "Mason",
+  project,
+  phone: `+971 50 ${worker_code.slice(-3)} 1000`,
+  type,
+  expiry: new Date(Date.UTC(2026, 10, 5 + days_left)).toISOString().slice(0, 10),
+  days_left,
+  job_ends,
+  ends_before_job,
+});
+
+export const DOC_ROWS: DocRow[] = [
+  doc("EMP-0595", "Farhan Khan", "medical_fitness", -11, null, null, false),
+  doc("EMP-0561", "Imran Ali", "labour_card", -4, "RAK-02", "2027-01-31", true),
+  doc("EMP-0088", "Sanjeev Rana", "residency_visa", 7, "RAK-01", "2027-08-31", true),
+  doc("EMP-0521", "Dev Raj", "medical_fitness", 12, "RAK-06", "2027-05-31", true),
+  doc("EMP-0501", "Omar Khan", "residency_visa", 25, null, null, false),
+  doc("EMP-0503", "Ali Ahmed", "labour_card", 45, "RAK-03", "2027-09-30", true),
+  doc("EMP-0170", "Ram Bahadur", "residency_visa", 58, null, null, false),
+  doc("EMP-0142", "Anil Kumar", "residency_visa", 80, "RAK-02", "2026-12-10", false),
+];
+
+const inWindow = (d: DocRow, window: string) =>
+  window === "expired"
+    ? d.days_left < 0
+    : window === "d30"
+      ? d.days_left >= 0 && d.days_left <= 30
+      : window === "d60"
+        ? d.days_left > 30 && d.days_left <= 60
+        : d.days_left > 60 && d.days_left <= 90;
+
+/** GET /documents/expiring and the CSV, filtered the way the API filters. Returns what was asked for. */
+export async function mockDocuments(page: Page) {
+  const asked: string[] = [];
+  const matching = (params: URLSearchParams) => {
+    const q = (params.get("q") ?? "").toLowerCase();
+    return DOC_ROWS.filter(
+      (d) =>
+        (!q ||
+          d.worker_name.toLowerCase().includes(q) ||
+          d.worker_code.toLowerCase().includes(q)) &&
+        (!params.get("type") || d.type === params.get("type")) &&
+        (!params.get("project") || d.project === params.get("project")),
+    );
+  };
+  await page.route(/\/api\/documents\/export\.csv/, (r) =>
+    r.fulfill({
+      status: 200,
+      contentType: "text/csv",
+      body: "Code,Name\r\nEMP-0088,Sanjeev Rana\r\n",
+    }),
+  );
+  await page.route(/\/api\/documents\/expiring/, (r) => {
+    const params = new URL(r.request().url()).searchParams;
+    asked.push(params.toString());
+    const base = matching(params);
+    const counts = {
+      expired: base.filter((d) => inWindow(d, "expired")).length,
+      d30: base.filter((d) => inWindow(d, "d30")).length,
+      d60: base.filter((d) => inWindow(d, "d60")).length,
+      d90: base.filter((d) => inWindow(d, "d90")).length,
+    };
+    return json(r, {
+      counts,
+      items: base.filter((d) => inWindow(d, params.get("window") ?? "d30")),
+    });
+  });
+  return asked;
+}

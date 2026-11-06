@@ -1,6 +1,7 @@
 "use client";
 
 import { Building2, CalendarClock, CircleAlert, TriangleAlert, UserCheck } from "lucide-react";
+import Link from "next/link";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { StatusChip } from "@/components/ui/StatusChip";
@@ -51,11 +52,19 @@ export function DocumentsDue({ rows }: { rows: ExpiringDocument[] }) {
       aria-labelledby="due-title"
       className="h-full rounded-card border border-border bg-surface"
     >
-      <div className="px-4 pt-4 md:px-5 md:pt-5">
-        <h2 id="due-title" className="text-base font-semibold">
-          Documents to deal with first
-        </h2>
-        <p className="text-xs text-muted">Expired first, then the soonest to run out</p>
+      <div className="flex items-start justify-between gap-2 px-4 pt-4 md:px-5 md:pt-5">
+        <div>
+          <h2 id="due-title" className="text-base font-semibold">
+            Documents to deal with first
+          </h2>
+          <p className="text-xs text-muted">Expired first, then the soonest to run out</p>
+        </div>
+        <Link
+          href="/documents"
+          className="text-xs text-accent-text underline-offset-2 hover:underline"
+        >
+          See all
+        </Link>
       </div>
       <div className="mt-3">
         <DataTable

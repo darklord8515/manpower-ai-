@@ -10,7 +10,7 @@ from typing import Any
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine, text
 
-from app.routes.workers import csv_cell
+from app.exports import csv_cell
 from app.seed.data import SEED_TODAY
 from tests.support import CEO, HR_EXECUTIVE, HR_MANAGER, PASSWORD, add_user, sign_in
 

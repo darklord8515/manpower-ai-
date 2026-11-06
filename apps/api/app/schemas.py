@@ -121,6 +121,8 @@ class ExpiringDocument(BaseModel):
     type: str
     expiry: date
     days_left: int
+    job_ends: date | None = None  # the last day of their job (or its project)
+    ends_before_job: bool = False  # the document runs out before the job does
 
 
 class ExpiryCounts(BaseModel):

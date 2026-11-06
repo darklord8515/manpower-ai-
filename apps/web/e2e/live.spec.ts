@@ -227,6 +227,27 @@ test("Recruitment: the HR Executive can read it but cannot press anything", asyn
   expect(refused.status()).toBe(403);
 });
 
+test("Documents: the real windows match the dashboard, and the job each one hurts is named", async ({
+  page,
+}) => {
+  await signInAs(page, /HR Manager/);
+  await page.getByRole("link", { name: "Documents" }).first().click();
+  await expect(page.getByRole("button", { name: /^Expired · 2$/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Next 30 days · 8$/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^31–60 days · 11$/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^61–90 days · 17$/ })).toBeVisible();
+  await expect(page.locator("table tbody tr")).toHaveCount(8);
+  const sanjeev = page.locator("table tbody tr").filter({ hasText: "Sanjeev Rana" });
+  await expect(sanjeev.getByText("31 Aug 2027")).toBeVisible();
+  await expect(sanjeev.getByText("ends before the job")).toBeVisible();
+  // The tabs follow the type filter.
+  await page.getByLabel("Document", { exact: true }).selectOption("medical_fitness");
+  await expect(page.getByRole("button", { name: /^Next 30 days · \d+$/ })).not.toHaveText(/· 8$/);
+  // The profile opens on Documents with the number masked.
+  await page.getByLabel("Document", { exact: true }).selectOption("");
+  await sanjeev.getByRole("button", { name: /Sanjeev Rana/ }).click();
+  await expect(page.getByRole("dialog").getByTestId("number-residency_visa")).toHaveText(/^•••• /);
+});
 // These two change the database (a request, a set of reservations). Run `make reset-demo` afterwards.
 test("Recruitment: HR raises a request from the forecast and moves it along", async ({ page }) => {
   await signInAs(page, /HR Manager/);

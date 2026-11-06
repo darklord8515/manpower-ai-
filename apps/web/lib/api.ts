@@ -94,8 +94,10 @@ export const api = {
     request<Me>("/auth/demo-login", { method: "POST", body: JSON.stringify({ role }) }),
   logout: () => request<void>("/auth/logout", { method: "POST" }),
   summary: () => request<Summary>("/summary"),
-  expiring: (window: "expired" | "d30" | "d60" | "d90") =>
-    request<ExpiringList>(`/documents/expiring?window=${window}`),
+  expiring: (window: ExpiryWindow, filters: DocumentFilters = {}) =>
+    request<ExpiringList>(`/documents/expiring?${documentParams(window, filters)}`),
+  documentsCsvUrl: (window: ExpiryWindow, filters: DocumentFilters = {}) =>
+    `/api/documents/export.csv?${documentParams(window, filters)}`,
   summaryByTrade: () => request<TradeStrength[]>("/summary/trades"),
   preferences: () => request<Preferences>("/auth/me/preferences"),
   savePreferences: (preferences: Preferences) =>
@@ -147,6 +149,17 @@ export const api = {
   /** A link the browser downloads (same site, so the sign-in cookie goes with it). */
   workersCsvUrl: (query: WorkersQuery) => `/api/workers/export.csv?${toApiParams(query, false)}`,
 };
+
+export type ExpiryWindow = "expired" | "d30" | "d60" | "d90";
+export type DocumentFilters = { q?: string; type?: string; project?: string };
+
+function documentParams(window: ExpiryWindow, filters: DocumentFilters): URLSearchParams {
+  const params = new URLSearchParams({ window });
+  if (filters.q?.trim()) params.set("q", filters.q.trim());
+  if (filters.type) params.set("type", filters.type);
+  if (filters.project) params.set("project", filters.project);
+  return params;
+}
 
 /** Only paths on our own site may be used as a "go here after signing in" target. */
 export function safeNext(value: string | null | undefined): string {

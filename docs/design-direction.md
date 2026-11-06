@@ -277,6 +277,14 @@ One screen for HR to turn open staffing requests into approved workers.
 - **What if:** a start-date field re-runs the forecast; "Back to project start" returns. The date is in the
   address bar. Reserve transfers and Raise recruitment request are the next slice and are not shown yet.
 
+### Documents (HR, MD/CEO)
+- **Tabs:** Expired, Next 30 days, 31 to 60 days, 61 to 90 days, each with a count that follows the filters. Search
+  (`/` focuses it), Document type and Project filters, "Clear filters". The whole view is in the address bar.
+- **Table:** worker (opens the profile on its Documents tab, numbers still masked), document, expires, a time-left chip
+  (same colours as Home), project, **job ends** with a warning chip "ends before the job" when the document runs out
+  first, and a phone link. Ticked rows copy their phone numbers. "Download CSV" follows the tab and filters.
+- **States:** skeleton, an empty state per tab in plain words, "No documents match" with a way back, an error with
+  Retry. Phone: cards, with the warning chip kept. The Home widget "Documents to deal with first" links here ("See all").
 ### Home widgets and Customize (HR, MD/CEO)
 - **Fixed above, flexible below.** The hero and the four KPI tiles never move. Everything under them is a widget in a
   3-column grid (one column on a phone). Each widget has a fixed width of 1, 2 or 3 columns; people change the order,

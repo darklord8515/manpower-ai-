@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import csv
-import io
 import uuid
 from datetime import date
 from typing import Annotated, Any, Literal
@@ -17,6 +15,7 @@ from app.auth.deps import AuthUser, get_clock, require
 from app.auth.scope import employee_scope, full_profile, masked
 from app.clock import Clock
 from app.db import get_session
+from app.exports import csv_download
 from app.labels import DOCUMENT_LABEL, EXIT_LABEL, document_label
 from app.schemas import (
     AssignmentDetail,
@@ -251,29 +250,36 @@ def export_workers(
         ),
         params,
     ).mappings()
-    out = io.StringIO()
-    writer = csv.writer(out, lineterminator="\r\n")
-    writer.writerow(
-        ["Code", "Name", "Trade", "Level", "Status", "Project", "Phone", "Next document", "Expires"]
+    response = csv_download(
+        "workers.csv",
+        [
+            "Code",
+            "Name",
+            "Trade",
+            "Level",
+            "Status",
+            "Project",
+            "Phone",
+            "Next document",
+            "Expires",
+        ],
+        (
+            (
+                r["code"],
+                r["name"],
+                r["trade"],
+                r["level"],
+                r["status"],
+                r["project"],
+                r["phone"],
+                document_label(r["next_type"]) if r["next_type"] else None,
+                r["next_expiry"].isoformat() if r["next_expiry"] else None,
+            )
+            for r in rows
+        ),
     )
-    for r in rows:
-        writer.writerow(
-            [
-                csv_cell(v)
-                for v in (
-                    r["code"], r["name"], r["trade"], r["level"], r["status"], r["project"],
-                    r["phone"],
-                    document_label(r["next_type"]) if r["next_type"] else None,
-                    r["next_expiry"].isoformat() if r["next_expiry"] else None,
-                )
-            ]
-        )  # fmt: skip
     write_audit(session, request, "workers.exported", "employee", user)
-    return Response(
-        content="﻿" + out.getvalue(),  # the BOM makes Excel read the file as UTF-8
-        media_type="text/csv; charset=utf-8",
-        headers={"Content-Disposition": 'attachment; filename="workers.csv"'},
-    )
+    return response
 
 
 def _risks(

@@ -49,6 +49,10 @@ export type ExpiringDocument = {
   type: string;
   expiry: string;
   days_left: number;
+  /** The last day of their job (or its project). */
+  job_ends?: string | null;
+  /** The document runs out before the job does. */
+  ends_before_job?: boolean;
 };
 
 export type ExpiringList = { counts: ExpiryCounts; items: ExpiringDocument[] };

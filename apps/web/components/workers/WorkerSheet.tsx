@@ -15,7 +15,7 @@ import { RevealNumber } from "./RevealNumber";
 import { useWorkerDetail } from "./useWorkers";
 import { WorkerStatusChip } from "./WorkerStatusChip";
 
-type TabId = "overview" | "documents" | "assignments";
+export type TabId = "overview" | "documents" | "assignments";
 
 const EXIT_REASON: Record<string, string> = {
   resigned: "Resigned",
@@ -193,8 +193,8 @@ function Assignments({ worker }: { worker: WorkerDetail }) {
   );
 }
 
-function Profile({ worker }: { worker: WorkerDetail }) {
-  const [tab, setTab] = useState<TabId>("overview");
+function Profile({ worker, initialTab }: { worker: WorkerDetail; initialTab: TabId }) {
+  const [tab, setTab] = useState<TabId>(initialTab);
   const full = worker.status !== null; // the narrow projection has nothing but the overview
   return (
     <>
@@ -222,10 +222,12 @@ type Props = {
   code: string | null;
   /** Their name from the list, so the title is right while the profile loads. */
   fallbackName?: string;
+  /** Which tab to open on (the Documents screen opens on Documents). */
+  initialTab?: TabId;
   onClose: () => void;
 };
 
-export function WorkerSheet({ code, fallbackName, onClose }: Props) {
+export function WorkerSheet({ code, fallbackName, initialTab = "overview", onClose }: Props) {
   const { worker, error, loading, retry } = useWorkerDetail(code);
   return (
     <DetailSheet
@@ -252,7 +254,7 @@ export function WorkerSheet({ code, fallbackName, onClose }: Props) {
           {error.message}
         </ErrorState>
       )}
-      {worker && <Profile key={worker.code} worker={worker} />}
+      {worker && <Profile key={worker.code} worker={worker} initialTab={initialTab} />}
     </DetailSheet>
   );
 }
