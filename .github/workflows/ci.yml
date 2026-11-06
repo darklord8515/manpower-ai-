@@ -16,6 +16,23 @@ jobs:
     defaults:
       run:
         working-directory: apps/api
+    # Database tests (migrations equal db/schema.sql, seed counts, auth, scope, masking) run against
+    # a real Postgres 16. REQUIRE_DB=1 makes a missing database fail the build instead of skipping.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-only
+          POSTGRES_DB: constructiq
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d constructiq"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      REQUIRE_DB: "1"
+      DATABASE_URL_DIRECT: postgresql+psycopg://postgres:ci-only@localhost:5432/constructiq
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5

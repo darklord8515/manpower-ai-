@@ -14,6 +14,7 @@ from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy import URL
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 MIN_SECRET_LENGTH = 32
@@ -42,6 +43,9 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://constructiq_app:change-me@localhost:5432/constructiq"
     database_url_direct: str = ""
     database_pooled: bool = False  # true behind PgBouncer transaction mode: no prepared statements
+    # Local Docker only: lets migrations connect as the database owner without a second URL.
+    postgres_password: str = ""
+    postgres_port: int = 5432
 
     # Storage adapter
     storage_backend: Literal["local", "s3"] = "local"
@@ -71,6 +75,26 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.app_env is AppEnv.PRODUCTION
+
+    @property
+    def migration_url(self) -> str:
+        """Owner connection for migrations and seeding (the app role cannot create tables)."""
+        if self.database_url_direct:
+            return self.database_url_direct
+        if self.is_production:
+            raise ConfigError("DATABASE_URL_DIRECT is required to run migrations in production")
+        if not self.postgres_password:
+            raise ConfigError(
+                "Set DATABASE_URL_DIRECT, or POSTGRES_PASSWORD for the local Docker database"
+            )
+        return URL.create(
+            "postgresql+psycopg",
+            username="postgres",
+            password=self.postgres_password,
+            host="localhost",
+            port=self.postgres_port,
+            database="constructiq",
+        ).render_as_string(hide_password=False)
 
     @property
     def cors_origin_list(self) -> list[str]:

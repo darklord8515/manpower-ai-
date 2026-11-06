@@ -2,12 +2,13 @@
 COMPOSE = docker compose --env-file .env -f infra/docker-compose.yml
 API = uv --directory apps/api
 
-.PHONY: help env dev db db-down db-logs db-shell api-dev web-dev test test-api test-web lint lint-api lint-web fmt seed reset-demo eval
+.PHONY: help env dev db db-down db-logs db-shell migrate api-dev web-dev test test-api test-web lint lint-api lint-web fmt seed reset-demo eval
 
 help:
 	@echo make env        - create .env with random secrets (first time only)
 	@echo make dev        - start Postgres + n8n, then the API (8000) and web app (3000)
 	@echo make db         - start Postgres 16 and n8n only
+	@echo make migrate    - apply database migrations (as the database owner)
 	@echo make db-down    - stop them (data is kept)
 	@echo make test       - API and web tests
 	@echo make lint       - ruff + pyright + eslint + tsc
@@ -28,6 +29,9 @@ db-logs:
 
 db-shell:
 	$(COMPOSE) exec postgres psql -U postgres -d constructiq
+
+migrate:
+	$(API) run alembic upgrade head
 
 api-dev:
 	$(API) run uvicorn app.main:app --reload --port 8000
