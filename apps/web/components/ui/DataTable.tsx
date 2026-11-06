@@ -1,7 +1,9 @@
 "use client";
 
 import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
+import { motion } from "motion/react";
 import { useMemo, useState, type ReactNode } from "react";
+import { revealProps } from "@/components/motion/Reveal";
 import { cn } from "@/lib/utils";
 import { ErrorState } from "./ErrorState";
 import { SkeletonLoader } from "./SkeletonLoader";
@@ -159,11 +161,12 @@ export function DataTable<T>({
             </tr>
           </thead>
           <tbody>
-            {sorted.map((row) => {
+            {sorted.map((row, index) => {
               const key = rowKey(row);
               return (
-                <tr
+                <motion.tr
                   key={key}
+                  {...revealProps(index)}
                   data-selected={selection.has(key) || undefined}
                   className="border-t border-border transition-colors hover:bg-hover data-[selected]:bg-accent-soft"
                 >
@@ -190,7 +193,7 @@ export function DataTable<T>({
                       {column.cell(row)}
                     </td>
                   ))}
-                </tr>
+                </motion.tr>
               );
             })}
           </tbody>

@@ -25,6 +25,7 @@ import { SeverityChip } from "@/components/ui/SeverityChip";
 import { SkeletonLoader } from "@/components/ui/SkeletonLoader";
 import { StatusChip, type Tone } from "@/components/ui/StatusChip";
 import { formatDate } from "@/lib/format";
+import { MotionDemo } from "./MotionDemo";
 import { usePrefersReducedMotion } from "@/lib/use-prefers-reduced-motion";
 import {
   SAMPLE_ALERTS,
@@ -35,9 +36,9 @@ import {
 } from "./sample-data";
 
 const BUTTON =
-  "inline-flex h-8 items-center justify-center gap-2 rounded-control border border-border-strong bg-surface px-3 text-sm font-medium transition-colors hover:bg-hover";
+  "press inline-flex h-8 items-center justify-center gap-2 rounded-control border border-border-strong bg-surface px-3 text-sm font-medium transition-[transform,background-color] duration-120 hover:bg-hover";
 const BUTTON_PRIMARY =
-  "inline-flex h-8 items-center justify-center gap-2 rounded-control border border-accent bg-accent px-3 text-sm font-medium text-accent-on transition-colors hover:border-accent-hover hover:bg-accent-hover";
+  "press inline-flex h-8 items-center justify-center gap-2 rounded-control border border-accent bg-accent px-3 text-sm font-medium text-accent-on transition-[transform,background-color,border-color] duration-120 hover:border-accent-hover hover:bg-accent-hover";
 
 function Section({
   id,
@@ -421,6 +422,14 @@ export function GalleryClient() {
             )}
           />
         </div>
+      </Section>
+
+      <Section
+        id="motion"
+        title="Motion primitives"
+        note="Transform and opacity only, 120–200ms, off under reduced motion. Each demo shows one behaviour."
+      >
+        <MotionDemo />
       </Section>
 
       <Section id="states" title="EmptyState, ErrorState, SkeletonLoader">

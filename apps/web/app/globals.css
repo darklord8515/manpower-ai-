@@ -86,6 +86,11 @@ body {
   }
 }
 
+/* Buttons press in 2%: feedback that the click registered. Add with `transition-[transform,...]`. */
+.press:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
 /* Loading skeleton shimmer: the only looping animation allowed, and only while loading. */
 @keyframes shimmer {
   from {

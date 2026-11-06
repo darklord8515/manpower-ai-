@@ -131,10 +131,11 @@ h1[tabindex="-1"]:focus, h1[tabindex="-1"]:focus-visible { outline: none; }
 input[type="checkbox"] { width: 16px; height: 16px; margin: 0; accent-color: var(--accent-hover); }
 .count-line { font-size: var(--text-xs); color: var(--text-subtle); }
 .preview-label { font-size: var(--text-xs); color: var(--text-subtle); }
-.seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius-control); overflow: hidden; background: var(--surface); }
-.seg button { border: 0; background: transparent; height: 28px; padding: 0 var(--s-3); font-size: var(--text-xs); color: var(--text-muted); }
+.seg { position: relative; display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius-control); overflow: hidden; background: var(--surface); }
+.seg-pill { position: absolute; top: 0; bottom: 0; left: 0; background: var(--surface-sunken); transition: transform var(--dur-base) var(--ease-out), width var(--dur-base) var(--ease-out); pointer-events: none; }
+.seg button { position: relative; z-index: 1; border: 0; background: transparent; height: 28px; padding: 0 var(--s-3); font-size: var(--text-xs); color: var(--text-muted); }
 .seg button + button { border-left: 1px solid var(--border); }
-.seg button[aria-pressed="true"] { background: var(--surface-sunken); color: var(--text); font-weight: var(--w-medium); }
+.seg button[aria-pressed="true"] { color: var(--text); font-weight: var(--w-medium); }
 
 /* ===================================================================== Login */
 .login { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 3fr) minmax(360px, 2fr); background: var(--bg); }
@@ -1610,6 +1611,22 @@ function demoTool(what) {
   }
   if (what.startsWith('preview:')) { const m = what.slice(8); state.ui.preview = m; state.ac.preview = m; renderUserMenu(); return rerender(); }
 }
+/* Segmented controls: one highlight that slides to the chosen option (re-renders rebuild the DOM,
+   so remember where it was and animate from there). */
+const segPrev = new Map();
+function positionSegs() {
+  document.querySelectorAll('.seg').forEach((seg) => {
+    const on = seg.querySelector('button[aria-pressed="true"]'); if (!on) return;
+    let pill = seg.querySelector('.seg-pill');
+    if (!pill) { pill = document.createElement('span'); pill.className = 'seg-pill'; pill.setAttribute('aria-hidden', 'true'); seg.prepend(pill); }
+    const key = seg.getAttribute('aria-label') || ''; const from = segPrev.get(key); const to = { x: on.offsetLeft, w: on.offsetWidth };
+    if (from && !reducedMotion()) { pill.style.transition = 'none'; pill.style.width = from.w + 'px'; pill.style.transform = 'translateX(' + from.x + 'px)'; void pill.offsetWidth; pill.style.transition = ''; }
+    pill.style.width = to.w + 'px'; pill.style.transform = 'translateX(' + to.x + 'px)';
+    segPrev.set(key, to);
+  });
+}
+{ let queued = false; const queue = () => { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; positionSegs(); }); };
+  const mo = new MutationObserver(queue); ['main', 'overlayRoot'].forEach((id) => mo.observe(document.getElementById(id), { childList: true, subtree: true })); }
 function rerender(alertId) { renderNav(); renderBell(); renderPage(); if (alertId && document.querySelector('.sheet')) openAlert(alertId); }
 
 /* =====================================================================

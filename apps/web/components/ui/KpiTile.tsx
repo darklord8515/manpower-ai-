@@ -1,10 +1,8 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { animate } from "motion/react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { formatInt, formatPercent } from "@/lib/format";
-import { usePrefersReducedMotion } from "@/lib/use-prefers-reduced-motion";
+import type { ReactNode } from "react";
+import { NumberTicker } from "@/components/motion/NumberTicker";
 
 type Props = {
   label: string;
@@ -21,8 +19,6 @@ type Props = {
 };
 
 /** Counts up on first load and from the old value to the new one whenever `value` changes. */
-export const COUNT_DURATION_S = 0.6;
-
 export function KpiTile({
   label,
   icon: Icon,
@@ -33,26 +29,6 @@ export function KpiTile({
   detail,
   children,
 }: Props) {
-  const reduced = usePrefersReducedMotion();
-  const [animated, setAnimated] = useState(0);
-  const from = useRef(0);
-
-  useEffect(() => {
-    if (reduced) return;
-    const controls = animate(from.current, value, {
-      duration: COUNT_DURATION_S,
-      ease: "easeOut",
-      onUpdate: (current) => {
-        from.current = current;
-        setAnimated(current);
-      },
-    });
-    return () => controls.stop();
-  }, [value, reduced]);
-
-  const fmt = (n: number) => (format === "percent" ? formatPercent(n) : formatInt(Math.round(n)));
-  const shown = reduced ? value : animated;
-
   return (
     <section
       aria-label={label}
@@ -63,11 +39,7 @@ export function KpiTile({
         {label}
       </div>
       <div className="mt-1 flex items-baseline gap-2">
-        {/* The animated number is hidden from assistive technology; it reads the final value once. */}
-        <b aria-hidden="true" className="text-xl leading-8 font-semibold">
-          {fmt(shown)}
-        </b>
-        <span className="sr-only">{fmt(value)}</span>
+        <NumberTicker value={value} format={format} className="text-xl leading-8 font-semibold" />
         {of && <span className="text-sm text-subtle">{of}</span>}
       </div>
       {trend && <div className="flex items-center gap-1 text-xs text-muted">{trend}</div>}

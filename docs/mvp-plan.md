@@ -8,17 +8,17 @@ a forward manpower forecast, stateful HR alerts, and automation. Everything else
 **HR is the primary user.** HR will test allocation hands-on before the CEO sees it, so every HR
 screen must be fully usable (see `docs/design-direction.md` → "HR screens").
 
-### Priorities (when days are tight, cut from the bottom)
-| # | Feature | In the proposed plan? |
+### Priorities (when time is tight, cut from the bottom)
+| # | Feature | In the phase plan? |
 |---|---|---|
-| P1 | HR Allocation Board + approvals + mobilization pipeline (the core demo) | Yes, Days 5–10 |
-| P2 | HR Action Center (stateful alerts) | Yes, Days 11–13 |
-| P3 | Manpower Forecast (forward forecasting) | Yes, Days 14–15 |
-| P5a | CEO, HR, Operations and Project Manager dashboards | Yes, Days 16–18 |
-| P4 | Excel employee import + Import Agent | Yes, Days 19–20 |
-| P5b | Logistics, Site Supervisor, Employee, Super Admin dashboards | **Proposed cut** (decision 1) |
-| P6 | AI Command Centre (Cmd+K: Supervisor + Mobilization agents) | **Proposed cut** (decision 2) |
-| P7 | Demobilization | **Proposed cut** (decision 3) |
+| P1 | HR Allocation Board + approvals + mobilization pipeline (the core demo) | Yes, Phase 3 |
+| P2 | HR Action Center (stateful alerts) | Yes, Phase 4 |
+| P3 | Manpower Forecast (forward forecasting) | Yes, Phase 4 |
+| P5a | CEO and HR dashboards | CEO and HR only (Phases 3–4) |
+| P4 | Excel employee import + Import Agent | Yes, Phase 5 |
+| P5b | Dashboards for all other roles | **Cut** (audience is HR and MD/CEO only) |
+| P6 | AI Command Centre (Cmd+K: Supervisor + Mobilization agents) | **Cut** |
+| P7 | Demobilization | **Cut** |
 
 Moved out of the MVP: the Document Intelligence Agent (→ "Path to production"). The MVP keeps
 manual document upload and HR verification; expiry tracking is a Python detector.
@@ -221,53 +221,89 @@ need a reason + Operations Manager approval. Demo has a "simulate date" control.
   post-MVP). `make eval` reports pass rate, avg tokens, latency and cost. The narrator is covered
   by unit tests of the faithfulness check, not by evals.
 
-## Build plan (PROPOSED, awaiting approval; replaces the earlier 12-day plan)
+## Build plan (phases; replaces the earlier 12-day and 22-day plans)
 
-**Why it changed.** The CEO receives a near-final product (only hosting/infra is out of scope), so
-the quality bar in `CLAUDE.md` → "Done means" applies to every slice: loading, empty, error and
-success states, keyboard support, light + dark, a 390px layout, seeded data, no dead buttons, live
-updates, screenshots at 1440 and 390. My estimate is that this adds about 30% to every screen. The
-earlier 12 days covered P1–P3 at a lower bar; the same P1–P3 plus the dashboards and the import now
-take about 22 working days (estimate, ±20%).
+**Audience for the MVP: HR (Manager and Executive) and MD/CEO only.** Other teams come after the MVP.
+Research behind the choices: `docs/hrms-research.md`.
 
-**Before Day 1:** the build machine needs Git, Node 22, Python 3.12, uv, Docker and make (or WSL).
-None are installed here, and Playwright screenshots can't run without them.
+**How to read it.** There are no day counts. Each phase has a goal, what ships, a gate that must pass
+before the next phase starts, and what is cut if time is short. The quality bar from `CLAUDE.md` →
+"Done means" is part of every phase, not a final pass: loading, empty, error and success states, motion
+that follows `docs/design-direction.md`, keyboard support, light and dark, a 390px layout, seeded data,
+no dead buttons, and screenshots at 1440px and 390px. A phase is not finished if any screen in it misses
+the bar; that screen is cut instead.
 
-| Days | Slice | Gate |
-|---|---|---|
-| 1 | Repo, Docker, CI, deploy config, production guard. Web scaffold: tokens (light + dark), Tailwind, shadcn base, Motion, brand assets. Playwright harness (1440 / 390 × light / dark). | CI green; a blank themed page deploys |
-| 2 | **Design system with motion:** KpiTile, DetailSheet, StatusChip, AlertCard, AiAnswerCard, SkeletonLoader, EmptyState, DataTable, InsightLine; dev gallery route showing every state. | Gallery screenshots reviewed in all 4 combinations |
-| 3 | Schema v0.3 as the Alembic baseline, seed (runs the detectors), API skeleton, auth. | `make reset-demo` gives the full seeded demo |
-| 4 | RBAC, scope, masking. App shell: login (logo + photo), sidebar from permissions, bell, theme, demo role switcher through real auth. First deploy. | Every built role signs in to its landing page, hosted |
-| 5–6 | Employees and documents (manual upload + verify), projects, staffing request form (PM), HR queue, hard-rule validators. | PM raises a request; HR sees it |
-| 7 | Allocation Board, manual: pick, swap, remove, reject, bulk; live validation messages. | HR fills a request by hand, no conflicts |
-| 8 | **Signature moment:** the agent's steps stream in from its real tool calls, candidates animate in, exclusions show reasons. Transactional approval. Live updates (same session instantly, other sessions by event stream with polling fallback). | Approving updates the board, CEO counters and audit log with no reload |
-| 9 | Mobilization pipeline (kanban) with checklist and tasks. n8n, schedules, Run now, WhatsApp test number. | An HR approval sends real WhatsApp tasks |
-| 10 | Audit log view (live), midday ban + simulate date, rehearsal. | **Core demo runs end to end** |
-| 11 | Forecast service, detector framework, the 7 detectors (fake-clock tests). | Each detector raises, updates and auto-resolves |
-| 12 | Action Center: list, sheet, AlertCard collapse, bell, counters; Alert Narrator with the faithfulness check. | Resolving an alert visibly updates every counter |
-| 13 | Escalation through n8n, live alert updates, CEO severity tile. | Escalation timings pass with a fake clock |
-| 14–15 | Manpower Forecast: table, sources, dependencies, reserve, recruit, what-if; Sankey and capacity heatmap; Explain; 5 forecast evals. | Demo story steps 5–6 work |
-| 16 | CEO Executive Overview: insight line, KPIs, forecast area chart, plan-vs-actual bars. | |
-| 17 | HR Console (insight + KPIs + chart above the Action Center) and Operations Board. | |
-| 18 | Project Manager dashboard and project detail with photos. | |
-| 19–20 | Excel import: upload, mapping UI, per-row validation, preview, commit with progress; Import Agent pre-fills the mapping. | Sample file with deliberate errors reports each row |
-| 21–22 | Hardening: full tests, evals, accessibility pass, `/security-review`, screenshots for every screen, two rehearsals, buffer. | Whole demo runs in ~5 minutes on the hosted site |
+### Phase 0: Foundation (done)
+- **Goal:** a safe base to build on.
+- **Ships:** repo, CI, production guard, tokens (red, white, black), design system with motion, API
+  skeleton, clickable HR and CEO prototype (Home, To-do, Workers, Documents, Requests, Forecast,
+  Projects, confirm dialogs), HR test kit.
+- **Gate (passed):** CI green; contrast script passes; prototype tests green.
+- **Cut:** not applicable.
 
-**Proposed cuts (item 7: say so rather than ship it half-finished).** Keeping all four would add
-about 8 days, so about 30 in total.
-1. **Dashboards for Logistics, Site Supervisor, Employee and Super Admin** (~4 days). They have no
-   demo path. Their permissions, API and evals stay; the demo accounts and role switcher list only
-   roles with a finished dashboard, so nobody lands on an empty screen.
-2. **AI Command Centre (Cmd+K), Supervisor routing, Mobilization agent chat** (~2 days). AI still
-   appears where it matters: recommendations on the board, "Explain" on the forecast, alert wording.
-   The PM raises the request through the form.
-3. **Demobilization** (~1–2 days). The seed drops DM-2026-0031. The "approval waiting" and "ending
-   without a next assignment" alerts are re-based on a staffing request and on assignment end dates.
-4. Document Intelligence stays post-MVP (see "Path to production").
+### Phase 1: Validate with HR
+- **Goal:** learn what confuses HR before building more.
+- **Ships:** 3 to 5 HR sessions on the prototype using `docs/hr-test-kit.md`; fixes; the word HR uses
+  for "mobilization" settled; copy, severity labels and the confirm dialog ported to real components
+  with tests and gallery entries.
+- **Gate:** at least 4 of 5 testers finish tasks 1, 2 and 4 without help; any word two testers
+  misunderstand is changed.
+- **Cut if short:** the second round of sessions. Never cut the first three sessions.
 
-**Cut order if time runs short:** Operations Board, then the forecast Sankey, then Excel import. P1
-and P2 are never cut.
+### Phase 2: Data spine
+- **Goal:** real data and real rules behind the screens.
+- **Ships:** Alembic baseline from `db/schema.sql`; seed that matches the prototype (150 workers, 112
+  deployed, the document counts); authentication; RBAC with project scope; field masking; app shell with
+  sidebar from permissions; hosted deploy.
+- **Gate:** `make reset-demo` produces the seeded demo; HR Manager, HR Executive and MD/CEO sign in on the
+  hosted site; masking and scope are proven by tests.
+- **Cut if short:** the hosted deploy (stay local and demo from a laptop).
+
+### Phase 3: People and allocation core (the demo-ready checkpoint)
+- **Goal:** HR does the daily job on real data.
+- **Ships:** Workers directory and profile; Documents by expiry window; staffing requests; Allocation
+  board with hard-rule validators; approval with consequence preview; mobilization status; audit log.
+- **Gate (demo-ready checkpoint):** on the hosted site, HR finds a worker, sees whose documents are
+  running out, fills a request and approves it; the audit log shows who did what; results appear without
+  a reload; the whole flow passes an end-to-end test.
+- **Cut if short:** mobilization checklist detail, CSV export, Workers column options. The checkpoint
+  itself is not cut.
+
+### Phase 4: Foresight
+- **Goal:** tell HR and the CEO what is coming.
+- **Ships:** the seven detectors with auto-resolve; To-do with escalation and the bell; forecast service
+  and screen (table first, then heatmap and Sankey); CEO overview showing exposure, gap and waiting
+  approvals.
+- **Gate:** each detector raises, updates and resolves under a fake clock; moving a project end date
+  raises the transfer-dependency alert; CEO numbers match HR numbers.
+- **Cut if short:** Sankey and heatmap polish.
+
+### Phase 5: Automation and AI
+- **Goal:** remove manual chasing.
+- **Ships:** n8n flows: visa-expiry notices by email and WhatsApp, with HR's one-click "tell the worker"
+  (design agreed with the user first) and department tasks after approval; Workforce agent suggestions
+  with visible steps; Alert Narrator with the faithfulness check; Excel import with the Import Agent
+  pre-filling the column mapping.
+- **Gate:** a test approval sends a real WhatsApp or email to the test number; narrator numbers match the
+  facts in every eval; the import sample with deliberate errors reports each bad row.
+- **Cut if short:** the Import Agent (keep manual mapping); WhatsApp (keep email).
+
+### Phase 6: Hardening and handover
+- **Goal:** safe to put in front of the CEO.
+- **Ships:** full tests and evals; accessibility pass; security review; screenshots of every screen
+  (1440 and 390, light and dark); two rehearsals; an honest "what is next" page (payroll, leave,
+  attendance, other teams).
+- **Gate:** the whole demo runs in about five minutes on the hosted site with no errors.
+- **Cut:** nothing in this phase is cut; earlier phases give way first.
+
+### Still out of scope
+Dashboards for roles other than HR and MD/CEO, the Cmd+K command centre, demobilization, the Document
+Intelligence agent, payroll, leave, attendance and camp management. Payroll and attendance are covered
+by products such as Bayzat and TrueBays; the plan is to export to or integrate with them later.
+
+**Cut order across phases if time runs short:** Phase 5 Import Agent, then Phase 4 chart polish, then
+Phase 3 extras, then Phase 2 hosting. Phases 1, 3 and 6 are never cut.
+
 ## Hosting (demo phase)
 Same Docker image and code as production; only configuration differs.
 

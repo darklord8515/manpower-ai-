@@ -27,7 +27,11 @@ test("the demo role switcher lists HR and MD/CEO only", async ({ page }) => {
   await open(page, "hr_manager");
   await page.getByRole("button", { name: /Viewing as/ }).click();
   const items = await page.locator("#rolePop [data-role]").allInnerTexts();
-  expect(items.map((t) => t.trim()).sort()).toEqual(["CEO / Managing Director", "HR Executive", "HR Manager"]);
+  expect(items.map((t) => t.trim()).sort()).toEqual([
+    "CEO / Managing Director",
+    "HR Executive",
+    "HR Manager",
+  ]);
 });
 
 test("To-do in the sidebar opens the To-do page, and Home links to it", async ({ page }) => {
@@ -54,7 +58,9 @@ test("Workers: 150 people, search, filters and the profile sheet", async ({ page
   await expect(page.getByText("Showing 25 of 150")).toBeVisible();
 
   await page.getByRole("button", { name: "Available", exact: true }).click();
-  await expect(page.getByText("Showing 21 of 21").or(page.getByText(/Showing \d+ of 21/))).toBeVisible();
+  await expect(
+    page.getByText("Showing 21 of 21").or(page.getByText(/Showing \d+ of 21/)),
+  ).toBeVisible();
 
   await page.getByRole("button", { name: "Everyone" }).click();
   await page.getByLabel("Search workers").fill("Sanjeev");
@@ -67,7 +73,9 @@ test("Workers: 150 people, search, filters and the profile sheet", async ({ page
   await expect(sheet).toBeHidden();
 });
 
-test("Documents: tab counts match the rows, and numbers are hidden from the HR Executive", async ({ page }) => {
+test("Documents: tab counts match the rows, and numbers are hidden from the HR Executive", async ({
+  page,
+}) => {
   await open(page, "hr_manager");
   await go(page, "documents");
   for (const label of ["Expired", "Next 30 days", "31–60 days", "61–90 days"]) {
@@ -126,7 +134,9 @@ for (const screen of ["workers", "documents"]) {
     await open(page, "hr_manager", { width: 390, height: 844 });
     await go(page, screen);
     await expect(page.locator(".cards-mobile li").first()).toBeVisible();
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1,
+    );
     expect(overflow).toBe(false);
   });
 }
