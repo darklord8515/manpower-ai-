@@ -132,7 +132,25 @@ approval. Durations 120–200ms, ease-out.
   final value so a paused tab never shows a half-counted number.
 - Loading skeletons shimmer (the only looping animation allowed, and only while loading).
 - `prefers-reduced-motion`: all of it off; values and steps appear immediately.
-Do NOT use: scroll-triggered reveals, parallax, bouncing, decorative looping animations, page-wide transitions.
+
+**Rules for every animation.** Only `transform` and `opacity` move. Each one explains something (where a
+thing came from, what changed, what is selected). First-load entrances stagger the first 8 rows only,
+25ms apart, and run once. Springs are tuned to settle in about 180ms.
+
+**Shared primitives** (`apps/web/components/motion/`, shown in the gallery under "Motion primitives"):
+`PageTransition` (4px rise and fade, no exit), `SlidingTabs` (one highlight slides to the chosen
+option), `Reveal` / `revealProps` (first-rows entrance, used by `DataTable`), `StateSwap` (loading, empty,
+error and data cross-fade), `NumberTicker` (the count-up above), and the `.press` utility (buttons press
+in 2%). The prototype has the same behaviour for segmented controls and page changes.
+
+**Where Aceternity UI fits.** We take its functional ideas (sliding tabs, animated sidebar indicator,
+number ticker, layout animations) and build them with our own tokens. We do not use its decorative
+effects (spotlight, beams, aurora, 3D tilt, glow cards) inside the app: they fight the calm, flat style and
+the 120–200ms rule. The login screen may carry one subtle photo fade. Nothing is copied from
+Aceternity until its licence file has been read and allows it.
+
+Do NOT use: scroll-triggered reveals, parallax, bouncing, decorative looping animations, glow or
+spotlight effects, exit animations that make the next screen wait.
 
 ## Wording
 - Open-ended dates read "no end date", never "open-ended", and never break across lines.
