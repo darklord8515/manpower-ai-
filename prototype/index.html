@@ -387,6 +387,13 @@ details.sub li { display: flex; gap: var(--s-2); align-items: flex-start; justif
 /* ===================================================================== Action Center */
 .ac-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-3); padding: var(--s-4) var(--s-5) var(--s-3); }
 .ac-head h2 { font-size: var(--text-md); font-weight: var(--w-semibold); }
+.stat-links { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-3); }
+.stat-link { display: flex; flex-direction: column; gap: var(--s-1); padding: var(--s-4); text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); color: var(--text); font: inherit; }
+button.stat-link { cursor: pointer; transition: border-color var(--dur-fast, 120ms); }
+button.stat-link:hover { border-color: var(--border-strong, var(--text-muted)); }
+.stat-link b { font-size: var(--text-2xl); font-variant-numeric: tabular-nums; }
+.stat-link span { font-size: var(--text-sm); color: var(--text-muted); }
+@media (max-width: 720px) { .stat-links { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .ac-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); padding: 0 var(--s-5) var(--s-3); }
 .ac-filters .field { flex: 1 1 200px; max-width: 280px; }
 .sev-toggle { display: inline-flex; align-items: center; gap: var(--s-1); height: 28px; padding: 0 var(--s-2); border-radius: var(--radius-control); border: 1px solid var(--border); background: var(--surface); font-size: var(--text-xs); font-weight: var(--w-medium); color: var(--text-muted); }
@@ -615,13 +622,6 @@ details.sub li { display: flex; gap: var(--s-2); align-items: flex-start; justif
         <div class="page-title" id="topTitle"></div>
       </div>
       <div class="top-actions">
-        <label class="search">
-          <svg class="i" width="16" height="16"><use href="#i-search"/></svg><span class="sr-only">Search (not built in this prototype)</span>
-          <input id="searchInput" type="search" placeholder="Search (not built yet)"><span class="kbd" aria-hidden="true">/</span>
-        </label>
-        <button class="btn" id="aiBtn" type="button" aria-haspopup="dialog">
-          <svg class="i" width="16" height="16"><use href="#i-sparkles"/></svg><span class="ai-label-text">Ask AI</span><span class="kbd ai-label-text" aria-hidden="true">Ctrl K</span>
-        </button>
         <div class="pop-anchor">
           <button class="role-pill" id="roleBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="rolePop">
             <span class="role-prefix">Viewing as:</span> <strong id="roleName"></strong><svg class="i" width="14" height="14"><use href="#i-chevron-down"/></svg>
@@ -670,9 +670,9 @@ const PHOTOS = {
 
 // Permissions per role, mirroring role_permissions in db/schema.sql (v0.3).
 const ROLES = {
-  hr_manager: { name: 'HR Manager', short: 'HR Manager', user: 'Noura Demo', initials: 'ND', dashboard: 'HR Console', email: 'noura.demo@constructiq.test',
+  hr_manager: { name: 'HR Manager', short: 'HR Manager', user: 'Noura Demo', initials: 'ND', dashboard: 'Home', email: 'noura.demo@constructiq.test',
     perms: ['employee:read','employee:write','employee:read_sensitive','document:verify','document:upload','project:read','staffing:read','staffing:approve','assignment:approve','mobilization:read','mobilization:create','mobilization:approve','rules:write','ai:use','forecast:read','recruitment:read','recruitment:create','alert:read','alert:act'] },
-  hr_executive: { name: 'HR Executive', short: 'HR Executive', user: 'Priya Demo', initials: 'PD', dashboard: 'HR Console', email: 'priya.demo@constructiq.test',
+  hr_executive: { name: 'HR Executive', short: 'HR Executive', user: 'Priya Demo', initials: 'PD', dashboard: 'Home', email: 'priya.demo@constructiq.test',
     perms: ['employee:read','employee:write','document:verify','document:upload','project:read','staffing:read','mobilization:read','ai:use','forecast:read','recruitment:read','alert:read','alert:act'] },
   ceo: { name: 'CEO / Managing Director', short: 'CEO / MD', user: 'Layla Demo', initials: 'LD', dashboard: 'Executive Overview', email: 'layla.demo@constructiq.test',
     perms: ['employee:read','employee:read_sensitive','project:read','project:read_financial','staffing:read','staffing:approve','assignment:approve','mobilization:read','mobilization:approve','approval:final','ai:use','report:read','agent:read','forecast:read','recruitment:read','alert:read'] },
@@ -692,24 +692,14 @@ const ROLES = {
 const HR_ROLES = ['hr_manager', 'hr_executive'];
 const BUILT_DASHBOARDS = ['ceo', 'hr_manager', 'hr_executive'];
 
-// Built screens in the sidebar; everything else sits in "Coming next".
+// Only screens that exist are listed. Anything unbuilt is not shown at all (no dead links).
+// Labels are the words HR uses: Home, To-do, Requests, Forecast, Projects.
 const NAV_BUILT = [
   { id: 'dashboard', icon: 'dashboard', any: null },
-  { id: 'actions', label: 'Action Center', icon: 'inbox', any: ['alert:read'], notFor: HR_ROLES },
-  { id: 'allocation', label: 'Allocation board', icon: 'arrows', any: ['staffing:read'] },
-  { id: 'forecast', label: 'Manpower forecast', icon: 'trend', any: ['forecast:read'] },
+  { id: 'actions', label: 'To-do', icon: 'inbox', any: ['alert:read'] },
+  { id: 'allocation', label: 'Requests', icon: 'arrows', any: ['staffing:read'] },
+  { id: 'forecast', label: 'Forecast', icon: 'trend', any: ['forecast:read'] },
   { id: 'projects', label: 'Projects', icon: 'building', any: ['project:read'] },
-  { id: 'ai', label: 'AI Command Centre', icon: 'sparkles', any: ['ai:use'], opensAi: true },
-];
-const NAV_SOON = [
-  { label: 'Employees', any: ['employee:read'], notFor: ['employee'] },
-  { label: 'Excel import', any: ['employee:write'] },
-  { label: 'Mobilization', any: ['mobilization:read'], notFor: ['employee'] },
-  { label: 'Demobilization', any: ['mobilization:read'], notFor: ['employee'] },
-  { label: 'Camps & transport', any: ['logistics:assign'] },
-  { label: 'AI agents', any: ['agent:admin', 'agent:read'] },
-  { label: 'Users & roles', any: ['user:admin'] },
-  { label: 'Automations', any: ['automation:run'] },
 ];
 
 const PROJECTS = [
@@ -732,18 +722,6 @@ const ACTIVE_PROJECTS = PROJECTS.filter((p) => p.status !== 'planning');
 const projectBy = (code) => PROJECTS.find((p) => p.code === code);
 
 const BASE_WORKFORCE = { total: 150, deployed: 112, mobilizing: 9, available: 21, unavailable: 8 };
-const APPROVALS = [
-  { id: 'SR-2026-0042', kind: 'Staffing request', title: '8 steel fixers to RAK-03 Coral Bay Residences', due: 'today',
-    effect: [['RAK-03', '8 short', 'fully staffed']], when: 'On site by 8 Nov 2026', ready: 8, total: 8, outstanding: [], risk: null, board: true,
-    by: 'Workforce Agent recommendation · with HR for review', agent: true, extra: '2 candidates excluded: visa expires before cover ends. HR reviews, swaps and approves on the Allocation Board.' },
-  { id: 'MOB-2026-0107', kind: 'Mobilization', title: '3 steel fixers and 2 carpenters to RAK-06 Dhayah Warehouse', due: 'today',
-    effect: [['RAK-06', '6 short', '1 short']], when: 'Report on 9 Nov 2026', ready: 3, total: 5, outstanding: ['1 medical', '1 site induction'],
-    risk: '2 not cleared yet, so they may miss 9 Nov 2026.', by: 'Karim Demo (Operations Manager)' },
-  { id: 'DM-2026-0031', kind: 'Demobilization', title: 'Release 6 masons from RAK-02 Saqr Business Park', due: 'tomorrow',
-    effect: [['RAK-02', 'fully staffed', 'fully staffed']], when: 'Released by 12 Nov 2026', ready: 4, total: 6, outstanding: ['2 PPE returns'], risk: null,
-    by: 'Karim Demo (Operations Manager)', extra: 'Masonry is complete; the plan drops from 8 to 2 masons on 12 Nov 2026. Waiting since 3 Nov, 16:00.' },
-];
-const TOTAL_PENDING = 4;
 const MOBS = [
   { date: '2026-11-08', no: 'MOB-2026-0109', title: '8 steel fixers to RAK-03 Coral Bay Residences', sub: 'Waiting for SR-2026-0042 on the Allocation Board', chip: ['info', 'clock', 'Pending approval'] },
   { date: '2026-11-09', no: 'MOB-2026-0107', title: '3 steel fixers and 2 carpenters to RAK-06 Dhayah Warehouse', sub: '1 medical and 1 site induction outstanding', chip: ['warning', 'alert', '2 outstanding'] },
@@ -878,66 +856,65 @@ const SEED_CONDITIONS = [
   { dedupe: 'transfer_dependency:RAK-05:RAK-02:2026-12-01', created: '2026-11-04T15:10:00Z', escalation: 2, due: '2026-11-05T12:00:00Z',
     holds: () => !state.flags.released1038,
     spec: { type: 'transfer_dependency_broken', severity: 'critical', project: 'RAK-02', metric: 2,
-      template: '2 reserved transfers to RAK-02 depend on RAK-05 finishing by 24 Nov 2026',
-      title: '2 reserved carpenters may not reach RAK-02 by 1 Dec 2026',
-      explanation: 'Two carpenters reserved for RAK-02 from 1 Dec 2026 are still on RAK-05, whose end date moved from 20 Nov to 15 Dec 2026. To keep the 7-day transfer buffer they must leave RAK-05 by 24 Nov 2026.',
-      facts: [['Reserved for', 'RAK-02 from 1 Dec 2026'], ['Workers', 'Ajay Thakur · EMP-0184, Lal Bahadur · EMP-0185'], ['Coming from', 'RAK-05'], ['RAK-05 end date', 'was 20 Nov 2026, now 15 Dec 2026'], ['Must leave by', '24 Nov 2026'], ['Transfer buffer', '7 days']],
+      template: '2 held workers for RAK-02 depend on RAK-05 finishing by 24 Nov 2026',
+      title: '2 carpenters held for RAK-02 may not arrive by 1 Dec 2026',
+      explanation: 'Two carpenters held for RAK-02 from 1 Dec 2026 are still on RAK-05, whose end date moved from 20 Nov to 15 Dec 2026. They need 7 days to move between sites, so they must leave RAK-05 by 24 Nov 2026.',
+      facts: [['Held for', 'RAK-02 from 1 Dec 2026'], ['Workers', 'Ajay Thakur · EMP-0184, Lal Bahadur · EMP-0185'], ['Coming from', 'RAK-05'], ['RAK-05 end date', 'was 20 Nov 2026, now 15 Dec 2026'], ['Must leave by', '24 Nov 2026'], ['Days to move between sites', '7']],
       actions: ['release_reservation'] } },
   { dedupe: 'mobilization_stuck:MOB-2026-0107', created: '2026-11-05T07:00:00Z', escalation: 0, due: '2026-11-07T07:00:00Z',
     holds: () => true,
     spec: { type: 'mobilization_stuck', severity: 'action_needed', project: 'RAK-06', metric: 2,
-      template: 'MOB-2026-0107 has 2 open readiness items',
-      title: 'MOB-2026-0107: 2 readiness items open, reports 9 Nov 2026',
-      explanation: 'Five workers report to RAK-06 on 9 Nov 2026. One medical and one site induction are still open, and the "Book medical" task was due on 4 Nov 2026.',
-      facts: [['Mobilization', 'MOB-2026-0107 · 5 workers to RAK-06'], ['Reports on', '9 Nov 2026 (4 days)'], ['Outstanding', '1 medical, 1 site induction'], ['Overdue task', 'Book medical · due 4 Nov 2026 · HR']],
+      template: 'MOB-2026-0107 has 2 open checks',
+      title: 'MOB-2026-0107: 2 checks still open, workers start 9 Nov 2026',
+      explanation: 'Five workers start at RAK-06 on 9 Nov 2026. One medical and one site induction are still open, and the “Book medical” task was due on 4 Nov 2026.',
+      facts: [['Group', '5 workers going to RAK-06 (MOB-2026-0107)'], ['Starts on', '9 Nov 2026 (4 days)'], ['Still to do', '1 medical, 1 site induction'], ['Overdue task', 'Book medical · due 4 Nov 2026 · HR']],
       actions: [] } },
-  { dedupe: 'approval_waiting:DM-2026-0031', created: '2026-11-04T16:00:00Z', escalation: 0, due: '2026-11-05T16:00:00Z',
-    holds: () => !state.decisions['DM-2026-0031'],
-    spec: { type: 'approval_waiting', severity: 'action_needed', project: 'RAK-02', metric: 41,
-      template: 'DM-2026-0031 waiting for approval for 41 h',
-      title: 'DM-2026-0031 has waited 41 hours for approval',
-      explanation: 'The release of 6 masons from RAK-02 has waited 41 hours, past the 24-hour limit. It becomes critical at 48 hours.',
-      facts: [['Approval', 'DM-2026-0031 · release 6 masons from RAK-02'], ['Waiting since', '3 Nov 2026, 16:00'], ['Waiting', '41 h (limit 24 h)'], ['Approver', 'Operations Manager or HR Manager']],
-      actions: ['remind_approver'] } },
+  { dedupe: 'approval_waiting:SR-2026-0040', created: '2026-11-04T16:00:00Z', escalation: 0, due: '2026-11-05T16:00:00Z',
+    holds: () => (state.board['SR-2026-0040-1'] ? state.board['SR-2026-0040-1'].status === 'open' : true),
+    spec: { type: 'approval_waiting', severity: 'action_needed', project: 'RAK-06', metric: 41, request: 'SR-2026-0040',
+      template: 'SR-2026-0040 waiting for approval for 41 h',
+      title: 'Request SR-2026-0040 has waited 41 hours for approval',
+      explanation: 'The request for 1 general labourer at RAK-06 has waited 41 hours for a decision, past the 24-hour limit. It becomes urgent at 48 hours.',
+      facts: [['Request', 'SR-2026-0040 · 1 general labourer for RAK-06'], ['Waiting since', '3 Nov 2026, 16:00'], ['Waiting', '41 hours (limit 24 hours)'], ['Who decides', 'HR Manager']],
+      actions: ['open_request'] } },
   { dedupe: 'ending_without_next:RAK-02:2026-11-12', created: '2026-11-05T07:00:00Z', escalation: 0, due: '2026-11-09T07:00:00Z',
     holds: () => !['EMP-0201', 'EMP-0202'].every((c) => (state.fc.reserved.Mason || []).includes(c)),
     spec: { type: 'ending_without_next', severity: 'action_needed', project: 'RAK-02', metric: 2,
-      template: '2 workers leave RAK-02 on 12 Nov 2026 with no next assignment',
-      title: '2 masons leave RAK-02 on 12 Nov 2026 with no next assignment',
-      explanation: 'Six masons are released from RAK-02 on 12 Nov 2026 (DM-2026-0031). Two of them have nothing planned next. RAK-07 needs masons from 12 Feb 2027.',
-      facts: [['Leaving', '6 masons on 12 Nov 2026 (DM-2026-0031)'], ['No next assignment', 'Hari Lama · EMP-0201, Bilal Khan · EMP-0202'], ['Days left', '7'], ['Open need', 'RAK-07: masons from 12 Feb 2027']],
+      template: '2 workers leave RAK-02 on 12 Nov 2026 with nothing planned next',
+      title: '2 masons leave RAK-02 on 12 Nov 2026 with nothing planned next',
+      explanation: 'The masonry work at RAK-02 ends on 12 Nov 2026 and six masons are released. Two of them have nothing planned next. RAK-07 needs masons from 12 Feb 2027.',
+      facts: [['Leaving', '6 masons on 12 Nov 2026 (masonry work at RAK-02 ends)'], ['Nothing planned next', 'Hari Lama · EMP-0201, Bilal Khan · EMP-0202'], ['Days left', '7'], ['Open need', 'RAK-07: masons from 12 Feb 2027']],
       actions: ['open_forecast_mason'] } },
   { dedupe: 'document_expiry:EMP-0120:visa', created: '2026-11-05T07:00:00Z', escalation: 0, due: null,
     holds: () => true,
     spec: { type: 'document_expiry', severity: 'info', project: null, metric: 1,
       template: 'Visa expires in 45 days: EMP-0120',
       title: 'Visa expires in 45 days: Prakash Shrestha (EMP-0120)',
-      explanation: 'Prakash Shrestha’s visa expires on 20 Dec 2026. He is available, but the Workforce Agent excludes him from assignments that need cover past that date.',
-      facts: [['Employee', 'Prakash Shrestha · EMP-0120'], ['Document', 'Visa'], ['Expires', '20 Dec 2026'], ['Days left', '45'], ['Current status', 'Available, not assigned']],
+      explanation: 'Prakash Shrestha’s visa expires on 20 Dec 2026. He is free to assign, but the system leaves him out of jobs that need cover beyond that date.',
+      facts: [['Employee', 'Prakash Shrestha · EMP-0120'], ['Document', 'Visa'], ['Expires', '20 Dec 2026'], ['Days left', '45'], ['Current status', 'Free to assign, not on a project']],
       actions: ['send_reminder'] } },
   { dedupe: 'midday_ban:RAK-01-S2:2027', created: '2026-11-05T07:00:00Z', escalation: 0, due: null,
     holds: () => true,
     spec: { type: 'midday_ban_conflict', severity: 'info', project: 'RAK-01', metric: 1,
-      template: 'RAK-01 site 2 default shift conflicts with the provisional 2027 midday ban',
-      title: 'RAK-01 site 2 shift breaks the provisional 2027 midday ban',
-      explanation: 'The default shift on RAK-01 site 2 is 06:00–15:30. If the 2027 ban matches 2026 (provisional dates), it overlaps 12:30–15:00 and runs 1.5 hours over the 8-hour limit.',
-      facts: [['Site', 'RAK-01 · Site 2, outdoor'], ['Default shift', '06:00–15:30 (9.5 h)'], ['Rule', 'Midday ban 2027 (provisional): 15 Jun – 15 Sep, 12:30–15:00, max 8 h'], ['Conflict', 'Overlaps 12:30–15:00; 1.5 h over the daily maximum'], ['Assignments affected', '27 running past 15 Jun 2027']],
+      template: 'RAK-01 site 2 usual shift conflicts with the provisional 2027 midday work ban',
+      title: 'RAK-01 site 2 working hours break the provisional 2027 midday work ban',
+      explanation: 'The usual shift on RAK-01 site 2 is 06:00–15:30. If the 2027 ban matches 2026 (dates still provisional), it overlaps 12:30–15:00 and is 1.5 hours over the 8-hour daily limit.',
+      facts: [['Site', 'RAK-01 · Site 2, outdoor'], ['Usual shift', '06:00–15:30 (9.5 hours)'], ['Rule', 'Midday work ban 2027 (provisional): 15 Jun – 15 Sep, 12:30–15:00, max 8 hours'], ['Problem', 'Overlaps 12:30–15:00; 1.5 hours over the daily maximum'], ['People affected', '27 working past 15 Jun 2027']],
       actions: [] } },
 ];
-const ALERT_TYPE_LABEL = { upcoming_shortfall: 'Upcoming shortfall', ending_without_next: 'Ending, no next assignment', document_expiry: 'Document expiry', mobilization_stuck: 'Mobilization stuck', transfer_dependency_broken: 'Transfer dependency broken', approval_waiting: 'Approval waiting', midday_ban_conflict: 'Midday-ban conflict' };
+const ALERT_TYPE_LABEL = { upcoming_shortfall: 'Staff shortage ahead', ending_without_next: 'Finishing with nothing next', document_expiry: 'Document expiring', mobilization_stuck: 'Mobilization stuck', transfer_dependency_broken: 'Held workers may not arrive', approval_waiting: 'Waiting for a decision', midday_ban_conflict: 'Midday work ban clash' };
 const ALERT_ACTIONS = {
-  open_forecast: { label: 'Open forecast', perm: 'forecast:read' },
-  open_forecast_mason: { label: 'Open RAK-07 forecast', perm: 'forecast:read' },
-  reserve_transfers: { label: 'Reserve transfers', perm: 'assignment:approve' },
-  raise_recruitment: { label: 'Raise recruitment request', perm: 'recruitment:create' },
-  release_reservation: { label: 'Release reservation', perm: 'assignment:approve' },
+  open_forecast: { label: 'Open the forecast', perm: 'forecast:read' },
+  open_forecast_mason: { label: 'Open the RAK-07 forecast', perm: 'forecast:read' },
+  open_request: { label: 'Open the request', perm: 'staffing:read' },
+  reserve_transfers: { label: 'Hold people for this project', perm: 'assignment:approve' },
+  raise_recruitment: { label: 'Ask recruitment to hire', perm: 'recruitment:create' },
+  release_reservation: { label: 'Stop holding these people', perm: 'assignment:approve' },
   send_reminder: { label: 'Send renewal reminder', perm: 'employee:write' },
-  mark_renewed: { label: 'Prototype: renewal verified', perm: 'document:verify' },
-  remind_approver: { label: 'Remind approver', perm: 'alert:act' },
+  mark_renewed: { label: 'Visa renewed and checked', perm: 'document:verify' },
 };
-const SEV = { critical: ['danger', 'octagon', 'Critical', 0], action_needed: ['warning', 'alert', 'Action needed', 1], info: ['info', 'info', 'Info', 2] };
-const ESC_LABEL = ['HR team', 'Escalated to HR Manager', 'Escalated to Operations'];
-
+const SEV = { critical: ['danger', 'octagon', 'Urgent', 0], action_needed: ['warning', 'alert', 'Needs attention', 1], info: ['info', 'info', 'For information', 2] };
+const ESC_LABEL = ['With the HR team', 'Passed up to the HR Manager', 'Passed up to Operations'];
 /* =====================================================================
    Helpers
    ===================================================================== */
@@ -968,7 +945,7 @@ const state = {
   role: 'hr_manager', page: 'login', decisions: {}, nextMob: 110, nextSr: 46, nextRr: 1, nextAlert: 1050,
   comingOpen: false, kpiShown: {}, board: {}, alerts: [], flags: {},
   ui: { req: 'SR-2026-0042', line: 'SR-2026-0042-1', q: '', status: 'open', project: 'all', poolQ: '', poolTrade: 'line', poolLevel: 'line', docsOnly: true, availOnly: true, preview: 'live', swap: null },
-  ac: { sev: { critical: true, action_needed: true, info: true }, status: 'live', type: 'all', project: 'all', mine: false, q: '', selected: new Set(), preview: 'live', bulk: '' },
+  ac: { urgency: 'all', mine: false, showAll: false, preview: 'live' },
   fc: { start: FC.start, rak02Steel: '2027-01-31', reserved: {}, reservations: [], recruit: [], expanded: 'Mason', form: null, formError: '', explain: null },
 };
 const can = (perm) => ROLES[state.role].perms.includes(perm);
@@ -999,9 +976,7 @@ function segmentBar(w) {
 }
 const skeleton = (n, h = 40) => `<div class="skel-list" aria-busy="true" aria-label="Loading">${`<div class="skel" style="height:${h}px"></div>`.repeat(n)}</div>`;
 const emptyBlock = (ic, title, text, action = '') => `<div class="empty"><div class="icon-wrap">${icon(ic, 20)}</div><h2>${esc(title)}</h2><p>${text}</p>${action}</div>`;
-const previewSeg = (key, value) => `<span class="preview-label" id="pv-${key}">Preview state (prototype only)</span>
-  <div class="seg" role="group" aria-labelledby="pv-${key}">${[['live', 'Data'], ['loading', 'Loading'], ['empty', 'Empty'], ['error', 'Error']].map(([v, t]) => `<button type="button" data-preview-${key}="${v}" aria-pressed="${value === v}">${t}</button>`).join('')}</div>`;
-const protoTags = '<span class="tag tag-proto">' + '<svg class="i" width="14" height="14" aria-hidden="true"><use href="#i-info"/></svg>' + 'Design prototype</span><span class="tag">Fictional demo data</span>';
+const protoTags = '';
 
 /* =====================================================================
    Allocation Board logic. In the app every check is an API validator (docs/rules.md).
@@ -1051,8 +1026,8 @@ function heldElsewhere(code, lineId) {
 }
 function validate(code, req, line) {
   const p = poolBy(code); const h = horizon(req); const errs = [];
-  if (p.trade !== line.trade) errs.push(['ASSIGN_TRADE', `${p.name} is a ${p.trade.toLowerCase()}; this line needs a ${line.trade.toLowerCase()}.`]);
-  if (p.level < line.minLevel) errs.push(['ASSIGN_LEVEL', `Level ${p.level}; this line needs level ${line.minLevel} or above.`]);
+  if (p.trade !== line.trade) errs.push(['ASSIGN_TRADE', `${p.name} is a ${p.trade.toLowerCase()}; this job needs a ${line.trade.toLowerCase()}.`]);
+  if (p.level < line.minLevel) errs.push(['ASSIGN_LEVEL', `Level ${p.level}; this job needs skill level ${line.minLevel} or higher.`]);
   if (p.from > req.from) errs.push(['ASSIGN_AVAILABILITY', `Available from ${fmtDate(p.from)}; needed from ${fmtDate(req.from)}.`]);
   if (p.bookedFrom && p.bookedFrom <= h) errs.push(['ASSIGN_OVERLAP', `Booked on ${p.bookedOn} from ${fmtDate(p.bookedFrom)}; cover is needed to ${fmtDate(h)}.`]);
   if (p.docsUntil < h) errs.push(['DOC_VALID_THROUGH', `${p.docIssue || `A required document expires ${fmtDate(p.docsUntil)}`}; cover is needed to ${fmtDate(h)}.`]);
@@ -1075,7 +1050,7 @@ function selectRequest(no) {
   state.ui.line = (r.lines.find((l) => state.board[l.id].status === 'open') || r.lines[0]).id; state.ui.swap = null;
 }
 const mobRange = (n) => { const fmt = (x) => `MOB-2026-${String(x).padStart(4, '0')}`; const first = state.nextMob; state.nextMob += n; return n === 1 ? fmt(first) : `${fmt(first)} to ${fmt(first + n - 1)}`; };
-const ruleErrs = (errs) => `<ul class="errs" role="alert">${errs.map(([rule, msg]) => `<li>${icon('alert', 14)}<span>${esc(msg)} <span class="mono">${rule}</span></span></li>`).join('')}</ul>`;
+const ruleErrs = (errs) => `<ul class="errs" role="alert">${errs.map(([rule, msg]) => `<li>${icon('alert', 14)}<span title="Details: ${rule}">${esc(msg)}</span></li>`).join('')}</ul>`;
 
 // The agent's visible steps. Every number comes from the tool results, not the model.
 function buildTrace(req, line) {
@@ -1083,11 +1058,11 @@ function buildTrace(req, line) {
   const ex = line.rec.excluded;
   const k = line.rec.workers.length;
   return [
-    { t: 'Understood the request', d: `${line.count} × ${line.trade.toLowerCase()}, level ${line.minLevel}+, from ${fmtDate(req.from)}; documents must cover to ${fmtDate(horizon(req))}.` },
-    { t: 'Checked available workers', d: `${pool.length} ${line.trade.toLowerCase()}${pool.length === 1 ? '' : 's'} in the pool · search_employees, check_availability, check_documents, check_work_rules.` },
-    { t: `Exclusions (${ex.length})`, d: ex.length ? ex.map((x) => `${poolBy(x.code).name}: ${x.detail} (${x.rule})`).join(' · ') : 'Nobody excluded.' },
-    { t: 'Ranking criteria', d: 'Verified level, availability, document margin after cover ends, history on this project or client. Never nationality or age.' },
-    { t: 'Result', d: `${k} of ${line.count} recommended${line.rec.shortfall ? `; ${line.rec.shortfall} short, gap left open` : ''} · recommend_candidates.` },
+    { t: 'Read the request', d: `${line.count} × ${line.trade.toLowerCase()}, level ${line.minLevel}+, from ${fmtDate(req.from)}; documents must cover to ${fmtDate(horizon(req))}.` },
+    { t: 'Looked at who is free', d: `${pool.length} ${line.trade.toLowerCase()}${pool.length === 1 ? '' : 's'} checked for availability, visas and labour cards, and work rules.` },
+    { t: `Not suitable (${ex.length})`, d: ex.length ? ex.map((x) => `${poolBy(x.code).name}: ${x.detail}`).join(' · ') : 'Everyone checked is suitable.' },
+    { t: 'How people were ranked', d: 'Skill level, availability, how long their documents last past the job, and past work on this project or client. Never nationality or age.' },
+    { t: 'Result', d: `${k} of ${line.count} recommended${line.rec.shortfall ? `; ${line.rec.shortfall} short, gap left open` : ''}.` },
   ];
 }
 function traceBlock(st, open) {
@@ -1095,7 +1070,7 @@ function traceBlock(st, open) {
   const steps = st.trace.steps.slice(0, st.trace.shown);
   const running = st.trace.running;
   return `<details class="trace-box"${open || running ? ' open' : ''}>
-    <summary>${icon('chevron-right', 14).replace('class="i"', 'class="i chev"')}${icon('bot', 14)}<span>${running ? 'Workforce Agent is working…' : `Agent trace · Workforce Agent · ${st.trace.steps.length} steps · tier mid`}</span></summary>
+    <summary>${icon('chevron-right', 14).replace('class="i"', 'class="i chev"')}${icon('bot', 14)}<span>${running ? 'Checking workers…' : `How this was checked · ${st.trace.steps.length} steps`}</span></summary>
     <ol class="steps" aria-live="polite">${steps.map((s) => `<li class="step"><span class="step-dot">${icon('tick', 12)}</span><div><b>${esc(s.t)}</b>${esc(s.d)}</div></li>`).join('')}
       ${running && st.trace.shown < st.trace.steps.length ? `<li class="step"><span class="step-dot pending">${icon('clock', 12)}</span><div><b>${esc(st.trace.steps[st.trace.shown].t)}…</b></div></li>` : ''}
     </ol></details>`;
@@ -1115,8 +1090,8 @@ function computeForecast(start) {
       FC_WORKERS.filter((w) => w.trade === trade && !reserved.includes(w.code)).forEach((w) => {
         const ends = w.endsKey ? state.fc[w.endsKey] : w.ends;
         let why = null;
-        if (w.reservedFor) why = ['Already reserved', `reserved for ${w.reservedFor}`];
-        else if (ends && ends > mustFinish) why = ['Inside the transfer buffer', `${w.project} assignment ends ${fmtDate(ends)}, after ${fmtDate(mustFinish)}`];
+        if (w.reservedFor) why = ['Already held', `held for ${w.reservedFor}`];
+        else if (ends && ends > mustFinish) why = ['Not enough time to move', `${w.project} assignment ends ${fmtDate(ends)}, after ${fmtDate(mustFinish)}`];
         else if (w.leave && w.leave[0] < h && w.leave[1] >= start) why = ['On leave', `approved leave ${fmtShort(w.leave[0])} – ${fmtDate(w.leave[1])}`];
         else if (w.docsUntil < h) why = ['Documents', `${w.docIssue}, before ${fmtDate(h)}`];
         if (why) { excluded.push({ w, kind: why[0], detail: why[1] }); return; }
@@ -1150,8 +1125,8 @@ function detectorFindings() {
       created: state.booted ? new Date(NOW).toISOString() : '2026-11-05T07:00:00Z', escalation: 0, due: '2026-11-12T07:00:00Z',
       template: `RAK-07 is ${r.uncovered} ${r.trade.toLowerCase()}${r.uncovered === 1 ? '' : 's'} short on ${fmtDate(FC.start)}`,
       title: `RAK-07 starts ${fmtDate(FC.start)}: ${r.uncovered} ${r.trade.toLowerCase()}${r.uncovered === 1 ? '' : 's'} short`,
-      explanation: `RAK-07 needs ${r.needed} ${r.trade.toLowerCase()}s on ${fmtDate(FC.start)}. ${r.assigned ? `${r.assigned} are reserved and ` : ''}${r.deployable} can be deployed from current staff${r.pending ? `, and recruitment covers ${r.pending}` : ''}, leaving ${r.uncovered} uncovered. The project starts in ${daysToStart} days.`,
-      facts: [['Project', `RAK-07 · Shamal Logistics Hub`], ['Start date', `${fmtDate(FC.start)} (${daysToStart} days)`], ['Trade', r.trade], ['Needed', String(r.needed)], ['Reserved', String(r.assigned)], ['Deployable', String(r.deployable)], ['Recruitment pending', String(r.pending)], ['Uncovered gap', String(r.uncovered)]],
+      explanation: `RAK-07 needs ${r.needed} ${r.trade.toLowerCase()}s on ${fmtDate(FC.start)}. ${r.assigned ? `${r.assigned} are held and ` : ''}${r.deployable} can be moved from current staff${r.pending ? `, and hiring covers ${r.pending}` : ''}, leaving ${r.uncovered} still short. The project starts in ${daysToStart} days.`,
+      facts: [['Project', `RAK-07 · Shamal Logistics Hub`], ['Start date', `${fmtDate(FC.start)} (${daysToStart} days)`], ['Trade', r.trade], ['Needed', String(r.needed)], ['Held', String(r.assigned)], ['Free to assign', String(r.deployable)], ['Hiring in progress', String(r.pending)], ['Still short', String(r.uncovered)]],
       actions: ['open_forecast', 'raise_recruitment'].concat(r.deployable ? ['reserve_transfers'] : []), trade: r.trade,
     });
   });
@@ -1162,16 +1137,16 @@ function detectorFindings() {
     found.set(`transfer_dependency:RAK-02:RAK-07:${FC.start}`, {
       type: 'transfer_dependency_broken', severity: 'critical', project: 'RAK-07', metric: steel.length,
       created: new Date(NOW).toISOString(), escalation: 0, due: new Date(NOW + 4 * HOUR).toISOString(),
-      template: `${steel.length} reserved transfers to RAK-07 depend on RAK-02 finishing by ${fmtDate(mustFinish)}`,
-      title: `${steel.length} reserved steel fixers may not reach RAK-07 by ${fmtDate(FC.start)}`,
-      explanation: `RAK-02’s steel fixers now finish on ${fmtDate(state.fc.rak02Steel)}, after ${fmtDate(mustFinish)}, the last day that keeps the 7-day buffer before RAK-07 starts. The ${steel.length} reserved transfers no longer fit.`,
-      facts: [['Reserved for', `RAK-07 from ${fmtDate(FC.start)}`], ['Workers', `${steel.length} steel fixers from RAK-02`], ['RAK-02 end date', `was 31 Jan 2027, now ${fmtDate(state.fc.rak02Steel)}`], ['Must finish by', fmtDate(mustFinish)], ['Transfer buffer', '7 days']],
+      template: `${steel.length} held workers for RAK-07 depend on RAK-02 finishing by ${fmtDate(mustFinish)}`,
+      title: `${steel.length} steel fixers held for RAK-07 may not arrive by ${fmtDate(FC.start)}`,
+      explanation: `RAK-02’s steel fixers now finish on ${fmtDate(state.fc.rak02Steel)}, after ${fmtDate(mustFinish)}, the last day that leaves 7 days to move before RAK-07 starts. The ${steel.length} held workers no longer fit.`,
+      facts: [['Held for', `RAK-07 from ${fmtDate(FC.start)}`], ['Workers', `${steel.length} steel fixers from RAK-02`], ['RAK-02 end date', `was 31 Jan 2027, now ${fmtDate(state.fc.rak02Steel)}`], ['Must finish by', fmtDate(mustFinish)], ['Days to move between sites', '7']],
       actions: ['release_reservation_rak07', 'open_forecast'], trade: 'Steel fixer',
     });
   }
   return found;
 }
-ALERT_ACTIONS.release_reservation_rak07 = { label: 'Release reservation', perm: 'assignment:approve' };
+ALERT_ACTIONS.release_reservation_rak07 = { label: 'Stop holding these people', perm: 'assignment:approve' };
 
 const LIVE = ['open', 'in_progress', 'snoozed'];
 function runDetectors(trigger) {
@@ -1179,21 +1154,21 @@ function runDetectors(trigger) {
   const resolved = [];
   state.alerts.filter((a) => LIVE.includes(a.status)).forEach((a) => {
     if (found.has(a.dedupe)) { const s = found.get(a.dedupe); Object.assign(a, { severity: s.severity, facts: s.facts, explanation: s.explanation, title: s.title, metric: s.metric, actions: s.actions, trade: s.trade }); found.delete(a.dedupe); }
-    else { a.status = 'resolved'; a.resolution = 'Condition cleared automatically'; a.history.push({ at: 'Now', text: `Auto-resolved by the detector run (${trigger}): the condition no longer holds.` }); resolved.push(a); }
+    else { a.status = 'resolved'; a.resolution = 'Cleared automatically: the problem was fixed'; a.history.push({ at: 'Now', text: `Cleared automatically: the problem was fixed (${trigger}).` }); resolved.push(a); }
   });
   found.forEach((s, dedupe) => {
     const dismissed = state.alerts.find((a) => a.dedupe === dedupe && a.status === 'dismissed');
     if (dismissed && SEV[s.severity][3] >= SEV[dismissed.severity][3] && s.metric <= dismissed.metric) return; // ALERT_DISMISS: only re-raise if worse
     const id = `AL-${state.nextAlert++}`;
     state.alerts.push({ id, dedupe, status: 'open', assignee: null, snoozedUntil: null, resolution: '', narrated: true, ...s,
-      history: [{ at: state.booted ? 'Now' : fmtDateTime(s.created), text: `Raised by the ${ALERT_TYPE_LABEL[s.type].toLowerCase()} detector (${trigger}).` }] });
-    if (state.booted) toast(`New alert: ${s.title}`, s.severity === 'critical' ? 'octagon' : 'alert');
+      history: [{ at: state.booted ? 'Now' : fmtDateTime(s.created), text: state.booted ? `Found automatically after: ${trigger}.` : 'Found automatically by the morning check.' }] });
+    if (state.booted) toast(`New to-do: ${s.title}`, s.severity === 'critical' ? 'octagon' : 'alert');
   });
-  if (state.booted) resolved.forEach((a) => toast(`Alert resolved automatically: ${a.title}`, 'check'));
+  if (state.booted) resolved.forEach((a) => toast(`To-do cleared automatically: ${a.title}`, 'check'));
 }
 const dependencyBroken = (trade) => state.alerts.some((a) => LIVE.includes(a.status) && a.type === 'transfer_dependency_broken' && a.project === 'RAK-07' && a.trade === trade);
 const forecastStatusChip = (r) => r.uncovered ? chip('danger', 'alert', `${r.uncovered} short`)
-  : dependencyBroken(r.trade) ? chip('danger', 'link', 'Reserved · dependency broken')
+  : dependencyBroken(r.trade) ? chip('danger', 'link', 'Held · may not arrive')
   : r.gap && r.pending ? chip('warning', 'user-plus', `Recruiting ${r.pending}`) : chip('success', 'check', 'Covered');
 const alertInScope = (a) => { const scope = scopedProjects(); return can('alert:read') && (!scope || (a.project && scope.includes(a.project))); };
 const liveAlerts = () => state.alerts.filter((a) => LIVE.includes(a.status) && alertInScope(a));
@@ -1244,12 +1219,7 @@ function renderNav() {
     const n = navCount(it.id);
     return `<button type="button" class="nav-item" data-nav="${it.id}" title="${esc(label)}"${it.id === state.page ? ' aria-current="page"' : ''}>${icon(it.icon)}<span class="nav-text">${esc(label)}</span>${n ? `<span class="count">${n}</span>` : ''}</button>`;
   }).join('');
-  const soon = NAV_SOON.filter((it) => canAny(it.any) && !(it.notFor || []).includes(state.role));
-  document.getElementById('nav').innerHTML = `<div class="nav-group"><div class="nav-label">Workspace</div>${built}</div>
-    ${soon.length ? `<div class="nav-group nav-coming">
-      <button type="button" class="nav-item nav-toggle" data-toggle-coming aria-expanded="${state.comingOpen}" aria-controls="comingList">${icon('clock')}<span class="nav-text">Coming next (${soon.length})</span>${icon('chevron-down', 14).replace('class="i"', 'class="i chev"')}</button>
-      <div id="comingList"${state.comingOpen ? '' : ' hidden'}>${soon.map((it) => `<div class="nav-item nav-soon" aria-disabled="true"><span style="width:16px"></span><span class="nav-text">${esc(it.label)}</span></div>`).join('')}</div>
-    </div>` : ''}`;
+  document.getElementById('nav').innerHTML = `<div class="nav-group"><div class="nav-label">Workspace</div>${built}</div>`;
 }
 function renderRoleMenu() {
   document.getElementById('rolePop').innerHTML = `<div class="pop-head">Demo mode: sign in as</div>` + Object.entries(ROLES).map(([key, r]) =>
@@ -1261,7 +1231,10 @@ function renderUserMenu() {
     <button type="button" class="menu-item" role="menuitem" data-theme-set="light">${icon('sun')}Light theme</button>
     <button type="button" class="menu-item" role="menuitem" data-theme-set="dark">${icon('moon')}Dark theme</button>
     <button type="button" class="menu-item" role="menuitem" data-theme-set="system">${icon('panel')}Match system</button>
-    <button type="button" class="menu-item" role="menuitem" data-signout>${icon('logout')}Sign out</button>`;
+    <button type="button" class="menu-item" role="menuitem" data-signout>${icon('logout')}Sign out</button>
+    <div class="pop-head" style="border-top:1px solid var(--border);margin-top:var(--s-1)">Demo tools (for the presenter)</div>
+    <button type="button" class="menu-item" role="menuitem" data-demo="rak02">${icon('clock')}${state.fc.rak02Steel === '2027-01-31' ? 'Move RAK-02 end date to 20 Feb 2027' : 'Put RAK-02 end date back to 31 Jan 2027'}</button>
+    ${['live', 'loading', 'empty', 'error'].map((m) => `<button type="button" class="menu-item" role="menuitemradio" aria-checked="${state.ui.preview === m}" data-demo="preview:${m}">${icon('panel')}Show ${m === 'live' ? 'normal data' : `${m} screens`}</button>`).join('')}`;
 }
 function renderBell() {
   const btn = document.getElementById('bellBtn'); const badge = document.getElementById('bellBadge');
@@ -1269,13 +1242,13 @@ function renderBell() {
   btn.hidden = false;
   const c = sevCounts(); const n = c.critical + c.action_needed;
   badge.textContent = n; badge.hidden = !n;
-  btn.setAttribute('aria-label', `Alerts: ${c.critical} critical, ${c.action_needed} action needed`);
+  btn.setAttribute('aria-label', `To-do: ${c.critical} urgent, ${c.action_needed} need attention`);
   const top = liveAlerts().filter((a) => a.status !== 'snoozed').sort(alertSort).slice(0, 5);
-  document.getElementById('bellPop').innerHTML = `<div class="pop-head">Open alerts in your scope</div>
-    ${top.length ? top.map((a) => `<button type="button" class="menu-item bell-item" data-alert="${a.id}">${sevChip(a.severity)}<span>${esc(a.title)}</span><small>${a.project ? `${a.project} · ` : ''}${ago(a.created)}</small></button>`).join('') : '<p class="pop-head">No open alerts.</p>'}
-    <div style="border-top:1px solid var(--border);margin-top:var(--s-1);padding-top:var(--s-1)"><button type="button" class="menu-item" data-goto="${HR_ROLES.includes(state.role) ? 'dashboard' : 'actions'}">${icon('inbox')}Open Action Center</button></div>`;
+  document.getElementById('bellPop').innerHTML = `<div class="pop-head">Things that need you</div>
+    ${top.length ? top.map((a) => `<button type="button" class="menu-item bell-item" data-alert="${a.id}">${sevChip(a.severity)}<span>${esc(a.title)}</span><small>${a.project ? `${a.project} · ` : ''}${ago(a.created)}</small></button>`).join('') : '<p class="pop-head">Nothing needs you right now.</p>'}
+    <div style="border-top:1px solid var(--border);margin-top:var(--s-1);padding-top:var(--s-1)"><button type="button" class="menu-item" data-goto="actions">${icon('inbox')}Open your to-do list</button></div>`;
 }
-const PAGE_NAMES = { actions: ['Operations', 'Action Center'], allocation: ['Workforce', 'Allocation board'], forecast: ['Workforce', 'Manpower forecast'], projects: ['Projects', 'All projects'] };
+const PAGE_NAMES = { actions: ['Work', 'To-do'], allocation: ['Work', 'Requests'], forecast: ['Work', 'Forecast'], projects: ['Work', 'Projects'] };
 function renderTop() {
   const r = ROLES[state.role];
   const [root, name] = PAGE_NAMES[state.page] || ['Dashboards', r.dashboard];
@@ -1284,7 +1257,6 @@ function renderTop() {
   document.getElementById('crumbPage').textContent = name;
   document.getElementById('topTitle').textContent = name;
   const user = document.getElementById('userBtn'); user.textContent = r.initials; user.setAttribute('aria-label', `User menu, ${r.user}`);
-  document.getElementById('aiBtn').hidden = !can('ai:use');
   document.title = `${name} · CONSTRUCTIQ design prototype (Demo)`;
 }
 
@@ -1326,8 +1298,9 @@ function renderCEO() {
   const statusCount = (s) => ACTIVE_PROJECTS.filter((p) => p.status === s).length;
   const short = ACTIVE_PROJECTS.reduce((t, p) => t + Math.max(p.req - p.dep, 0), 0);
   const shortProjects = ACTIVE_PROJECTS.filter((p) => p.req > p.dep).length;
-  const pending = TOTAL_PENDING - Object.keys(state.decisions).length;
-  const dueToday = APPROVALS.filter((a) => a.due === 'today' && !state.decisions[a.id]).length;
+  const openReqs = REQUESTS.filter(isOpenReq);
+  const pending = openReqs.length;
+  const waitingLong = state.alerts.filter((a) => a.type === 'approval_waiting' && LIVE.includes(a.status)).length;
   const scale = Math.max(...ACTIVE_PROJECTS.map((p) => p.req));
   const c = sevCounts();
   const d = asDate(TODAY);
@@ -1336,11 +1309,11 @@ function renderCEO() {
     kpiTile({ id: 'projects', icon: 'building', label: 'Active projects', value: ACTIVE_PROJECTS.length, detail: `${statusCount('ok')} on track · ${statusCount('risk')} at risk · ${statusCount('delayed')} delayed · 1 in planning` }),
     kpiTile({ id: 'deployed', icon: 'hardhat', label: 'Deployed', value: W.deployed, of: `of ${W.total}`, trend: '+6 this week', extra: segmentBar(W), detail: `${W.mobilizing} mobilizing · ${W.available} available · ${W.unavailable} unavailable` }),
     kpiTile({ id: 'short', icon: 'alert', label: 'Shortage', value: short, of: 'people', detail: `Across ${shortProjects} of ${ACTIVE_PROJECTS.length} projects; ${openReqCount} request${openReqCount === 1 ? '' : 's'} open` }),
-    kpiTile({ id: 'approvals', icon: 'clipboard', label: 'Pending approvals', value: pending, detail: dueToday ? `${dueToday} due today` : 'None due today' }),
+    kpiTile({ id: 'approvals', icon: 'clipboard', label: 'Waiting for HR', value: pending, detail: waitingLong ? `${waitingLong} waiting over 24 hours` : 'None waiting over 24 hours' }),
     kpiTile({ id: 'docs', icon: 'file', label: 'Doc compliance', value: (DOCS.verified / DOCS.required) * 100, fmt: 'pct', detail: `${DOCS.d30} documents expire within 30 days` }),
-    kpiTile({ id: 'alerts', icon: 'inbox', label: 'Open alerts', value: c.critical + c.action_needed + c.info,
-      extra: `<div class="sev-counts" aria-label="Open alerts by severity">${['critical', 'action_needed', 'info'].map((s) => `<span class="sev-${s}">${icon(SEV[s][1], 14)}<b>${c[s]}</b>${SEV[s][2]}</span>`).join('')}</div>`,
-      detail: `<button type="button" class="btn btn-ghost btn-sm" style="padding:0" data-goto="actions">View alerts</button>` }),
+    kpiTile({ id: 'alerts', icon: 'inbox', label: 'To-do', value: c.critical + c.action_needed + c.info,
+      extra: `<div class="sev-counts" aria-label="To-do items by how urgent they are">${['critical', 'action_needed', 'info'].map((s) => `<span class="sev-${s}">${icon(SEV[s][1], 14)}<b>${c[s]}</b>${SEV[s][2]}</span>`).join('')}</div>`,
+      detail: `<button type="button" class="btn btn-ghost btn-sm" style="padding:0" data-goto="actions">Open the to-do list</button>` }),
   ].join('');
 
   const rows = ACTIVE_PROJECTS.map((p) => { const gap = p.req - p.dep; return `<tr>
@@ -1355,24 +1328,14 @@ function renderCEO() {
       <span class="m-row">${statusChip(p.status)}<span class="${gap > 0 ? 'gap-short' : 'muted'} small">${gap > 0 ? `${gap} short` : 'Fully staffed'}</span></span>
       ${progressTrack(p.dep, p.req, scale, p.code)}</button></li>`; }).join('');
 
-  const approvals = APPROVALS.map((a, i) => {
-    const decision = state.decisions[a.id];
-    if (a.board && decision) return `<li class="decided">${decision === 'approved' ? chip('success', 'check', 'Approved') : chip('neutral', 'xcircle', 'Rejected')}<span class="mono">${a.id}</span><span class="muted small">by HR on the Allocation Board</span></li>`;
-    if (decision) return `<li class="decided">${decision === 'approved' ? chip('success', 'check', 'Approved') : chip('neutral', 'xcircle', 'Declined')}<span class="mono">${a.id}</span><button type="button" class="btn btn-ghost btn-sm" data-undo="${a.id}" aria-label="Undo decision on ${a.id}">Undo</button></li>`;
-    const dots = Array.from({ length: a.total }, (_, k) => `<span class="dot${k >= a.ready ? ' dot-out' : ''}"></span>`).join('');
-    const readyText = a.ready === a.total ? `All ${a.total} cleared` : `${a.ready} of ${a.total} ready · ${a.outstanding.join(', ')} outstanding`;
-    const primary = i === 0 && a.due === 'today';
-    return `<li class="approval" data-approval="${a.id}">
-      <div class="approval-meta"><span class="mono">${a.id}</span><span>${esc(a.kind)}</span><span class="due">${a.due === 'today' ? chip('warning', 'clock', 'Due today') : chip('neutral', 'clock', 'Due tomorrow')}</span></div>
-      <p class="approval-title">${esc(a.title)}</p>
-      <p class="effect">${a.effect.map(([code, before, after]) => `<b>${code}</b>: ${before} → ${after}`).join('; ')}. ${esc(a.when)}.</p>
-      <div class="readiness"><span class="dots" role="img" aria-label="${esc(readyText)}">${dots}</span><span>${esc(readyText)}</span></div>
-      ${a.extra ? `<p class="note">${esc(a.extra)}</p>` : ''}${a.risk ? `<p class="risk">${icon('alert', 14)}<span>${esc(a.risk)}</span></p>` : ''}
-      <div class="approval-actions"><span class="who">${a.agent ? icon('bot', 14) : ''}${esc(a.by)}</span>
-        ${a.board ? `<button type="button" class="btn ${primary ? 'btn-primary' : ''} btn-sm" data-goto="allocation" data-goto-req="${a.id}">Review on Allocation Board</button>`
-          : `<button type="button" class="btn ${primary ? 'btn-primary' : ''} btn-sm" data-decide="approved" data-id="${a.id}" aria-label="Approve ${a.id}">Approve</button><button type="button" class="btn btn-ghost btn-sm" data-decide="declined" data-id="${a.id}" aria-label="Decline ${a.id}">Decline</button>`}
-      </div></li>`;
-  }).join('');
+  // One owner for approvals: HR decides on the Requests screen. The CEO sees what is waiting and what was approved.
+  const waiting = openReqs.map((r) => `<li class="approval">
+      <div class="approval-meta"><span class="mono">${r.no}</span><span>${esc(r.project)} · ${esc(r.projectName)}</span><span class="due">${chip('neutral', 'clock', 'With HR')}</span></div>
+      <p class="approval-title">${r.lines.map((l) => `${l.count} × ${esc(l.trade.toLowerCase())}`).join(', ')} from ${fmtDate(r.from)}</p>
+      <div class="approval-actions"><span class="who">Raised by ${esc(r.raisedBy)}</span><button type="button" class="btn btn-sm" data-goto="allocation" data-goto-req="${r.no}">View request</button></div></li>`).join('');
+  const approvedList = REQUESTS.flatMap((r) => r.lines.filter((l) => state.board[l.id].status === 'approved').map((l) => ({ r, l, a: state.board[l.id].approved })))
+    .sort((x, y) => (y.a.date || '').localeCompare(x.a.date || ''))
+    .map(({ r, l, a }, i) => `<li class="decided ${i === 0 && a.animate ? 'row-in' : ''}">${chip('success', 'check', 'Approved')}<span><b>${a.count} × ${esc(l.trade.toLowerCase())}</b> · ${esc(r.project)} · by ${esc(a.by.split(' (')[0])}, ${fmtShort(a.date || TODAY)}</span></li>`).join('');
 
   const mobs = mobsNow().map((m) => { const dt = asDate(m.date); return `<li>
       <div class="date-block" aria-label="${DAYS_LONG[dt.getUTCDay()]} ${fmtDate(m.date)}"><small>${DAYS[dt.getUTCDay()]}</small><b>${fmtShort(m.date)}</b></div>
@@ -1390,8 +1353,11 @@ function renderCEO() {
       <ul class="cards-mobile">${mobileRows}</ul>
     </section>
     <div class="secondary">
-      <section class="card" aria-labelledby="apprTitle"><div class="card-head"><div><h2 id="apprTitle">Pending approvals</h2><p>${dueToday ? `${dueToday} due today` : 'Nothing due today'}</p></div><span class="tag">Demo data</span></div>
-        <ul class="approvals">${approvals}</ul><div class="card-foot">Showing ${APPROVALS.length} of ${TOTAL_PENDING}. In this prototype, decisions reset on refresh.</div></section>
+      <section class="card" aria-labelledby="apprTitle"><div class="card-head"><div><h2 id="apprTitle">Approvals</h2><p>HR approves on the Requests screen. You can see everything here.</p></div></div>
+        <p class="section-title" style="padding:0 var(--s-5)">Waiting for HR (${pending})</p>
+        <ul class="approvals">${waiting || '<li class="decided"><span class="muted">Nothing is waiting.</span></li>'}</ul>
+        <p class="section-title" style="padding:var(--s-3) var(--s-5) 0;border-top:1px solid var(--border)">Approved this week</p>
+        <ul class="approvals">${approvedList || '<li class="decided"><span class="muted">Nothing approved yet.</span></li>'}</ul></section>
       <section class="card" aria-labelledby="mobTitle"><div class="card-head"><div><h2 id="mobTitle">Upcoming mobilizations</h2><p>Next 10 days · ${W.mobilizing} people mobilizing</p></div><span class="tag">Demo data</span></div><ul class="list">${mobs}</ul></section>
       <div class="stack">
         <section class="card" aria-labelledby="docTitle"><div class="card-head"><div><h2 id="docTitle">Document compliance</h2><p>Visa, Emirates ID, work permit, medical</p></div><span class="tag">Demo data</span></div>
@@ -1401,7 +1367,7 @@ function renderCEO() {
           <div class="card-body"><p style="font-size:var(--text-sm)">2026 season (15 Jun – 15 Sep 2026) closed with <b>0 violations</b> and 2 approved exemptions.</p><p class="note" style="margin-top:var(--s-2)">2027 dates are provisional until MoHRE announces them.</p></div></section>
       </div>
     </div>
-    <footer class="footer"><span>Design prototype. Everything here is fictional demo data; nothing is connected to a backend.</span><span>Future integration: WhatsApp and email tasks through n8n.</span></footer>`;
+    <footer class="footer"><span>Prototype with fictional data.</span></footer>`;
   countUp();
 }
 
@@ -1410,78 +1376,64 @@ function renderCEO() {
    ===================================================================== */
 const alertSort = (a, b) => SEV[a.severity][3] - SEV[b.severity][3] || (a.due || '9').localeCompare(b.due || '9');
 function filteredAlerts() {
-  const f = state.ac; const q = f.q.trim().toLowerCase();
+  const f = state.ac;
   return state.alerts.filter(alertInScope)
-    .filter((a) => f.status === 'all' || (f.status === 'live' ? ['open', 'in_progress'].includes(a.status) : a.status === f.status))
-    .filter((a) => f.sev[a.severity])
-    .filter((a) => f.type === 'all' || a.type === f.type)
-    .filter((a) => f.project === 'all' || a.project === f.project)
+    .filter((a) => f.showAll || ['open', 'in_progress'].includes(a.status))
+    .filter((a) => f.urgency === 'all' || a.severity === f.urgency)
     .filter((a) => !f.mine || a.assignee === me())
-    .filter((a) => !q || `${a.title} ${a.project || ''} ${a.id}`.toLowerCase().includes(q))
     .sort(alertSort);
 }
 const alertStatusChip = (a) => ({
-  open: chip('neutral', 'inbox', 'Open'), in_progress: chip('info', 'user', 'In progress'),
-  snoozed: chip('neutral', 'clock', `Snoozed until ${a.snoozedUntil ? fmtDateTime(a.snoozedUntil) : ''}`),
-  resolved: chip('success', 'check', 'Resolved'), dismissed: chip('neutral', 'xcircle', 'Dismissed') }[a.status]);
-function actionCenterHTML() {
+  open: chip('neutral', 'inbox', 'To do'), in_progress: chip('info', 'user', `Being handled${a.assignee ? ` by ${a.assignee.split(' ')[0]}` : ''}`),
+  snoozed: chip('neutral', 'clock', `Reminder ${a.snoozedUntil ? fmtDateTime(a.snoozedUntil) : ''}`),
+  resolved: chip('success', 'check', 'Cleared automatically'), dismissed: chip('neutral', 'xcircle', 'Marked not a problem') }[a.status]);
+function todoRows(list, limit) {
+  const shown = limit ? list.slice(0, limit) : list;
+  const row = (a, i) => `<tr class="${state.booted ? '' : 'row-in'}" style="animation-delay:${i * 30}ms">
+        <td style="max-width:520px"><div class="ac-title"><span style="display:flex;gap:var(--s-2);align-items:center;flex-wrap:wrap">${sevChip(a.severity)}${a.status === 'open' ? '' : alertStatusChip(a)}</span><button type="button" class="row-link" data-alert="${a.id}"><span class="name">${esc(a.title)}</span></button><span class="ac-type">${ALERT_TYPE_LABEL[a.type]}${a.escalation ? ` · <span class="esc">${ESC_LABEL[a.escalation]}</span>` : ''}</span></div></td>
+        <td>${a.project ? `<span class="mono">${a.project}</span>` : '<span class="subtle small">Whole company</span>'}</td>
+        <td class="num small muted">${ago(a.created)}</td></tr>`;
+  return `<div class="table-wrap responsive"><table class="ac-table"><caption class="sr-only">To-do list</caption>
+      <thead><tr><th scope="col">What</th><th scope="col">Where</th><th scope="col" class="num">When</th></tr></thead>
+      <tbody>${shown.map(row).join('')}</tbody></table></div>
+      <ul class="cards-mobile">${shown.map((a) => `<li><button type="button" class="row-link" data-alert="${a.id}"><span class="m-row">${sevChip(a.severity)}${a.status === 'open' ? '' : alertStatusChip(a)}</span><span class="name" style="white-space:normal">${esc(a.title)}</span><span class="small muted">${a.project || 'Whole company'} · ${ago(a.created)}</span></button></li>`).join('')}</ul>`;
+}
+function actionCenterHTML(limit) {
   const f = state.ac; const act = can('alert:act');
-  const c = sevCounts();
-  const head = `<div class="ac-head"><h2 id="acTitle">Action Center</h2><span class="count-line">Detectors ran 07:00 and on every change · next scheduled run 18:00</span><span style="flex:1"></span>${previewSeg('ac', f.preview)}</div>
-    <div class="ac-filters" role="group" aria-label="Alert filters">
-      ${['critical', 'action_needed', 'info'].map((s) => `<button type="button" class="sev-toggle" data-sev="${s}" aria-pressed="${f.sev[s]}"><span class="sev-${s}" style="display:inline-flex">${icon(SEV[s][1], 14)}</span>${SEV[s][2]} · ${c[s]}</button>`).join('')}
-      <label class="field">${icon('search')}<span class="sr-only">Search alerts</span><input id="acSearch" type="search" placeholder="Search alerts" value="${esc(f.q)}"></label>
-      <select class="select" id="acStatus" aria-label="Status">${[['live', 'Open + in progress'], ['snoozed', 'Snoozed'], ['resolved', 'Resolved'], ['dismissed', 'Dismissed'], ['all', 'All statuses']].map(([v, t]) => `<option value="${v}"${f.status === v ? ' selected' : ''}>${t}</option>`).join('')}</select>
-      <select class="select" id="acType" aria-label="Type"><option value="all">All types</option>${Object.entries(ALERT_TYPE_LABEL).map(([v, t]) => `<option value="${v}"${f.type === v ? ' selected' : ''}>${t}</option>`).join('')}</select>
-      <select class="select" id="acProject" aria-label="Project"><option value="all">All projects</option>${PROJECTS.map((p) => `<option value="${p.code}"${f.project === p.code ? ' selected' : ''}>${p.code}</option>`).join('')}</select>
-      <label class="check"><input type="checkbox" id="acMine"${f.mine ? ' checked' : ''}>Assigned to me</label>
-    </div>`;
+  const head = `<div class="ac-head"><h2 id="acTitle">${limit ? 'Needs you now' : 'To-do'}</h2><span class="count-line">Checked every morning at 7:00 and whenever something changes. Items clear themselves once the problem is fixed.</span></div>`;
+  const filters = limit ? '' : `<div class="ac-filters" role="group" aria-label="Filter the to-do list">
+      <select class="select" id="acUrgency" aria-label="How urgent">${[['all', 'All items'], ['critical', 'Urgent only'], ['action_needed', 'Needs attention only']].map(([v, t]) => `<option value="${v}"${f.urgency === v ? ' selected' : ''}>${t}</option>`).join('')}</select>
+      <select class="select" id="acOwner" aria-label="Whose items">${[['everyone', 'Everyone’s items'], ['mine', 'My items']].map(([v, t]) => `<option value="${v}"${(f.mine ? 'mine' : 'everyone') === v ? ' selected' : ''}>${t}</option>`).join('')}</select>
+      <label class="check"><input type="checkbox" id="acShowAll"${f.showAll ? ' checked' : ''}>Include reminders and cleared items</label></div>`;
   let body;
   if (f.preview === 'loading') body = skeleton(5, 44);
-  else if (f.preview === 'error') body = emptyBlock('alert', 'Couldn’t load alerts', 'The API didn’t answer. On free hosting it sleeps after 15 minutes and takes about a minute to wake.', '<button type="button" class="btn" data-ac-retry>Retry</button>');
-  else if (f.preview === 'empty') body = emptyBlock('check', 'No open alerts', 'Detectors last ran at 07:00. New problems appear here as soon as a detector finds them.');
+  else if (f.preview === 'error') body = emptyBlock('alert', 'Couldn’t load your to-do list', 'The server didn’t answer. Try again in a moment.', '<button type="button" class="btn" data-ac-retry>Try again</button>');
+  else if (f.preview === 'empty') body = emptyBlock('check', 'You’re all caught up', 'Nothing needs you right now. New items appear here as soon as something changes.');
   else {
     const list = filteredAlerts();
-    const bulk = act && f.selected.size ? `<div class="bulk" style="margin:0 var(--s-5) var(--s-3)"><span>${f.selected.size} selected</span>
-        <select class="select" id="bulkSnooze" aria-label="Snooze selected for"><option value="">Snooze for…</option><option value="4h">4 hours</option><option value="tomorrow">Until tomorrow 07:00</option><option value="3d">3 days (not critical)</option></select>
-        <select class="select" id="bulkAssign" aria-label="Assign selected to"><option value="">Assign to…</option>${[me(), ...HR_TEAM.filter((u) => u !== me())].map((u) => `<option>${esc(u)}</option>`).join('')}</select>
-        <button type="button" class="btn btn-sm" data-ac-bulk>Apply</button><button type="button" class="btn btn-ghost btn-sm" data-ac-clear>Clear selection</button>
-        ${f.bulk ? `<span class="field-error" role="alert">${esc(f.bulk)}</span>` : ''}<span class="note">Bulk dismiss isn’t offered: each dismissal needs its own reason.</span></div>` : '';
-    body = list.length ? `${bulk}<div class="table-wrap responsive"><table class="ac-table"><caption class="sr-only">Alerts</caption>
-      <thead><tr>${act ? '<th scope="col" style="width:36px"><span class="sr-only">Select</span></th>' : ''}<th scope="col">Severity</th><th scope="col">Alert</th><th scope="col">Project</th><th scope="col">Assignee</th><th scope="col">Status</th><th scope="col" class="num">Raised</th></tr></thead>
-      <tbody>${list.map((a, i) => `<tr class="${state.booted ? '' : 'row-in'}" style="animation-delay:${i * 30}ms">
-        ${act ? `<td><input type="checkbox" data-ac-select="${a.id}" aria-label="Select ${esc(a.title)}"${f.selected.has(a.id) ? ' checked' : ''}${['resolved', 'dismissed'].includes(a.status) ? ' disabled' : ''}></td>` : ''}
-        <td>${sevChip(a.severity)}</td>
-        <td style="max-width:460px"><div class="ac-title"><button type="button" class="row-link" data-alert="${a.id}"><span class="name">${esc(a.title)}</span></button><span class="ac-type">${ALERT_TYPE_LABEL[a.type]}${a.escalation ? ` · <span class="esc">${ESC_LABEL[a.escalation]}</span>` : ''}</span></div></td>
-        <td>${a.project ? `<span class="mono">${a.project}</span>` : '<span class="subtle small">Company-wide</span>'}</td>
-        <td class="small">${a.assignee ? esc(a.assignee.split(' (')[0]) : '<span class="subtle">HR team</span>'}</td>
-        <td>${alertStatusChip(a)}</td>
-        <td class="num small muted">${ago(a.created)}</td></tr>`).join('')}</tbody></table></div>
-      <ul class="cards-mobile">${list.map((a) => `<li><button type="button" class="row-link" data-alert="${a.id}"><span class="m-row">${sevChip(a.severity)}${alertStatusChip(a)}</span><span class="name" style="white-space:normal">${esc(a.title)}</span><span class="small muted">${a.project || 'Company-wide'} · ${ago(a.created)}</span></button></li>`).join('')}</ul>`
-      : emptyBlock('search', 'No alerts match', 'Try other filters, or include snoozed and resolved alerts.', '<button type="button" class="btn" data-ac-reset>Clear filters</button>');
+    body = list.length ? `${todoRows(list, limit)}${limit && list.length > limit ? `<div class="card-foot"><button type="button" class="btn btn-sm" data-goto="actions">See all ${list.length} items</button></div>` : ''}`
+      : emptyBlock(f.urgency !== 'all' || f.mine || f.showAll ? 'search' : 'check', f.urgency !== 'all' || f.mine || f.showAll ? 'Nothing matches these filters' : 'You’re all caught up', f.urgency !== 'all' || f.mine || f.showAll ? 'Try a different filter.' : 'Nothing needs you right now.', f.urgency !== 'all' || f.mine || f.showAll ? '<button type="button" class="btn" data-ac-reset>Clear filters</button>' : '');
   }
-  return `<section class="card" aria-labelledby="acTitle">${head}${body}${act ? '' : `<div class="card-foot">Read-only for ${esc(ROLES[state.role].name)}: taking, snoozing and dismissing alerts needs <span class="mono">alert:act</span>.</div>`}</section>`;
+  return `<section class="card" aria-labelledby="acTitle">${head}${filters}${body}${act ? '' : `<div class="card-foot">You can read these but not change them. Only the HR team can.</div>`}</section>`;
 }
 function renderActionsPage() {
-  document.getElementById('main').innerHTML = `<div class="page-intro"><h1>Action Center</h1><span class="muted" style="font-size:var(--text-sm)">Problems the detectors found, in your scope.</span><span class="spacer"></span>${protoTags}</div>${actionCenterHTML()}
-    <footer class="footer"><span>Alerts are raised and resolved by Python detectors; the AI only words them from the facts. Every action is audited.</span></footer>`;
+  document.getElementById('main').innerHTML = `<div class="page-intro"><h1>To-do</h1><span class="muted" style="font-size:var(--text-sm)">Problems found in your projects, most urgent first.</span></div>${actionCenterHTML()}`;
 }
 function renderHRConsole() {
   const open = REQUESTS.filter(isOpenReq);
   const fc = computeForecast(FC.start);
+  const shortTrades = fc.rows.filter((r) => r.uncovered).length;
+  const c = sevCounts();
+  const tile = (n, label, goto, ok) => `<button type="button" class="stat-link" data-goto="${goto}"><b>${n}</b><span>${label}</span></button>`;
   document.getElementById('main').innerHTML = `
-    <div class="page-intro"><h1>HR Console</h1><span class="muted" style="font-size:var(--text-sm)">${DAYS_LONG[asDate(TODAY).getUTCDay()]}, ${fmtDate(TODAY)}</span><span class="spacer"></span>${protoTags}</div>
-    ${actionCenterHTML()}
-    <div class="secondary">
-      <section class="card" aria-labelledby="waitTitle"><div class="card-head"><div><h2 id="waitTitle">Waiting for HR</h2><p>${open.length} open staffing request${open.length === 1 ? '' : 's'}</p></div><button type="button" class="btn btn-sm head-right" data-goto="allocation">Open Allocation Board</button></div>
-        <ul class="list">${open.map((r) => `<li><div class="date-block"><small>${DAYS[asDate(r.from).getUTCDay()]}</small><b>${fmtShort(r.from)}</b></div><div style="min-width:0"><p class="li-title">${r.lines.map((l) => `${l.count} × ${esc(l.trade.toLowerCase())}`).join(', ')} · ${r.project}</p><p class="li-sub"><span class="mono">${r.no}</span> · ${esc(r.raisedBy.split(' (')[0])}</p></div>${chip(...REQ_STATUS[reqStatus(r)])}</li>`).join('') || '<li><span></span><p class="note">Nothing waiting.</p></li>'}</ul></section>
-      <section class="card" aria-labelledby="fcTitle"><div class="card-head"><div><h2 id="fcTitle">RAK-07 forecast</h2><p>Starts ${fmtDate(FC.start)} · Shamal Logistics Hub</p></div>${can('forecast:read') ? '<button type="button" class="btn btn-sm head-right" data-goto="forecast">Open forecast</button>' : ''}</div>
-        <ul class="list">${fc.rows.map((r) => `<li><div class="date-block"><b>${r.needed}</b><small>needed</small></div><div><p class="li-title">${esc(r.trade)}</p><p class="li-sub">${r.assigned} reserved · ${r.deployable} deployable · ${r.pending} recruiting</p></div>${forecastStatusChip(r)}</li>`).join('')}</ul></section>
-      <section class="card" aria-labelledby="docT"><div class="card-head"><div><h2 id="docT">Documents</h2><p>Required documents of active employees</p></div><span class="tag">Demo data</span></div>
-        <div class="card-body"><div class="stat-row"><div class="stat"><b>${DOCS.d30}</b><span>≤ 30 days</span></div><div class="stat"><b>${DOCS.d60}</b><span>31–60 days</span></div><div class="stat"><b>${DOCS.d90}</b><span>61–90 days</span></div></div>
-          <p class="note" style="margin-top:var(--s-3)">${DOCS.pendingChecks} uploads waiting for a check · ${DOCS.blocked} candidates blocked by expiring documents. Document screens are coming next.</p></div></section>
-    </div>
-    <footer class="footer"><span>Design prototype. Alerts are raised and resolved by detectors; the AI only words them from the facts. Every action is audited.</span></footer>`;
+    <div class="page-intro"><h1>Home</h1><span class="muted" style="font-size:var(--text-sm)">${DAYS_LONG[asDate(TODAY).getUTCDay()]}, ${fmtDate(TODAY)}</span></div>
+    ${actionCenterHTML(5)}
+    <div class="stat-links" role="group" aria-label="Numbers to watch">
+      ${tile(c.critical + c.action_needed, 'Things that need you now', 'actions')}
+      ${tile(open.length, 'Requests waiting for approval', 'allocation')}
+      ${tile(shortTrades, `Trades short on ${fmtShort(FC.start)}`, 'forecast')}
+      <div class="stat-link" aria-label="Documents expiring"><b>${DOCS.d30}</b><span>Documents expiring in 30 days</span></div>
+    </div>`;
 }
 
 function openAlert(id) {
@@ -1490,29 +1442,28 @@ function openAlert(id) {
   const actions = (a.actions || []).filter((k) => can(ALERT_ACTIONS[k].perm));
   const form = state.alertForm && state.alertForm.id === id ? state.alertForm : null;
   openSheet(`
-    <div class="sheet-head"><div style="min-width:0"><div style="display:flex;gap:var(--s-2);flex-wrap:wrap;align-items:center">${sevChip(a.severity)}${alertStatusChip(a)}<span class="mono subtle">${a.id}</span></div>
-      <h2 style="margin-top:var(--s-2)">${esc(a.title)}</h2><p class="small muted">${ALERT_TYPE_LABEL[a.type]} · ${a.project ? `<span class="mono">${a.project}</span>` : 'Company-wide'} · raised ${ago(a.created)}${a.escalation ? ` · <span class="esc">${ESC_LABEL[a.escalation]}</span>` : ''}</p></div>
-      <button type="button" class="icon-btn" data-close-sheet aria-label="Close alert" data-autofocus>${icon('x', 18)}</button></div>
+    <div class="sheet-head"><div style="min-width:0"><div style="display:flex;gap:var(--s-2);flex-wrap:wrap;align-items:center">${sevChip(a.severity)}${alertStatusChip(a)}</div>
+      <h2 style="margin-top:var(--s-2)">${esc(a.title)}</h2><p class="small muted">${ALERT_TYPE_LABEL[a.type]} · ${a.project ? `<span class="mono">${a.project}</span>` : 'Whole company'} · raised ${ago(a.created)}${a.escalation ? ` · <span class="esc">${ESC_LABEL[a.escalation]}</span>` : ''}</p></div>
+      <button type="button" class="icon-btn" data-close-sheet aria-label="Close" data-autofocus>${icon('x', 18)}</button></div>
     <div class="sheet-body">
-      <div><p style="font-size:var(--text-sm)">${esc(a.explanation)}</p><p class="ai-label" style="margin-top:var(--s-1)">${icon('sparkles', 12)}Written by AI from the facts below; every number was checked against them.</p></div>
-      <div><p class="section-title">Facts</p><table class="facts-table"><tbody>${a.facts.map(([k, v]) => `<tr><th scope="row">${esc(k)}</th><td>${esc(v)}</td></tr>`).join('')}</tbody></table></div>
-      ${actions.length && LIVE.includes(a.status) ? `<div><p class="section-title">Recommended actions</p><div class="manage">${actions.map((k, i) => `<button type="button" class="btn ${i === 0 ? 'btn-primary' : ''} btn-sm" data-alert-action="${k}" data-alert-id="${a.id}">${esc(ALERT_ACTIONS[k].label)}</button>`).join('')}</div></div>` : ''}
-      ${act ? `<div><p class="section-title">Manage</p><div class="manage">
-          ${a.status !== 'in_progress' || a.assignee !== me() ? `<button type="button" class="btn btn-sm" data-alert-take="${a.id}">Take it</button>` : ''}
-          <select class="select" id="alAssign" aria-label="Assign to"><option value="">Assign to…</option>${HR_TEAM.map((u) => `<option${a.assignee === u ? ' selected' : ''}>${esc(u)}</option>`).join('')}</select>
-          <select class="select" id="alSnooze" aria-label="Snooze for"><option value="">Snooze…</option><option value="4h">4 hours</option><option value="tomorrow">Until tomorrow 07:00</option>${a.severity === 'critical' ? '' : '<option value="3d">3 days</option>'}</select>
-          <button type="button" class="btn btn-sm" data-alert-apply="${a.id}">Apply</button>
-          <button type="button" class="btn btn-ghost btn-sm" data-alert-dismiss="${a.id}">Dismiss</button></div>
-          ${a.severity === 'critical' ? '<p class="note" style="margin-top:var(--s-1)">Critical alerts can be snoozed for up to 24 hours.</p>' : ''}
+      <div><p style="font-size:var(--text-sm)">${esc(a.explanation)}</p><p class="ai-label" style="margin-top:var(--s-1)">${icon('sparkles', 12)}Written by AI from the facts below. Every number comes from the system.</p></div>
+      <div><p class="section-title">What we found</p><table class="facts-table"><tbody>${a.facts.map(([k, v]) => `<tr><th scope="row">${esc(k)}</th><td>${esc(v)}</td></tr>`).join('')}</tbody></table></div>
+      ${actions.length && LIVE.includes(a.status) ? `<div><p class="section-title">What you can do</p><div class="manage">${actions.map((k, i) => `<button type="button" class="btn ${i === 0 ? 'btn-primary' : ''} btn-sm" data-alert-action="${k}" data-alert-id="${a.id}">${esc(ALERT_ACTIONS[k].label)}</button>`).join('')}</div>
+        <p class="note" style="margin-top:var(--s-1)">This item clears by itself once the problem is fixed. You don’t need to tick it off.</p></div>` : ''}
+      ${act ? `<div><p class="section-title">Handle this item</p><div class="manage">
+          ${a.status !== 'in_progress' || a.assignee !== me() ? `<button type="button" class="btn btn-sm" data-alert-take="${a.id}">I’ll handle this</button>` : ''}
+          <select class="select" data-alert-assign="${a.id}" aria-label="Give to someone else"><option value="">Give to…</option>${HR_TEAM.map((u) => `<option${a.assignee === u ? ' selected' : ''}>${esc(u)}</option>`).join('')}</select>
+          <select class="select" data-alert-snooze="${a.id}" aria-label="Remind me later"><option value="">Remind me later…</option><option value="4h">In 4 hours</option><option value="tomorrow">Tomorrow at 7:00</option>${a.severity === 'critical' ? '' : '<option value="3d">In 3 days</option>'}</select>
+          <button type="button" class="btn btn-ghost btn-sm" data-alert-dismiss="${a.id}">Not a problem</button></div>
+          ${a.severity === 'critical' ? '<p class="note" style="margin-top:var(--s-1)">Urgent items can be postponed for up to 24 hours.</p>' : ''}
           ${form && form.error ? `<p class="field-error" role="alert" style="margin-top:var(--s-1)">${esc(form.error)}</p>` : ''}
-          ${form && form.type === 'dismiss' ? `<div class="inline-form" style="margin-top:var(--s-2)"><label for="dismissReason">Why dismiss? It stays dismissed unless the problem gets worse.</label>
+          ${form && form.type === 'dismiss' ? `<div class="inline-form" style="margin-top:var(--s-2)"><label for="dismissReason">Why is this not a problem? It stays hidden unless things get worse.</label>
             <textarea id="dismissReason">${esc(form.draft || '')}</textarea><span class="count-line" id="dismissCount">${(form.draft || '').trim().length} / 10 characters minimum</span>
-            <div class="row"><button type="button" class="btn btn-sm" data-alert-dismiss-confirm="${a.id}">Dismiss alert</button><button type="button" class="btn btn-ghost btn-sm" data-alert-dismiss-cancel="${a.id}">Cancel</button></div></div>` : ''}
-        </div>` : (can('alert:act') ? '' : `<p class="note">Read-only: managing alerts needs <span class="mono">alert:act</span>.</p>`)}
+            <div class="row"><button type="button" class="btn btn-sm" data-alert-dismiss-confirm="${a.id}">Mark as not a problem</button><button type="button" class="btn btn-ghost btn-sm" data-alert-dismiss-cancel="${a.id}">Cancel</button></div></div>` : ''}
+        </div>` : (can('alert:act') ? '' : `<p class="note">You can read this but not change it. Only the HR team can.</p>`)}
       ${a.resolution ? `<p class="alert ${a.status === 'resolved' ? 'alert-success' : 'alert-info'}">${icon(a.status === 'resolved' ? 'check' : 'info', 14)}<span>${esc(a.resolution)}</span></p>` : ''}
-      <div><p class="section-title">History (audit log)</p><ul class="history">${a.history.map((h) => `<li><span class="subtle">${esc(h.at)}</span><span>${esc(h.text)}</span></li>`).join('')}</ul></div>
-    </div>
-    <div class="sheet-foot note">In the app each button calls its own permission-checked API route. Acting doesn’t resolve an alert; the next detector run does, if the condition cleared.</div>`, `Alert ${a.id}`);
+      <div><p class="section-title">What happened so far</p><ul class="history">${a.history.map((h) => `<li><span class="subtle">${esc(h.at)}</span><span>${esc(h.text)}</span></li>`).join('')}</ul></div>
+    </div>`, `To-do item`);
 }
 function snoozeUntil(opt) { return opt === '4h' ? new Date(NOW + 4 * HOUR).toISOString() : opt === 'tomorrow' ? '2026-11-06T07:00:00Z' : new Date(NOW + 72 * HOUR).toISOString(); }
 function alertAction(key, id) {
@@ -1526,11 +1477,18 @@ function alertAction(key, id) {
     log(`Opened the forecast from this alert${key === 'open_forecast' || key === 'open_forecast_mason' ? '' : ` (${ALERT_ACTIONS[key].label.toLowerCase()})`}.`);
     return goto('forecast');
   }
+  if (key === 'open_request') { log('Opened the request.'); closeSheet(); return goto('allocation', a.request); }
   if (key === 'release_reservation') { state.flags.released1038 = true; log('Released the 2 reserved carpenters (RAK-05 → RAK-02).'); toast('Reservation released. 2 planned assignments cancelled; RAK-02 shows the gap again.'); runDetectors('reservation released'); return rerender(id); }
   if (key === 'release_reservation_rak07') { releaseReservation('Steel fixer'); log('Released the reserved RAK-02 steel fixers for RAK-07.'); return rerender(id); }
   if (key === 'send_reminder') { log('Renewal reminder queued for n8n → WhatsApp (test number).'); toast('Reminder queued for n8n (WhatsApp is a future integration in this prototype).'); return rerender(id); }
-  if (key === 'mark_renewed') { state.flags.renewed0088 = true; log('Prototype control: renewed visa uploaded and verified.'); runDetectors('document verified'); return rerender(id); }
-  if (key === 'remind_approver') { log('Reminder sent to the approvers (in-app + WhatsApp via n8n).'); toast('Reminder queued for the approvers.'); return rerender(id); }
+  if (key === 'mark_renewed') { state.flags.renewed0088 = true; log('Renewed visa uploaded and checked.'); runDetectors('document verified'); return rerender(id); }
+}
+function demoTool(what) {
+  if (what === 'rak02') {
+    state.fc.rak02Steel = state.fc.rak02Steel === '2027-01-31' ? '2027-02-20' : '2027-01-31';
+    runDetectors('project end date changed'); toast(`RAK-02 end date is now ${fmtDate(state.fc.rak02Steel)}.`); return rerender();
+  }
+  if (what.startsWith('preview:')) { const m = what.slice(8); state.ui.preview = m; state.ac.preview = m; renderUserMenu(); return rerender(); }
 }
 function rerender(alertId) { renderNav(); renderBell(); renderPage(); if (alertId && document.querySelector('.sheet')) openAlert(alertId); }
 
@@ -1569,7 +1527,7 @@ function workerRows(req, line, st, decide) {
   return st.workers.map((code, i) => {
     const p = poolBy(code); const ai = st.src[code] === 'ai';
     const swapping = state.ui.swap && state.ui.swap.code === code && state.ui.swap.line === line.id;
-    const reason = ai && line.rec && line.rec.reasons[code] ? line.rec.reasons[code] : 'Added by HR from the candidate pool.';
+    const reason = ai && line.rec && line.rec.reasons[code] ? line.rec.reasons[code] : 'Added by HR.';
     return `<tr data-swapping="${!!swapping}" data-worker="${line.id}|${code}" class="${st.animateIn ? 'row-in' : ''}" style="animation-delay:${i * 40}ms">
       <td>${decide ? `<input type="checkbox" data-select="${line.id}|${code}" aria-label="Select ${esc(p.name)}"${st.selected.has(code) ? ' checked' : ''}>` : ''}</td>
       <td class="w-name" title="${esc(p.name)} · ${code}"><b>${esc(p.name)}</b> <span class="mono subtle">${code}</span></td>
@@ -1588,13 +1546,13 @@ function lineForm(line, st) {
       <div class="row"><select class="select" id="rm-${line.id}"><option value="">Choose a reason…</option>${REMOVE_REASONS.map((r) => `<option${st.draft === r ? ' selected' : ''}>${r}</option>`).join('')}</select></div>
       ${st.formError ? `<p class="field-error" role="alert">${esc(st.formError)}</p>` : ''}
       <div class="row"><button type="button" class="btn btn-sm" data-form-confirm="${line.id}">Remove ${names.length}</button><button type="button" class="btn btn-ghost btn-sm" data-form-cancel="${line.id}">Cancel</button></div>
-      <p class="note">The reason is saved to the audit log and fed back to the Workforce Agent’s evals.</p></div>`;
+      <p class="note">The reason is saved so the team can see why.</p></div>`;
   }
-  return `<div class="inline-form" role="group" aria-label="Reject line"><label for="rj-${line.id}">Why reject this line? The project manager sees this reason.</label>
+  return `<div class="inline-form" role="group" aria-label="Reject"><label for="rj-${line.id}">Why are you rejecting this? The project manager sees your reason.</label>
     <textarea id="rj-${line.id}" data-draft="${line.id}" aria-describedby="rjc-${line.id}">${esc(st.draft)}</textarea>
     <span class="count-line" id="rjc-${line.id}">${st.draft.trim().length} / 10 characters minimum</span>
     ${st.formError ? `<p class="field-error" role="alert">${esc(st.formError)}</p>` : ''}
-    <div class="row"><button type="button" class="btn btn-sm" data-form-confirm="${line.id}">Reject line</button><button type="button" class="btn btn-ghost btn-sm" data-form-cancel="${line.id}">Cancel</button></div></div>`;
+    <div class="row"><button type="button" class="btn btn-sm" data-form-confirm="${line.id}">Reject</button><button type="button" class="btn btn-ghost btn-sm" data-form-cancel="${line.id}">Cancel</button></div></div>`;
 }
 function lineBlock(req, line) {
   const st = state.board[line.id];
@@ -1602,10 +1560,10 @@ function lineBlock(req, line) {
   const active = state.ui.line === line.id;
   const n = st.workers.length;
   const approveBtn = decide ? `<button type="button" class="btn btn-primary btn-sm" data-approve="${line.id}"${n === 0 || st.loading ? ' disabled' : ''} aria-describedby="help-${line.id}">${n === line.count ? `Approve ${n} worker${n === 1 ? '' : 's'}` : `Approve ${n} of ${line.count}`}</button>
-      <button type="button" class="btn btn-ghost btn-sm" data-reject-line="${line.id}">Reject line</button>` : '';
+      <button type="button" class="btn btn-ghost btn-sm" data-reject-line="${line.id}">Reject</button>` : '';
   const head = `<div class="line-head"><h3>${line.count} × ${esc(line.trade)}</h3><span class="muted small">level ${line.minLevel}+</span>
       <span class="fill">${st.status === 'approved' ? `${st.approved.count} of ${line.count} approved` : `${n} of ${line.count} selected`}</span>
-      ${req.lines.length > 1 && st.status === 'open' ? `<button type="button" class="btn btn-ghost btn-sm" data-line-active="${line.id}" aria-pressed="${active}">${active ? 'Showing candidates' : 'Show candidates'}</button>` : ''}
+      ${req.lines.length > 1 && st.status === 'open' ? `<button type="button" class="btn btn-ghost btn-sm" data-line-active="${line.id}" aria-pressed="${active}">${active ? 'Showing available people' : 'Show available people'}</button>` : ''}
       <span class="line-actions">${approveBtn}</span></div>`;
 
   if (st.status === 'approved') {
@@ -1615,24 +1573,24 @@ function lineBlock(req, line) {
   }
   if (st.status === 'rejected') return `<div class="line" id="line-${line.id}">${head}<div class="line-extra"><p class="alert">${icon('xcircle', 14)}<span>Rejected: ${esc(st.rejectReason)}</span></p></div><div class="line-foot"></div></div>`;
 
-  const helpText = n === 0 ? 'Add at least one worker to approve this line.' : n < line.count ? `Approving ${n} of ${line.count} leaves ${line.count - n} open; the request becomes partially filled.` : 'Approval plans the assignments and starts their mobilizations in one step.';
+  const helpText = n === 0 ? 'Add at least one worker to approve.' : n < line.count ? `Approving ${n} of ${line.count} leaves ${line.count - n} still to fill; the request will be partly filled.` : 'Approving places these workers and starts their mobilization (getting them ready to go to site).';
   // Visible only when it changes the decision (empty or partial line); always available to screen readers.
   const help = decide ? `<p class="line-help${n === line.count ? ' sr-only' : ''}" id="help-${line.id}">${helpText}</p>` : '';
-  const excluded = st.recLoaded && line.rec.excluded.length && !st.loading ? `<div class="callout" role="note"><p class="callout-title">${icon('alert', 14)}Excluded by the agent (${line.rec.excluded.length})</p>
-      <ul>${line.rec.excluded.map((x) => `<li><b>${esc(poolBy(x.code).name)}</b> <span class="mono">${x.code}</span>: ${esc(x.detail)} <span class="mono">${x.rule}</span></li>`).join('')}</ul></div>` : '';
-  const shortfall = st.recLoaded && line.rec.shortfall && !st.loading ? `<div class="callout" style="background:var(--info-soft);color:var(--info-text)"><p class="callout-title">${icon('info', 14)}${line.count - line.rec.shortfall} of ${line.count} cleared ${esc(line.trade.toLowerCase())}s found: ${line.rec.shortfall} short. The agent doesn’t pad the gap; it stays open on the request.</p></div>` : '';
+  const excluded = st.recLoaded && line.rec.excluded.length && !st.loading ? `<div class="callout" role="note"><p class="callout-title">${icon('alert', 14)}Not suitable (${line.rec.excluded.length})</p>
+      <ul>${line.rec.excluded.map((x) => `<li><b>${esc(poolBy(x.code).name)}</b> <span class="mono">${x.code}</span>: ${esc(x.detail)}</li>`).join('')}</ul></div>` : '';
+  const shortfall = st.recLoaded && line.rec.shortfall && !st.loading ? `<div class="callout" style="background:var(--info-soft);color:var(--info-text)"><p class="callout-title">${icon('info', 14)}${line.count - line.rec.shortfall} of ${line.count} cleared ${esc(line.trade.toLowerCase())}s found: ${line.rec.shortfall} still short. We don’t fill the gap with unsuitable people; it stays open on the request.</p></div>` : '';
 
   let table = '';
   if (st.loading) table = '';
   else if (!st.recLoaded && n === 0) {
-    table = `<div class="line-extra"><div class="inline-form" style="align-items:flex-start"><p class="small">No recommendations yet for this line.</p>
-      <div class="row">${can('ai:use') && decide ? `<button type="button" class="btn btn-sm" data-ask="${line.id}">${icon('sparkles', 14)}Ask Workforce Agent</button>` : ''}${decide ? '<span class="note">or add workers from the candidate pool.</span>' : ''}</div></div></div>`;
+    table = `<div class="line-extra"><div class="inline-form" style="align-items:flex-start"><p class="small">Nobody suggested yet.</p>
+      <div class="row">${can('ai:use') && decide ? `<button type="button" class="btn btn-sm" data-ask="${line.id}">${icon('sparkles', 14)}Suggest workers</button>` : ''}${decide ? '<span class="note">or add workers from the Available people list.</span>' : ''}</div></div></div>`;
   } else {
     const open = Math.max(line.count - n, 0);
-    table = `<div class="table-wrap wtable-wrap"><table class="wtable"><caption class="sr-only">Workers on ${esc(line.trade)} line</caption>
+    table = `<div class="table-wrap wtable-wrap"><table class="wtable"><caption class="sr-only">Workers for ${esc(line.trade)}</caption>
       <colgroup><col style="width:44px"><col style="width:190px"><col style="width:48px"><col style="width:96px"><col style="width:112px"><col><col style="width:${decide ? 124 : 8}px"></colgroup>
       <thead><tr><th scope="col"><span class="sr-only">Select</span></th><th scope="col">Worker</th><th scope="col">Level</th><th scope="col">Availability</th><th scope="col">Docs valid until</th><th scope="col">Reason</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
-      <tbody>${workerRows(req, line, st, decide)}${open ? `<tr class="open-slots"><td></td><td colspan="6">${open} open slot${open === 1 ? '' : 's'}${decide ? ' · add from the candidate pool' : ''}</td></tr>` : ''}</tbody></table></div>
+      <tbody>${workerRows(req, line, st, decide)}${open ? `<tr class="open-slots"><td></td><td colspan="6">${open} still to fill${decide ? ' · add from Available people' : ''}</td></tr>` : ''}</tbody></table></div>
       <ul class="mobile-workers">${st.workers.map((code) => { const p = poolBy(code); return `<li><div class="row">${decide ? `<input type="checkbox" data-select="${line.id}|${code}" aria-label="Select ${esc(p.name)}"${st.selected.has(code) ? ' checked' : ''}>` : ''}<b style="color:var(--text)">${esc(p.name)}</b><span class="mono">${code}</span></div><span>Level ${p.level} · ${availShort(p)} · docs to ${fmtDate(p.docsUntil)}</span><span>${esc(st.src[code] === 'ai' && line.rec ? line.rec.reasons[code] || '' : 'Added by HR')}</span>${decide ? `<div class="row"><button type="button" class="btn btn-sm" data-swap="${line.id}|${code}">Swap</button><button type="button" class="btn btn-ghost btn-sm" data-remove="${line.id}|${code}">Remove</button></div>` : ''}</li>`; }).join('')}</ul>`;
   }
   const removed = st.removed.length ? `<details class="sub"><summary>Removed (${st.removed.length})</summary><ul>${st.removed.map((x) => `<li><span><b>${esc(poolBy(x.code).name)}</b> <span class="mono">${x.code}</span>: ${esc(x.reason)}</span>${decide ? `<button type="button" class="btn btn-ghost btn-sm" data-restore="${line.id}|${x.code}">Restore</button>` : ''}</li>`).join('')}</ul></details>` : '';
@@ -1640,16 +1598,16 @@ function lineBlock(req, line) {
   const bulk = decide && st.selected.size ? `<div class="bulk"><span>${st.selected.size} selected</span><button type="button" class="btn btn-sm" data-bulk-remove="${line.id}">Remove selected</button><button type="button" class="btn btn-ghost btn-sm" data-clear-select="${line.id}">Clear selection</button></div>` : '';
   const trace = st.trace ? `<div class="line-extra" style="padding-top:0;padding-bottom:var(--s-2)">${traceBlock(st, false)}</div>` : '';
   const extras = notice || bulk || st.form || removed ? `<div class="line-extra">${notice}${bulk}${lineForm(line, st)}${removed}</div>` : '';
-  return `<div class="line" id="line-${line.id}">${head}${help}${excluded}${shortfall}${trace}${table}${extras}<div class="line-foot">${decide ? '' : `<p class="note">${canDecide() ? '' : 'Read-only: approving needs staffing:approve and assignment:approve.'}</p>`}</div></div>`;
+  return `<div class="line" id="line-${line.id}">${head}${help}${excluded}${shortfall}${trace}${table}${extras}<div class="line-foot">${decide ? '' : `<p class="note">${canDecide() ? '' : 'You can look at this request, but only the HR Manager can approve it.'}</p>`}</div></div>`;
 }
 function detailPane() {
   const ui = state.ui;
   let inner;
   if (ui.preview === 'loading') inner = skeleton(6);
-  else if (ui.preview !== 'live') inner = emptyBlock('clipboard', 'Nothing to review', ui.preview === 'error' ? 'Requests couldn’t be loaded.' : 'When a request arrives, its lines and the AI recommendations appear here.');
+  else if (ui.preview !== 'live') inner = emptyBlock('clipboard', 'Nothing to review', ui.preview === 'error' ? 'Requests couldn’t be loaded.' : 'When a request arrives, who is needed and the suggested workers appear here.');
   else {
     const req = visibleRequests().find((r) => r.no === ui.req);
-    inner = !req ? emptyBlock('arrows', 'Select a request', 'Choose a staffing request above to review its lines.') : `<div class="detail-head">
+    inner = !req ? emptyBlock('arrows', 'Select a request', 'Choose a request above to see who is needed.') : `<div class="detail-head">
         <div class="detail-title"><span class="mono">${req.no}</span>${chip(...REQ_STATUS[reqStatus(req)])}<h2>${req.project} · ${esc(req.projectName)}</h2></div>
         <div class="facts-inline"><span>Needed from <b>${fmtDate(req.from)}</b></span><span>Documents must cover to <b class="nowrap">${fmtDate(horizon(req))}</b>${req.until ? '' : ' (no end date, 90-day default)'}</span><span>${esc(req.site)}</span><span>Raised by ${esc(req.raisedBy)} · ${fmtDate(req.raised)}</span></div>
       </div>${req.lines.map((l) => lineBlock(req, l)).join('')}`;
@@ -1658,10 +1616,10 @@ function detailPane() {
 }
 function poolPane() {
   const ui = state.ui;
-  if (ui.preview !== 'live') return `<section class="pane pool-pane" aria-label="Candidate pool">${ui.preview === 'loading' ? skeleton(6, 64) : emptyBlock('users', 'Candidate pool', 'Available workers for the selected line appear here.')}</section>`;
+  if (ui.preview !== 'live') return `<section class="pane pool-pane" aria-label="Available people">${ui.preview === 'loading' ? skeleton(6, 64) : emptyBlock('users', 'Available people', 'Available workers for the selected line appear here.')}</section>`;
   const req = visibleRequests().find((r) => r.no === ui.req);
   const line = req && (req.lines.find((l) => l.id === ui.line) || req.lines[0]);
-  if (!req || !line) return `<section class="pane pool-pane" aria-label="Candidate pool">${emptyBlock('users', 'Candidate pool', 'Select a request to see matching available workers.')}</section>`;
+  if (!req || !line) return `<section class="pane pool-pane" aria-label="Available people">${emptyBlock('users', 'Available people', 'Select a request to see matching available workers.')}</section>`;
   const st = state.board[line.id];
   const decide = canDecide() && st.status === 'open';
   const swap = ui.swap && ui.swap.line === line.id ? ui.swap : null;
@@ -1674,20 +1632,20 @@ function poolPane() {
     .filter((p) => !q || `${p.name} ${p.code}`.toLowerCase().includes(q))
     .sort((a, b) => (docsValid(b, req) - docsValid(a, req)) || b.level - a.level || a.name.localeCompare(b.name));
   const full = st.workers.length >= line.count;
-  const head = `<div class="pane-head"><div class="pane-title"><h2 id="poolTitle">Candidate pool</h2><span class="count-line">${esc(line.trade)} · ${req.no}</span></div>
+  const head = `<div class="pane-head"><div class="pane-title"><h2 id="poolTitle">Available people</h2><span class="count-line">${esc(line.trade)} · ${req.no}</span></div>
     ${swap ? `<div class="swap-banner" role="status">${icon('arrows', 14)}<span>Choose a replacement for <b>${esc(poolBy(swap.code).name)}</b></span><button type="button" class="btn btn-ghost btn-sm" data-cancel-swap>Cancel</button></div>` : ''}
     <label class="field">${icon('search')}<span class="sr-only">Search candidates</span><input id="poolSearch" type="search" placeholder="Name or employee code" value="${esc(ui.poolQ)}"></label>
-    <div class="filters"><select class="select" id="poolTrade" aria-label="Trade"><option value="line"${ui.poolTrade === 'line' ? ' selected' : ''}>${esc(line.trade)} (this line)</option><option value="all"${ui.poolTrade === 'all' ? ' selected' : ''}>All trades</option></select>
-      <select class="select" id="poolLevel" aria-label="Minimum level"><option value="line"${ui.poolLevel === 'line' ? ' selected' : ''}>Level ${line.minLevel}+ (this line)</option>${[1, 2, 3, 4, 5].map((v) => `<option value="${v}"${ui.poolLevel === String(v) ? ' selected' : ''}>Level ${v}+</option>`).join('')}</select></div>
+    <div class="filters"><select class="select" id="poolTrade" aria-label="Trade"><option value="line"${ui.poolTrade === 'line' ? ' selected' : ''}>${esc(line.trade)}</option><option value="all"${ui.poolTrade === 'all' ? ' selected' : ''}>All trades</option></select>
+      <select class="select" id="poolLevel" aria-label="Minimum level"><option value="line"${ui.poolLevel === 'line' ? ' selected' : ''}>Level ${line.minLevel}+</option>${[1, 2, 3, 4, 5].map((v) => `<option value="${v}"${ui.poolLevel === String(v) ? ' selected' : ''}>Level ${v}+</option>`).join('')}</select></div>
     <div class="checks"><label class="check"><input type="checkbox" id="docsOnly"${ui.docsOnly ? ' checked' : ''}>Documents valid only</label><label class="check"><input type="checkbox" id="availOnly"${ui.availOnly ? ' checked' : ''}>Available by ${fmtDate(req.from)}</label></div>
     <span class="count-line">Showing ${list.length} of ${ui.poolTrade === 'line' ? `${sameTrade.length} available ${esc(line.trade.toLowerCase())}s` : `${base.length} available workers, all trades`}</span></div>`;
   let body;
-  if (st.status !== 'open') body = emptyBlock('check', 'This line is closed', 'Approved and rejected lines can’t take more workers.');
+  if (st.status !== 'open') body = emptyBlock('check', 'This request is closed', 'Approved or rejected requests can’t take more workers.');
   else if (!sameTrade.length && ui.poolTrade === 'line') body = emptyBlock('users', `No available ${line.trade.toLowerCase()}s`, 'Nobody with this trade is free. Look at other trades for multi-skilled workers, or leave the gap open; it stays on the request.', '<button type="button" class="btn" data-pool-all-trades>Show all trades</button>');
   else if (!list.length) body = emptyBlock('search', 'No candidates match these filters', 'Lower the level, include people available later, or clear the filters.', '<button type="button" class="btn" data-clear-pool>Clear filters</button>');
   else body = `<ul class="cand-list" aria-labelledby="poolTitle">${list.map((p) => {
       const errs = st.errors[p.code]; const valid = docsValid(p, req); let action = '';
-      if (decide) action = swap ? `<button type="button" class="btn btn-sm" data-swapin="${p.code}">Swap in</button>` : full ? `<button type="button" class="btn btn-sm" disabled title="This line is full. Swap or remove someone first." aria-label="Add ${esc(p.name)}: line is full">Line full</button>` : `<button type="button" class="btn btn-sm" data-add="${p.code}" aria-label="Add ${esc(p.name)} to ${req.no}">Add</button>`;
+      if (decide) action = swap ? `<button type="button" class="btn btn-sm" data-swapin="${p.code}">Swap in</button>` : full ? `<button type="button" class="btn btn-sm" disabled title="This request is full. Swap or remove someone first." aria-label="Add ${esc(p.name)}: request is full">Full</button>` : `<button type="button" class="btn btn-sm" data-add="${p.code}" aria-label="Add ${esc(p.name)} to ${req.no}">Add</button>`;
       return `<li class="cand"><div style="min-width:0"><div class="cand-name">${esc(p.name)} <span class="mono subtle">${p.code}</span></div><div class="small muted">${esc(p.trade)} · level ${p.level}</div></div>${action || '<span></span>'}
         <div class="chips">${chip('neutral', 'clock', availLong(p))}${valid ? chip('success', 'check', `Docs to ${fmtShort(p.docsUntil)} ${asDate(p.docsUntil).getUTCFullYear()}`) : chip('danger', 'xcircle', 'Docs expire before cover ends')}</div>${errs ? ruleErrs(errs) : ''}</li>`; }).join('')}</ul>`;
   return `<section class="pane pool-pane" aria-labelledby="poolTitle">${head}<div class="pane-scroll">${body}</div></section>`;
@@ -1696,10 +1654,10 @@ function renderAllocation() {
   const r = ROLES[state.role];
   // No visible page title here: the top bar already names the screen, and HR needs the height for 8 rows.
   document.getElementById('main').innerHTML = `<h1 class="sr-only">Allocation board</h1>
-    ${canDecide() ? '' : `<p class="alert alert-info" style="margin-bottom:var(--s-4)">${icon('info', 14)}<span>Read-only for ${esc(r.name)}: approving needs <span class="mono">staffing:approve</span> and <span class="mono">assignment:approve</span>.</span></p>`}
+    ${canDecide() ? '' : `<p class="alert alert-info" style="margin-bottom:var(--s-4)">${icon('info', 14)}<span>You can look at requests, but only the HR Manager can approve them.</span></p>`}
     ${queuePane()}
     <div class="board-main">${detailPane()}${poolPane()}</div>
-    <footer class="footer" style="align-items:center"><span>Design prototype. Every check on this board is an API validator in the app (docs/rules.md); the prototype mirrors them in the browser and resets on refresh.</span><span style="flex:1"></span>${previewSeg('board', state.ui.preview)}</footer>`;
+`;
 }
 
 /* =====================================================================
@@ -1712,9 +1670,9 @@ function sankeySVG(fc) {
   fc.rows.forEach((r) => {
     let rem = r.needed;
     const take = (v) => { const t = Math.min(v, rem); rem -= t; return t; };
-    add('reserved', 'Reserved for RAK-07', r.trade, take(r.assigned));
+    add('reserved', 'Held for RAK-07', r.trade, take(r.assigned));
     r.sources.forEach((s) => add(s.key, s.project ? `${s.project} (ending)` : 'Available now', r.trade, take(s.workers.length)));
-    add('recruit', r.pending ? 'Recruitment (raised)' : 'Recruit (gap)', r.trade, rem, true);
+    add('recruit', r.pending ? 'Hiring in progress' : 'To hire (still short)', r.trade, rem, true);
   });
   const order = ['reserved', 'now', 'RAK-01', 'RAK-02', 'RAK-05', 'RAK-06', 'recruit'];
   leftKeys.sort((a, b) => order.indexOf(a) - order.indexOf(b));
@@ -1761,16 +1719,16 @@ function forecastRow(r, fc) {
   return `<tr><td><button type="button" class="row-link" data-fc-expand="${r.trade}" aria-expanded="${expanded}">${icon(expanded ? 'chevron-down' : 'chevron-right', 14)}<span class="name">${esc(r.trade)}</span></button></td>
       <td class="num">${r.needed}</td><td class="num">${r.assigned}</td><td class="num">${r.deployable}</td><td class="num">${r.pending}</td>
       <td class="num ${r.uncovered ? 'gap-short' : 'muted'}">${r.uncovered || '—'}</td><td>${status}</td>
-      <td class="num">${canReserve && deployableWorkers.length && r.needed > r.assigned ? `<button type="button" class="btn btn-sm" data-fc-reserve="${r.trade}">Reserve…</button>` : ''} ${canRecruit && r.uncovered ? `<button type="button" class="btn btn-sm" data-fc-recruit="${r.trade}">Recruit…</button>` : ''}</td></tr>
+      <td class="num">${canReserve && deployableWorkers.length && r.needed > r.assigned ? `<button type="button" class="btn btn-sm" data-fc-reserve="${r.trade}">Hold people…</button>` : ''} ${canRecruit && r.uncovered ? `<button type="button" class="btn btn-sm" data-fc-recruit="${r.trade}">Ask recruitment to hire…</button>` : ''}</td></tr>
     ${expanded ? `<tr class="fc-expand"><td colspan="8">
       ${form ? fcForm(form, r, fc) : ''}
       <div class="src-grid">
-        ${reservedList.map((x) => `<div class="src"><b>Reserved · ${x.sr}</b><div>${x.codes.length} ${esc(r.trade.toLowerCase())}s · planned from ${fmtDate(fc.start)}${x.dependsOn ? ` · ${chip('warning', 'link', `Depends on ${x.dependsOn} finishing by ${fmtDate(fc.mustFinish)}`)}` : ''}</div></div>`).join('')}
+        ${reservedList.map((x) => `<div class="src"><b>Held · ${x.sr}</b><div>${x.codes.length} ${esc(r.trade.toLowerCase())}s · planned from ${fmtDate(fc.start)}${x.dependsOn ? ` · ${chip('warning', 'link', `Depends on ${x.dependsOn} finishing by ${fmtDate(fc.mustFinish)}`)}` : ''}</div></div>`).join('')}
         ${r.sources.map((s) => `<div class="src"><b>${s.project ? `From ${s.project}, ends ${fmtDate(s.ends)}` : 'Available now'} (${s.workers.length})</b>
           ${s.project ? `<div style="margin:var(--s-1) 0">${chip('warning', 'link', `Depends on ${s.project} finishing by ${fmtDate(s.dependsBy)}`)}</div>` : ''}
           <ul>${s.workers.map((w) => `<li>${esc(w.name)} <span class="mono">${w.code}</span></li>`).join('')}</ul></div>`).join('')}
-        ${r.excluded.length ? `<div class="src"><b>Not deployable (${r.excluded.length})</b><ul>${r.excluded.map((x) => `<li>${esc(x.w.name)} <span class="mono">${x.w.code}</span>: ${esc(x.kind.toLowerCase())}, ${esc(x.detail)}</li>`).join('')}</ul></div>` : ''}
-        ${f.recruit.filter((x) => x.trade === r.trade).map((x) => `<div class="src"><b>Recruitment · ${x.no}</b><div>${x.headcount} needed by ${fmtDate(x.neededBy)} · open · ${esc(x.reason)}</div></div>`).join('')}
+        ${r.excluded.length ? `<div class="src"><b>Not available (${r.excluded.length})</b><ul>${r.excluded.map((x) => `<li>${esc(x.w.name)} <span class="mono">${x.w.code}</span>: ${esc(x.kind.toLowerCase())}, ${esc(x.detail)}</li>`).join('')}</ul></div>` : ''}
+        ${f.recruit.filter((x) => x.trade === r.trade).map((x) => `<div class="src"><b>Hiring · ${x.no}</b><div>${x.headcount} needed by ${fmtDate(x.neededBy)} · open · ${esc(x.reason)}</div></div>`).join('')}
       </div></td></tr>` : ''}`;
 }
 function fcForm(form, r, fc) {
@@ -1778,60 +1736,59 @@ function fcForm(form, r, fc) {
     const workers = r.sources.flatMap((s) => s.workers.map((w) => ({ ...w, src: s })));
     const want = Math.max(r.needed - r.assigned, 0);
     const sel = form.sel || new Set(workers.slice(0, want).map((w) => w.code)); form.sel = sel;
-    return `<div class="inline-form" style="margin-bottom:var(--s-3)" role="group" aria-label="Reserve transfers"><label>Reserve ${esc(r.trade.toLowerCase())}s for RAK-07 from ${fmtDate(fc.start)} (${want} still needed)</label>
+    return `<div class="inline-form" style="margin-bottom:var(--s-3)" role="group" aria-label="Hold people"><label>Hold ${esc(r.trade.toLowerCase())}s for RAK-07 from ${fmtDate(fc.start)} (${want} still needed)</label>
       <div class="checks">${workers.map((w) => `<label class="check"><input type="checkbox" data-fc-sel="${w.code}"${sel.has(w.code) ? ' checked' : ''}>${esc(w.name)} <span class="mono">${w.code}</span>${w.src.project ? ` · from ${w.src.project}` : ''}</label>`).join('')}</div>
       ${state.fc.formError ? `<p class="field-error" role="alert">${esc(state.fc.formError)}</p>` : ''}
-      <p class="note">Creates a staffing request, planned assignments (the overlap constraint applies) and draft mobilizations in one transaction. Workers from another project are linked to their current assignment, so a later end-date change raises an alert.</p>
-      <div class="row"><button type="button" class="btn btn-primary btn-sm" data-fc-reserve-confirm="${r.trade}">Reserve ${sel.size}</button><button type="button" class="btn btn-ghost btn-sm" data-fc-cancel>Cancel</button></div></div>`;
+      <p class="note">This creates a request, plans their placement and prepares draft mobilization in one go. People coming from another project are tied to that job, so if its end date moves you get a to-do.</p>
+      <div class="row"><button type="button" class="btn btn-primary btn-sm" data-fc-reserve-confirm="${r.trade}">Hold ${sel.size} ${sel.size === 1 ? 'person' : 'people'}</button><button type="button" class="btn btn-ghost btn-sm" data-fc-cancel>Cancel</button></div></div>`;
   }
   const neededBy = form.neededBy || addDays(fc.start, -30);
-  return `<div class="inline-form" style="margin-bottom:var(--s-3)" role="group" aria-label="Raise recruitment request"><label>Raise a recruitment request: ${esc(r.trade.toLowerCase())}s for RAK-07</label>
+  return `<div class="inline-form" style="margin-bottom:var(--s-3)" role="group" aria-label="Ask recruitment to hire"><label>Ask recruitment to hire ${esc(r.trade.toLowerCase())}s for RAK-07</label>
     <div class="row"><span class="form-row"><label for="rrCount">Headcount</label><input class="input" id="rrCount" type="number" min="1" value="${form.count ?? r.uncovered}" style="width:96px"></span>
       <span class="form-row"><label for="rrBy">Needed by</label><input class="input" id="rrBy" type="date" value="${neededBy}"></span></div>
     <span class="form-row"><label for="rrReason">Reason (shown to recruitment)</label><textarea id="rrReason">${esc(form.reason ?? `RAK-07 needs ${r.needed} ${r.trade.toLowerCase()}s from ${fmtDate(fc.start)}; only ${r.assigned + r.deployable} can come from current staff.`)}</textarea></span>
     ${state.fc.formError ? `<p class="field-error" role="alert">${esc(state.fc.formError)}</p>` : ''}
-    <div class="row"><button type="button" class="btn btn-primary btn-sm" data-fc-recruit-confirm="${r.trade}">Raise request</button><button type="button" class="btn btn-ghost btn-sm" data-fc-cancel>Cancel</button></div></div>`;
+    <div class="row"><button type="button" class="btn btn-primary btn-sm" data-fc-recruit-confirm="${r.trade}">Send to recruitment</button><button type="button" class="btn btn-ghost btn-sm" data-fc-cancel>Cancel</button></div></div>`;
 }
 function renderForecast() {
   const f = state.fc; const fc = computeForecast(f.start);
   const tot = (k) => fc.rows.reduce((t, r) => t + r[k], 0);
   const p = projectBy('RAK-07');
   document.getElementById('main').innerHTML = `
-    <div class="page-intro"><h1>Manpower forecast</h1><span class="muted" style="font-size:var(--text-sm)">Who can be deployed on a project’s start date, and from where.</span><span class="spacer"></span>${protoTags}</div>
+    <div class="page-intro"><h1>Forecast</h1><span class="muted" style="font-size:var(--text-sm)">Who will be free for a project on its start date, and where they come from.</span></div>
     <div class="fc-controls">
       <span class="form-row"><label for="fcProject">Project</label><select class="select" id="fcProject"><option>RAK-07 · ${esc(p.name)} (starts ${fmtDate(FC.start)})</option></select></span>
       <span class="form-row"><label for="fcStart">Start date (what-if)</label><input class="input" id="fcStart" type="date" value="${f.start}"></span>
       ${f.start !== FC.start ? `<button type="button" class="btn btn-ghost btn-sm" data-fc-reset>Back to ${fmtShort(FC.start)}</button>` : ''}
       ${can('ai:use') ? '<button type="button" class="btn btn-sm" data-fc-explain>' + icon('sparkles', 14) + 'Explain</button>' : ''}
-      <label class="check" style="margin-left:auto"><input type="checkbox" id="fcMove"${f.rak02Steel !== '2027-01-31' ? ' checked' : ''}>Prototype: RAK-02 steel fixers now finish 20 Feb 2027</label>
     </div>
-    <p class="alert alert-info" style="margin-bottom:var(--s-4)">${icon('info', 14)}<span>Deployable workers aren’t held until you reserve them. ${f.start !== FC.start ? 'What-if date: alerts still use the planned start.' : 'Alerts use the planned start date.'} Buffer ${FC.bufferDays} days · documents must cover to ${fmtDate(fc.horizon)}.</span></p>
+    <p class="alert alert-info" style="margin-bottom:var(--s-4)">${icon('info', 14)}<span>People marked “Free to assign” are not held until you hold them. We allow ${FC.bufferDays} days to move between sites, and documents must be valid until ${fmtDate(fc.horizon)}.${f.start !== FC.start ? ' You are looking at a what-if date; to-dos still use the planned start.' : ''}</span></p>
     ${f.explain ? `<div class="card" style="margin-bottom:var(--s-4);padding:var(--s-3)">${traceBlock({ trace: f.explain }, true)}</div>` : ''}
     <div class="kpis kpis-4">
       ${kpiTile({ id: 'fc-need', icon: 'users', label: 'Needed', value: tot('needed'), detail: `${fc.rows.length} trades on ${fmtDate(f.start)}` })}
-      ${kpiTile({ id: 'fc-res', icon: 'clipboard', label: 'Reserved', value: tot('assigned'), detail: 'Planned assignments to RAK-07' })}
-      ${kpiTile({ id: 'fc-dep', icon: 'hardhat', label: 'Deployable', value: tot('deployable'), detail: 'Not yet reserved' })}
-      ${kpiTile({ id: 'fc-gap', icon: 'alert', label: 'Uncovered gap', value: tot('uncovered'), detail: `${tot('pending')} in recruitment requests` })}
+      ${kpiTile({ id: 'fc-res', icon: 'clipboard', label: 'Held', value: tot('assigned'), detail: 'Already placed on RAK-07' })}
+      ${kpiTile({ id: 'fc-dep', icon: 'hardhat', label: 'Free to assign', value: tot('deployable'), detail: 'Not held yet' })}
+      ${kpiTile({ id: 'fc-gap', icon: 'alert', label: 'Still short', value: tot('uncovered'), detail: `${tot('pending')} being hired` })}
     </div>
-    <section class="card" aria-labelledby="fcT"><div class="card-head"><div><h2 id="fcT">By trade</h2><p>Expand a trade for sources, dependencies and exclusions.</p></div><span class="tag">Demo data</span></div>
-      <div class="table-wrap"><table class="fc-table"><caption class="sr-only">Forecast by trade</caption><thead><tr><th scope="col">Trade</th><th scope="col" class="num">Needed</th><th scope="col" class="num">Reserved</th><th scope="col" class="num">Deployable</th><th scope="col" class="num">Recruiting</th><th scope="col" class="num">Gap</th><th scope="col">Status</th><th scope="col" class="num">Actions</th></tr></thead>
+    <section class="card" aria-labelledby="fcT"><div class="card-head"><div><h2 id="fcT">By trade</h2><p>Open a trade to see who they are and where they come from.</p></div><span class="tag">Demo data</span></div>
+      <div class="table-wrap"><table class="fc-table"><caption class="sr-only">Forecast by trade</caption><thead><tr><th scope="col">Trade</th><th scope="col" class="num">Needed</th><th scope="col" class="num">Held</th><th scope="col" class="num">Free to assign</th><th scope="col" class="num">Being hired</th><th scope="col" class="num">Short by</th><th scope="col">Status</th><th scope="col" class="num">What to do</th></tr></thead>
       <tbody>${fc.rows.map((r) => forecastRow(r, fc)).join('')}</tbody></table></div></section>
     <div class="viz-row">
-      <section class="card" aria-labelledby="skT"><div class="card-head"><div><h2 id="skT">Where the people come from</h2><p>Ending projects → trades → RAK-07. Red = still to recruit.</p></div></div><div class="viz-scroll">${sankeySVG(fc)}</div></section>
+      <section class="card" aria-labelledby="skT"><div class="card-head"><div><h2 id="skT">Where the people come from</h2><p>Where people come from, by trade. Red = still to hire.</p></div></div><div class="viz-scroll">${sankeySVG(fc)}</div></section>
       <section class="card" aria-labelledby="hmT"><div class="card-head"><div><h2 id="hmT">Company capacity, next 12 weeks</h2><p>Spare people per trade and week</p></div><span class="tag">Demo data</span></div><div class="card-body">${heatmapHTML()}</div></section>
     </div>
-    <footer class="footer"><span>In the app every number here comes from the Python forecast service (FORECAST_PYTHON_ONLY); the prototype mirrors it in the browser.</span></footer>`;
+`;
   countUp();
 }
 function explainForecast() {
   const fc = computeForecast(state.fc.start);
-  const line = (r) => `${r.trade}: ${r.needed} needed, ${r.assigned} reserved, ${r.deployable} deployable${r.pending ? `, ${r.pending} recruiting` : ''}${r.uncovered ? `, ${r.uncovered} short` : ', covered'}.`;
+  const line = (r) => `${r.trade}: ${r.needed} needed, ${r.assigned} held, ${r.deployable} free to assign${r.pending ? `, ${r.pending} being hired` : ''}${r.uncovered ? `, ${r.uncovered} still short` : ', covered'}.`;
   const deps = fc.rows.flatMap((r) => r.sources.filter((s) => s.project).map((s) => `${s.workers.length} ${r.trade.toLowerCase()}${s.workers.length === 1 ? '' : 's'} depend on ${s.project} finishing by ${fmtDate(s.dependsBy)}`));
   const steps = [
-    { t: 'Read the forecast', d: `forecast_availability(RAK-07, ${fmtDate(fc.start)}) · numbers come from the forecast service.` },
-    ...fc.rows.map((r) => ({ t: r.trade, d: line(r) + (r.excluded.length ? ` Not deployable: ${r.excluded.map((x) => x.kind.toLowerCase()).join(', ')}.` : '') })),
+    { t: 'Looked at the forecast', d: `RAK-07 on ${fmtDate(fc.start)}. All numbers come from the system.` },
+    ...fc.rows.map((r) => ({ t: r.trade, d: line(r) + (r.excluded.length ? ` Not available: ${r.excluded.map((x) => x.kind.toLowerCase()).join(', ')}.` : '') })),
     { t: 'Dependencies', d: deps.length ? `${deps.join('; ')}.` : 'None.' },
-    { t: 'Suggested next steps', d: fc.rows.filter((r) => r.uncovered).map((r) => `raise a recruitment request for ${r.uncovered} ${r.trade.toLowerCase()}${r.uncovered === 1 ? '' : 's'}`).concat(fc.rows.filter((r) => r.deployable && r.needed > r.assigned).map((r) => `reserve the deployable ${r.trade.toLowerCase()}s`)).join('; ') || 'Nothing to do.' },
+    { t: 'Suggested next steps', d: fc.rows.filter((r) => r.uncovered).map((r) => `ask recruitment to hire ${r.uncovered} ${r.trade.toLowerCase()}${r.uncovered === 1 ? '' : 's'}`).concat(fc.rows.filter((r) => r.deployable && r.needed > r.assigned).map((r) => `hold the free ${r.trade.toLowerCase()}s`)).join('; ') || 'Nothing to do.' },
   ];
   state.fc.explain = { steps, shown: 0, running: true };
   const tick = () => { if (!state.fc.explain) return; state.fc.explain.shown++; if (state.fc.explain.shown >= steps.length) state.fc.explain.running = false; if (state.page === 'forecast') renderForecast(); if (state.fc.explain.running) setTimeout(tick, 380); };
@@ -1895,23 +1852,6 @@ function openProject(code) {
       ${code === 'RAK-07' && can('forecast:read') ? '<div><p class="section-title">Forecast</p><button type="button" class="btn btn-sm" data-goto="forecast">Open manpower forecast</button></div>' : ''}
     </div><div class="sheet-foot note">Demo data. In the app this sheet reads the project, its manpower plan and open requests from the API.</div>`, `Project ${p.code}`);
 }
-function openAi() {
-  if (!can('ai:use')) return;
-  const a = AI_DEMO;
-  const req = REQUESTS[0]; const line = req.lines[0];
-  const people = a.proposed.map(([code, name, lvl, reason]) => `<li class="person"><span class="avatar avatar-sm" aria-hidden="true">${initials(name)}</span><div><div class="person-name">${esc(name)} <span class="mono subtle">${code}</span></div><div class="person-meta">Steel fixer · level ${lvl}</div></div><p class="person-reason">${esc(reason)}</p></li>`).join('');
-  openSheet(`<div class="sheet-head"><div><h2>AI Command Centre</h2><p class="note">Ask about staffing, forecasts or mobilization.</p></div><button type="button" class="icon-btn" data-close-sheet aria-label="Close AI Command Centre">${icon('x', 18)}</button></div>
-    <div class="sheet-body" id="aiThread"><p class="prompt">${esc(a.prompt)}</p>
-      <article class="answer" aria-label="Answer from the Workforce Agent"><div class="answer-head">${icon('bot', 14)}Workforce Agent<span class="tag">Recorded demo answer</span></div>
-        <p class="answer-summary">8 steel fixers are cleared for RAK-03 from Sunday, 8 Nov 2026. 2 were excluded.</p>
-        <div style="padding:0 var(--s-4) var(--s-3)">${traceBlock({ trace: { steps: buildTrace(req, line), shown: 99, running: false } }, false)}</div>
-        <ul class="people">${people}</ul>
-        <p class="why"><b>Why:</b> ranked by availability, verified level and history on this project. Every person was checked for overlap, leave, documents and the midday ban by the rules engine, not the model.</p>
-        <div class="answer-actions">${can('staffing:read') ? '<button type="button" class="btn btn-primary btn-sm" data-goto="allocation" data-goto-req="SR-2026-0042">Review on Allocation Board</button>' : ''}<span class="note" style="align-self:center">Submitted to HR as <span class="mono">SR-2026-0042</span>.</span></div>
-      </article></div>
-    <form class="ai-input" id="aiForm"><label class="sr-only" for="aiInput">Ask the AI</label><input id="aiInput" placeholder="Ask about staffing, forecasts, mobilization…" autocomplete="off" data-autofocus><button class="btn btn-sm" type="submit" aria-label="Send">${icon('send', 16)}</button></form>`, 'AI Command Centre');
-}
-
 /* =====================================================================
    Popovers, theme, routing
    ===================================================================== */
@@ -1961,7 +1901,7 @@ function goto(page, reqNo) {
   const h1 = document.querySelector('#main h1'); if (h1) { h1.setAttribute('tabindex', '-1'); h1.focus(); }
 }
 function setRole(role, silent) {
-  state.role = role; state.page = 'dashboard'; state.ui.swap = null; state.ac.selected.clear();
+  state.role = role; state.page = 'dashboard'; state.ui.swap = null;
   const visible = visibleRequests(); if (visible.length && !visible.some((r) => r.no === state.ui.req)) selectRequest(visible[0].no);
   closePopovers(); closeSheet(); setDrawer(false); render();
   if (!silent) toast(`Signed in as ${ROLES[role].user} (${ROLES[role].name}). Demo role switcher.`);
@@ -1986,7 +1926,6 @@ const rerenderBoard = rerenderKeepFocus;
    ===================================================================== */
 function boardClick(t) {
   const ui = state.ui; const split = (v) => v.split('|');
-  if (t.dataset.previewBoard) { ui.preview = t.dataset.previewBoard; return rerenderBoard(`[data-preview-board="${ui.preview}"]`), true; }
   if (t.hasAttribute('data-retry')) { ui.preview = 'live'; return rerenderBoard('#reqSearch'), true; }
   if (t.hasAttribute('data-clear-reqs')) { Object.assign(ui, { q: '', status: 'open', project: 'all' }); return rerenderBoard('#reqSearch'), true; }
   if (t.hasAttribute('data-clear-pool')) { Object.assign(ui, { poolQ: '', poolTrade: 'line', poolLevel: 'line', docsOnly: false, availOnly: false }); return rerenderBoard('#poolSearch'), true; }
@@ -2002,7 +1941,7 @@ function boardClick(t) {
       line.rec.workers.forEach((c) => { if (!heldElsewhere(c, id) && !st.workers.includes(c) && st.workers.length < line.count) { st.workers.push(c); st.src[c] = 'ai'; } });
       if (state.page === 'allocation') rerenderBoard(`#line-${CSS.escape(id)} [data-approve], #line-${CSS.escape(id)} [data-reject-line]`);
       st.animateIn = false;
-      toast(`Workforce Agent recommended ${st.workers.length} for ${line.trade.toLowerCase()} (recorded demo answer).`, 'bot');
+      toast(`${st.workers.length} suggested for ${line.trade.toLowerCase()}. Review them, then approve.`, 'bot');
     };
     if (reducedMotion()) { finish(); return true; }
     rerenderBoard();
@@ -2101,7 +2040,7 @@ function forecastClick(t) {
     initLine(REQUESTS[REQUESTS.length - 1].lines[0]);
     f.reservations.push({ sr, trade, codes, lineId, dependsOn: fromProjects.join(', ') || null });
     f.form = null; f.formError = '';
-    toast(`${codes.length} ${trade.toLowerCase()}${codes.length === 1 ? '' : 's'} reserved for RAK-07 (${sr}). Planned assignments and draft mobilizations created.`, 'check');
+    toast(`${codes.length} ${trade.toLowerCase()}${codes.length === 1 ? '' : 's'} held for RAK-07 (${sr}). Their placement is planned and draft mobilization is ready.`, 'check');
     runDetectors('assignment created');
     return rerenderKeepFocus(`[data-fc-expand="${trade}"]`), true;
   }
@@ -2123,44 +2062,29 @@ function forecastClick(t) {
 }
 function acClick(t) {
   const f = state.ac;
-  if (t.dataset.previewAc) { f.preview = t.dataset.previewAc; return rerenderKeepFocus(`[data-preview-ac="${f.preview}"]`), true; }
-  if (t.hasAttribute('data-ac-retry')) { f.preview = 'live'; return rerenderKeepFocus('#acSearch'), true; }
-  if (t.dataset.sev) { f.sev[t.dataset.sev] = !f.sev[t.dataset.sev]; return rerenderKeepFocus(`[data-sev="${t.dataset.sev}"]`), true; }
-  if (t.hasAttribute('data-ac-reset')) { Object.assign(f, { sev: { critical: true, action_needed: true, info: true }, status: 'live', type: 'all', project: 'all', mine: false, q: '' }); return rerenderKeepFocus('#acSearch'), true; }
-  if (t.hasAttribute('data-ac-clear')) { f.selected.clear(); f.bulk = ''; return rerenderKeepFocus('#acSearch'), true; }
-  if (t.hasAttribute('data-ac-bulk')) {
-    const sn = document.getElementById('bulkSnooze').value; const as = document.getElementById('bulkAssign').value;
-    if (!sn && !as) { f.bulk = 'Choose a snooze time or an assignee.'; return rerenderKeepFocus('[data-ac-bulk]'), true; }
-    const sel = state.alerts.filter((a) => f.selected.has(a.id));
-    if (sn === '3d' && sel.some((a) => a.severity === 'critical')) { f.bulk = 'Critical alerts can be snoozed for up to 24 hours. Remove them from the selection or pick a shorter time.'; return rerenderKeepFocus('[data-ac-bulk]'), true; }
-    sel.forEach((a) => { if (sn) { a.status = 'snoozed'; a.snoozedUntil = snoozeUntil(sn); a.history.push({ at: 'Now', text: `Snoozed until ${fmtDateTime(a.snoozedUntil)} — ${me()}` }); } if (as) { a.assignee = as; a.history.push({ at: 'Now', text: `Assigned to ${as} — ${me()}` }); } });
-    toast(`${sel.length} alert${sel.length === 1 ? '' : 's'} updated.`); f.selected.clear(); f.bulk = '';
-    return rerenderKeepFocus('#acSearch'), true;
-  }
+  if (t.hasAttribute('data-ac-retry')) { f.preview = 'live'; state.ui.preview = 'live'; renderUserMenu(); return rerenderKeepFocus(), true; }
+  if (t.hasAttribute('data-ac-reset')) { Object.assign(f, { urgency: 'all', mine: false, showAll: false }); return rerenderKeepFocus('#acUrgency'), true; }
   return false;
+}
+function setAlertSnooze(a, sn) {
+  a.status = 'snoozed'; a.snoozedUntil = snoozeUntil(sn);
+  a.history.push({ at: 'Now', text: `Reminder set for ${fmtDateTime(a.snoozedUntil)} — ${me()}` });
 }
 function alertSheetClick(t) {
   if (t.dataset.alert) { state.alertForm = null; openAlert(t.dataset.alert); return true; }
   if (t.dataset.alertAction) { alertAction(t.dataset.alertAction, t.dataset.alertId); return true; }
-  const id = t.dataset.alertTake || t.dataset.alertApply || t.dataset.alertDismiss || t.dataset.alertDismissConfirm || t.dataset.alertDismissCancel;
+  const id = t.dataset.alertTake || t.dataset.alertDismiss || t.dataset.alertDismissConfirm || t.dataset.alertDismissCancel;
   if (!id) return false;
   const a = state.alerts.find((x) => x.id === id);
   const log = (text) => a.history.push({ at: 'Now', text: `${text} — ${me()}` });
-  if (t.dataset.alertTake) { a.status = 'in_progress'; a.assignee = me(); log('Taken; escalation stopped'); toast('Alert taken. Escalation stops while it is in progress.'); }
-  else if (t.dataset.alertApply) {
-    const as = document.getElementById('alAssign').value; const sn = document.getElementById('alSnooze').value;
-    if (!as && !sn) { state.alertForm = { id, error: 'Choose an assignee or a snooze time.' }; return openAlert(id), true; }
-    if (as) { a.assignee = as; log(`Assigned to ${as}`); }
-    if (sn) { a.status = 'snoozed'; a.snoozedUntil = snoozeUntil(sn); log(`Snoozed until ${fmtDateTime(a.snoozedUntil)}`); }
-    toast('Alert updated.');
-  } else if (t.dataset.alertDismiss) { state.alertForm = { id, type: 'dismiss', draft: '' }; openAlert(id); document.getElementById('dismissReason').focus(); return true; }
+  if (t.dataset.alertTake) { a.status = 'in_progress'; a.assignee = me(); log('Took this item'); toast('You’re handling this now. Reminders to others stop while you do.'); }
+  else if (t.dataset.alertDismiss) { state.alertForm = { id, type: 'dismiss', draft: '' }; openAlert(id); document.getElementById('dismissReason').focus(); return true; }
   else if (t.dataset.alertDismissCancel) { state.alertForm = null; }
   else if (t.dataset.alertDismissConfirm) {
     const reason = document.getElementById('dismissReason').value.trim();
     if (reason.length < 10) { state.alertForm = { id, type: 'dismiss', draft: reason, error: `Give a reason of at least 10 characters (${reason.length} so far).` }; openAlert(id); document.getElementById('dismissReason').focus(); return true; }
-    a.status = 'dismissed'; a.resolution = `Dismissed: ${reason}`; log(`Dismissed: ${reason}`); state.alertForm = null; toast('Alert dismissed. It comes back only if the problem gets worse.');
+    a.status = 'dismissed'; a.resolution = `Marked as not a problem: ${reason}`; log(`Marked as not a problem: ${reason}`); state.alertForm = null; toast('Marked as not a problem. It comes back only if things get worse.');
   }
-  state.ac.selected.delete(id);
   renderNav(); renderBell(); renderPage(); openAlert(id);
   return true;
 }
@@ -2173,22 +2097,19 @@ document.addEventListener('click', (e) => {
   if (t.id === 'bellBtn') { renderBell(); return togglePopover('bellBtn', 'bellPop'); }
   if (t.id === 'userBtn') return togglePopover('userBtn', 'userPop');
   if (t.id === 'themeBtn') return applyTheme(isDark() ? 'light' : 'dark');
-  if (t.id === 'aiBtn') return openAi();
   if (t.id === 'menuBtn') return setDrawer(true);
   if (t.id === 'collapseBtn') {
     const app = document.getElementById('app'); const collapsed = app.dataset.collapsed !== 'true';
     app.dataset.collapsed = String(collapsed); t.setAttribute('aria-expanded', String(!collapsed)); t.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
     t.querySelector('.nav-text').textContent = collapsed ? 'Expand' : 'Collapse'; store.set('cq.sidebar', collapsed ? 'collapsed' : 'expanded'); return;
   }
-  if (t.hasAttribute('data-toggle-coming')) { state.comingOpen = !state.comingOpen; renderNav(); document.querySelector('[data-toggle-coming]').focus(); return; }
+  if (t.dataset.demo) { closePopovers(); return demoTool(t.dataset.demo); }
   if (t.hasAttribute('data-signout')) { state.page = 'login'; closePopovers(); return render(); }
   if (t.dataset.role) return setRole(t.dataset.role);
   if (t.dataset.roleJump) return setRole(t.dataset.roleJump);
   if (t.dataset.themeSet) { applyTheme(t.dataset.themeSet); closePopovers(); return; }
   if (t.dataset.nav) {
-    const item = NAV_BUILT.find((i) => i.id === t.dataset.nav);
-    if (item.opensAi) { setDrawer(false); return openAi(); }
-    return goto(item.id);
+    return goto(t.dataset.nav);
   }
   if (t.dataset.goto) return goto(t.dataset.goto, t.dataset.gotoReq);
   if (alertSheetClick(t)) return;
@@ -2197,13 +2118,6 @@ document.addEventListener('click', (e) => {
   if (acClick(t)) return;
   if (t.dataset.project) return openProject(t.dataset.project);
   if (t.hasAttribute('data-close-sheet')) return closeSheet();
-  if (t.dataset.decide) {
-    const id = t.dataset.id; const li = document.querySelector(`[data-approval="${id}"]`);
-    const commit = () => { state.decisions[id] = t.dataset.decide; runDetectors('approval decided'); renderNav(); renderBell(); renderCEO(); toast(`${id} ${t.dataset.decide}. Session only.`); const undo = document.querySelector(`[data-undo="${id}"]`); if (undo) undo.focus(); };
-    if (li && !reducedMotion()) { li.classList.add('row-out'); setTimeout(commit, 200); } else commit();
-    return;
-  }
-  if (t.dataset.undo) { const id = t.dataset.undo; delete state.decisions[id]; runDetectors('approval reopened'); renderNav(); renderBell(); renderCEO(); const again = document.querySelector(`[data-decide="approved"][data-id="${id}"]`); if (again) again.focus(); }
 });
 
 document.addEventListener('submit', (e) => {
@@ -2215,18 +2129,11 @@ document.addEventListener('submit', (e) => {
     if (!pw) { err.textContent = 'Enter your password.'; err.hidden = false; return document.getElementById('loginPw').focus(); }
     state.role = role; return setRole(role, true);
   }
-  if (e.target.id === 'aiForm') {
-    e.preventDefault(); const input = document.getElementById('aiInput'); const text = input.value.trim(); if (!text) return;
-    const thread = document.getElementById('aiThread');
-    thread.insertAdjacentHTML('beforeend', `<p class="prompt">${esc(text)}</p><p class="note">${icon('info', 14)} No model is connected in this prototype. It only shows the recorded staffing answer above.</p>`);
-    input.value = ''; thread.scrollTop = thread.scrollHeight;
-  }
 });
 document.addEventListener('input', (e) => {
   const el = e.target;
   if (el.id === 'reqSearch') { state.ui.q = el.value; return rerenderBoard(); }
   if (el.id === 'poolSearch') { state.ui.poolQ = el.value; return rerenderBoard(); }
-  if (el.id === 'acSearch') { state.ac.q = el.value; return rerenderKeepFocus(); }
   if (el.dataset.draft) { const st = state.board[el.dataset.draft]; st.draft = el.value; const c = document.getElementById(`rjc-${el.dataset.draft}`); if (c) c.textContent = `${el.value.trim().length} / 10 characters minimum`; }
   if (el.id === 'dismissReason') { if (state.alertForm) state.alertForm.draft = el.value; const c = document.getElementById('dismissCount'); if (c) c.textContent = `${el.value.trim().length} / 10 characters minimum`; }
 });
@@ -2238,16 +2145,16 @@ document.addEventListener('change', (e) => {
   if (el.id === 'docsOnly' || el.id === 'availOnly') { ui[el.id] = el.checked; return rerenderBoard(`#${el.id}`); }
   if (el.id && el.id.startsWith('rm-')) { const st = state.board[el.id.slice(3)]; if (st) { st.draft = el.value; st.formError = ''; } return; }
   if (el.dataset.select) { const [lineId, code] = el.dataset.select.split('|'); const sel = state.board[lineId].selected; if (el.checked) sel.add(code); else sel.delete(code); return rerenderBoard(`[data-select="${el.dataset.select}"]`); }
-  const acMap = { acStatus: 'status', acType: 'type', acProject: 'project' };
-  if (acMap[el.id]) { state.ac[acMap[el.id]] = el.value; return rerenderKeepFocus(`#${el.id}`); }
-  if (el.id === 'acMine') { state.ac.mine = el.checked; return rerenderKeepFocus('#acMine'); }
-  if (el.dataset.acSelect) { const s = state.ac.selected; if (el.checked) s.add(el.dataset.acSelect); else s.delete(el.dataset.acSelect); state.ac.bulk = ''; return rerenderKeepFocus(`[data-ac-select="${el.dataset.acSelect}"]`); }
+  if (el.id === 'acUrgency') { state.ac.urgency = el.value; return rerenderKeepFocus('#acUrgency'); }
+  if (el.id === 'acOwner') { state.ac.mine = el.value === 'mine'; return rerenderKeepFocus('#acOwner'); }
+  if (el.id === 'acShowAll') { state.ac.showAll = el.checked; return rerenderKeepFocus('#acShowAll'); }
+  if (el.dataset.alertAssign && el.value) { const a = state.alerts.find((x) => x.id === el.dataset.alertAssign); a.assignee = el.value; a.history.push({ at: 'Now', text: `Given to ${el.value} — ${me()}` }); toast(`Given to ${el.value.split(' (')[0]}.`); renderNav(); renderBell(); renderPage(); return openAlert(a.id); }
+  if (el.dataset.alertSnooze && el.value) { const a = state.alerts.find((x) => x.id === el.dataset.alertSnooze); setAlertSnooze(a, el.value); toast(`We’ll remind you ${fmtDateTime(a.snoozedUntil)}.`); renderNav(); renderBell(); renderPage(); return openAlert(a.id); }
   if (el.id === 'fcStart') { if (el.value) { state.fc.start = el.value; state.fc.form = null; state.fc.explain = null; } return rerenderKeepFocus('#fcStart'); }
   if (el.id === 'fcMove') { state.fc.rak02Steel = el.checked ? '2027-02-20' : '2027-01-31'; runDetectors('project end date changed'); return rerenderKeepFocus('#fcMove'); }
   if (el.dataset.fcSel) { const sel = state.fc.form.sel; if (el.checked) sel.add(el.dataset.fcSel); else sel.delete(el.dataset.fcSel); state.fc.formError = ''; return rerenderKeepFocus(`[data-fc-sel="${el.dataset.fcSel}"]`); }
 });
 document.addEventListener('keydown', (e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && state.page !== 'login') { e.preventDefault(); if (document.querySelector('.sheet[aria-label="AI Command Centre"]')) closeSheet(); else openAi(); return; }
   if (e.key === 'Escape') {
     if (closePopovers()) return; if (closeSheet()) return;
     if (state.page === 'allocation') {
@@ -2264,11 +2171,7 @@ document.addEventListener('keydown', (e) => {
     if (next) { selectRequest(next.dataset.req); rerenderBoard(`[data-req="${next.dataset.req}"]`); }
     return;
   }
-  if (e.key === '/' && !e.target.closest('input, textarea, select') && !document.getElementById('overlayRoot').innerHTML && state.page !== 'login') {
-    const s = document.getElementById('searchInput'); if (s.offsetParent) { e.preventDefault(); s.focus(); }
-  }
 });
-document.getElementById('searchInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') notBuilt('Global search'); });
 
 applyTheme(store.get('cq.theme') || 'system');
 if (store.get('cq.sidebar') === 'collapsed') document.getElementById('collapseBtn').click();
