@@ -329,3 +329,69 @@ test("Home: the real widgets show real numbers, and a person's layout is saved f
   await page.reload();
   await expect(widget("workforce")).toBeVisible();
 });
+
+test("Allocation: the HR Executive cannot approve and the MD/CEO cannot choose people, even by asking the API directly", async ({
+  page,
+}) => {
+  const origin = { Origin: "http://localhost:3100" };
+  await signInAs(page, /HR Executive/);
+  const detail = await (await page.request.get("/api/requests/SR-2026-0001")).json();
+  const line = detail.lines[0].id as string;
+  const approve = await page.request.post(`/api/requests/SR-2026-0001/lines/${line}/approve`, {
+    data: { preview: true, employee_codes: null },
+    headers: origin,
+  });
+  expect(approve.status()).toBe(403);
+
+  await page.context().clearCookies();
+  await signInAs(page, /MD \/ CEO/);
+  await page.goto("/requests");
+  await expect(page.locator("button[data-request]").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "New request" })).toHaveCount(0);
+  await expect(page.getByRole("complementary", { name: "Candidate pool" })).toHaveCount(0);
+  const suggest = await page.request.post(`/api/requests/SR-2026-0001/lines/${line}/suggest`, {
+    headers: origin,
+  });
+  expect(suggest.status()).toBe(403);
+});
+
+// Last on purpose: approving starts real mobilizations. Run `make reset-demo` afterwards.
+test("Allocation: the Executive prepares SR-2026-0001, the Manager approves it, and Mobilizing moves", async ({
+  page,
+}) => {
+  await signInAs(page, /HR Executive/);
+  await page.getByRole("link", { name: "Allocation" }).first().click();
+  const steel = page.getByRole("region", { name: "Steel fixer line" });
+  await expect(page.getByRole("heading", { name: /SR-2026-0001/ })).toBeVisible();
+  await expect(steel).toContainText("0 of 7 selected");
+  await expect(steel.getByText(/Left out by the rules/)).toBeVisible();
+  await expect(steel.getByText("DOC_VALID_THROUGH").first()).toBeVisible();
+  await expect(steel.getByText("ASSIGN_STATUS").first()).toBeVisible();
+  await steel.getByRole("button", { name: "Suggest people" }).click();
+  await expect(steel.locator("li[data-worker]")).toHaveCount(7);
+  await expect(steel.getByText("Approving needs the HR Manager.")).toBeVisible();
+  await expect(steel.getByRole("button", { name: /Approve|Reject/ })).toHaveCount(0);
+
+  await page.getByRole("button", { name: /Account menu/ }).click();
+  await page.getByRole("menuitem", { name: "Sign out" }).click();
+  await expect(page).toHaveURL(/\/login/);
+
+  await signInAs(page, /HR Manager/);
+  await expect(kpi(page, "Mobilizing")).toHaveText("9");
+  await page.goto("/requests?request=SR-2026-0001");
+  await expect(steel.locator("li[data-worker]")).toHaveCount(7);
+  await steel.getByRole("button", { name: "Approve 7 workers" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByText("7 assignments planned, 7 mobilizations started.")).toBeVisible();
+  await dialog.getByRole("button", { name: "Approve 7 workers" }).click();
+  await expect(
+    page.getByText(
+      /Approved 7 workers as steel fixer\. 7 mobilizations started \(MOB-2026-\d{4} to MOB-2026-\d{4}\)\./,
+    ),
+  ).toBeVisible();
+  await expect(steel).toContainText("Approved by Noura Demo");
+  await expect(steel.getByRole("list", { name: "Approved workers" }).locator("li")).toHaveCount(7);
+
+  await page.goto("/");
+  await expect(kpi(page, "Mobilizing")).not.toHaveText("9"); // the free people are now mobilizing
+});

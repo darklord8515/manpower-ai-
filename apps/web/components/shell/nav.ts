@@ -1,5 +1,6 @@
 import {
   Building2,
+  ClipboardList,
   FileText,
   LayoutDashboard,
   UserPlus,
@@ -20,7 +21,7 @@ export type NavItem = {
 
 /**
  * Only screens that exist are listed: the sidebar never links to something unbuilt.
- * Requests and the Allocation board join this list as each one is built.
+ * The Mobilization screen joins this list when it is built.
  */
 export const NAV: NavItem[] = [
   { id: "home", label: "Home", href: "/", icon: LayoutDashboard, group: "" },
@@ -47,6 +48,14 @@ export const NAV: NavItem[] = [
     icon: Building2,
     group: "Work",
     requires: "project:read",
+  },
+  {
+    id: "requests",
+    label: "Allocation",
+    href: "/requests",
+    icon: ClipboardList,
+    group: "Work",
+    requires: "staffing:read",
   },
   {
     id: "recruitment",

@@ -196,18 +196,38 @@ One screen for HR to turn open staffing requests into approved workers.
     "Approve n workers" (partial fill allowed and stated), "Reject line" (inline form, reason
     ≥ 10 characters). A line with an unresolved validation error can't be approved; the button
     explains why. The helper sentence shows only when the line is empty or partial.
-  - **"Excluded by the agent" sits above the worker list, open, as an amber (warning) callout**,
+  - **"Left out by the rules" sits above the worker list, open, as an amber (warning) callout**,
     one line per person with the plain reason ("visa expires 12 Jan 2027, before 3 Feb 2027")
-    and the rule code.
-  - **Agent trace**: while recommendations are requested, the steps appear one by one
-    (understood request → workers checked → exclusions with reasons → ranking criteria →
+    and the rule code. (Built: the list comes from the Python rules service. When the Workforce
+    agent exists in Phase 5 it explains this list; it does not make it.)
+  - **Agent trace** (Phase 5, not built): while recommendations are requested, the steps appear
+    one by one (understood request → workers checked → exclusions with reasons → ranking criteria →
     result), then the rows animate in. Afterwards it stays as a collapsed "Agent trace" row.
   - **Workers are compact table rows (40px)**: checkbox, name + code, level, availability, docs
     valid until, one-line reason (full text in a tooltip; bot icon = AI, person icon = HR), Swap
     and an icon-only Remove (labelled for screen readers). All 8 rows of the demo line fit on one
     1440 × 900 screen. Open slots collapse to one dashed row ("2 open slots").
-  - Remove needs a reason; removed workers stay listed with Restore. Bulk: checkbox per worker,
-    "Remove selected". "Ask Workforce Agent" when a line has no recommendation yet.
+  - Remove needs a reason (3+ characters); removed workers stay listed with Restore, which runs
+    the rules again and shows why if it is refused. Bulk: checkbox per worker, "Remove selected"
+    (one reason for all). **Swap** takes the old person off with the reason "Swapped for X", then
+    adds X; if the rules refuse X, the old person is put straight back and the reason shows on X.
+    Esc cancels a swap. "Suggest people" (built) fills the open slots from the rules service and
+    marks each row with the list icon; "Ask Workforce Agent" (bot icon) arrives with Phase 5.
+  - **Approve opens a consequence preview** (a dialog, not a toast): each person with their
+    start date and "after finishing on RAK-05 (20 Nov 2026)" where it applies, then "n assignments
+    planned, n mobilizations started", "n depend on another job finishing on time" and
+    "The line will be n of m". The preview is the server's answer to the same call with
+    `preview: true`, which writes nothing. Confirming runs the rules again; if anyone no longer
+    passes, nothing is saved and the dialog names them with the rule code.
+  - **Reject line** is an inline form (reason ≥ 10 characters, with a live count). **Cancel
+    request** (header, only while nobody is approved) is an inline form with a reason.
+  - **Read-only roles** see the board without the buttons they cannot use: the HR Executive sees
+    "Approving needs the HR Manager."; the person who raised a request sees "You raised this
+    request, so someone else has to approve it."; the MD/CEO has no pool and no Suggest, only
+    Approve and Reject.
+  - **New request** (sheet): project (its dates fill in), needed from/until, priority (1 urgent …
+    5 lowest), one line per trade with headcount and minimum level, optional note. It goes to
+    the HR Manager for approval; both mistakes on a line show together.
 - **Right: candidate pool for the active line (sticky).** Available workers in the candidate projection
   (name, code, trade, level, availability window, documents valid). Search; filters: trade
   (defaults to the line's trade), minimum level, "documents valid only", "available by the
@@ -219,7 +239,12 @@ One screen for HR to turn open staffing requests into approved workers.
 - **Layout:** request bar on top; below it the line (flexible) and the pool (340px, sticky under the
   top bar) from 1024px; stacked below that. At 390px the worker table becomes cards and the
   request bar scrolls sideways.
-- **Keyboard:** ←/→ (and ↑/↓) move through requests, Enter opens one, Esc cancels a swap or closes a form.
+- **Keyboard:** ←/→ (and ↑/↓) move focus through the request cards, Enter opens one, Esc cancels a
+  swap or closes a form, the approval preview and the New request sheet. The selected request is
+  kept in the address (`/requests?request=SR-2026-0001`).
+- **Not built yet:** the Mobilization screen (the checklist the approval starts), the "n of 5
+  tasks done" line on the worker profile, the Workforce agent and its trace, and the midday-ban
+  rules (BAN_*). Approving already creates the mobilizations and their tasks.
 
 ### Action Center (top of the HR Console, and the bell)
 - **Severity** is always icon + label + colour, never colour alone: Critical (octagon-x, danger),

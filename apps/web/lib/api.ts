@@ -3,6 +3,12 @@ import type {
   ExpiringList,
   Me,
   AdvanceResult,
+  ApproveResponse,
+  LineCandidates,
+  NewRequestBody,
+  PicksResponse,
+  RequestDetail,
+  RequestRow,
   NewProject,
   NewRecruitment,
   ProjectForecast,
@@ -98,6 +104,65 @@ export const api = {
     request<ExpiringList>(`/documents/expiring?${documentParams(window, filters)}`),
   documentsCsvUrl: (window: ExpiryWindow, filters: DocumentFilters = {}) =>
     `/api/documents/export.csv?${documentParams(window, filters)}`,
+  requests: (filters: { q?: string; status?: string; project?: string } = {}) => {
+    const params = new URLSearchParams();
+    if (filters.q?.trim()) params.set("q", filters.q.trim());
+    if (filters.status) params.set("status", filters.status);
+    if (filters.project) params.set("project", filters.project);
+    const query = params.toString();
+    return request<RequestRow[]>(`/requests${query ? `?${query}` : ""}`);
+  },
+  requestDetail: (no: string) => request<RequestDetail>(`/requests/${encodeURIComponent(no)}`),
+  raiseRequest: (body: NewRequestBody) =>
+    request<RequestDetail>("/requests", { method: "POST", body: JSON.stringify(body) }),
+  lineCandidates: (
+    no: string,
+    line: string,
+    filters: { q?: string; minLevel?: number; documentsValid?: boolean } = {},
+  ) => {
+    const params = new URLSearchParams();
+    if (filters.q?.trim()) params.set("q", filters.q.trim());
+    if (filters.minLevel) params.set("min_level", String(filters.minLevel));
+    if (filters.documentsValid) params.set("documents_valid", "true");
+    const query = params.toString();
+    return request<LineCandidates>(
+      `/requests/${encodeURIComponent(no)}/lines/${line}/candidates${query ? `?${query}` : ""}`,
+    );
+  },
+  choosePeople: (no: string, line: string, employeeCodes: string[]) =>
+    request<PicksResponse>(`/requests/${encodeURIComponent(no)}/lines/${line}/picks`, {
+      method: "POST",
+      body: JSON.stringify({ employee_codes: employeeCodes }),
+    }),
+  removePerson: (no: string, line: string, employeeCode: string, reason: string) =>
+    request<void>(`/requests/${encodeURIComponent(no)}/lines/${line}/picks/remove`, {
+      method: "POST",
+      body: JSON.stringify({ employee_code: employeeCode, reason }),
+    }),
+  restorePerson: (no: string, line: string, employeeCode: string) =>
+    request<PicksResponse>(`/requests/${encodeURIComponent(no)}/lines/${line}/picks/restore`, {
+      method: "POST",
+      body: JSON.stringify({ employee_code: employeeCode }),
+    }),
+  suggestPeople: (no: string, line: string) =>
+    request<PicksResponse>(`/requests/${encodeURIComponent(no)}/lines/${line}/suggest`, {
+      method: "POST",
+    }),
+  approveLine: (no: string, line: string, preview: boolean, employeeCodes?: string[]) =>
+    request<ApproveResponse>(`/requests/${encodeURIComponent(no)}/lines/${line}/approve`, {
+      method: "POST",
+      body: JSON.stringify({ preview, employee_codes: employeeCodes ?? null }),
+    }),
+  rejectLine: (no: string, line: string, reason: string) =>
+    request<RequestDetail>(`/requests/${encodeURIComponent(no)}/lines/${line}/reject`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }),
+  cancelRequest: (no: string, reason: string) =>
+    request<RequestDetail>(`/requests/${encodeURIComponent(no)}/cancel`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }),
   summaryByTrade: () => request<TradeStrength[]>("/summary/trades"),
   preferences: () => request<Preferences>("/auth/me/preferences"),
   savePreferences: (preferences: Preferences) =>

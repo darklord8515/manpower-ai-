@@ -50,11 +50,11 @@ DEPARTMENTS = (("hr", "Human Resources"), ("operations", "Operations"), ("site",
 # Everything below is deleted by reset_demo, children before parents.
 _RESET_ORDER = (
     "audit_log",
+    "mobilization_tasks",  # approving a line starts mobilizations; they point at assignments
+    "mobilizations",
     "employee_assignments",
     "employee_documents",
     "employee_skills",
-    "mobilization_tasks",
-    "mobilizations",
     "staffing_request_picks",
     "staffing_request_lines",
     "approval_steps",

@@ -104,6 +104,41 @@ def test_reset_removes_demo_data_but_keeps_the_reference_data(migrated_db: Engin
     assert _scalar(migrated_db, "SELECT count(*) FROM work_rules") == 1
 
 
+def test_reset_also_clears_mobilizations_started_by_approving_a_request(
+    migrated_db: Engine,
+) -> None:
+    """`make reset-demo` must work after the demo: approving starts mobilizations on assignments."""
+    _load(migrated_db)
+    with migrated_db.begin() as connection:
+        assignment = connection.execute(
+            text("SELECT id FROM employee_assignments LIMIT 1")
+        ).scalar_one()
+        mobilization = connection.execute(
+            text(
+                """INSERT INTO mobilizations (mob_no, assignment_id, report_on)
+                   VALUES ('MOB-2026-9999', :assignment, '2026-11-08') RETURNING id"""
+            ),
+            {"assignment": assignment},
+        ).scalar_one()
+        connection.execute(
+            text(
+                """INSERT INTO mobilization_tasks (mobilization_id, department_id, title)
+                   SELECT :mobilization, id, 'Verify visa' FROM departments LIMIT 1"""
+            ),
+            {"mobilization": mobilization},
+        )
+    _load(migrated_db)
+    assert (
+        _scalar(migrated_db, "SELECT count(*) FROM mobilizations WHERE mob_no = 'MOB-2026-9999'")
+        == 0
+    )
+    assert (
+        _scalar(migrated_db, "SELECT count(*) FROM mobilization_tasks WHERE title = 'Verify visa'")
+        == 0
+    )
+    assert _scalar(migrated_db, "SELECT count(*) FROM employees") == 150
+
+
 def test_seeding_twice_gives_the_same_database(migrated_db: Engine) -> None:
     _load(migrated_db)
     first = _scalar(migrated_db, "SELECT count(*) FROM employee_documents")

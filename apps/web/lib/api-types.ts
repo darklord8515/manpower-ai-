@@ -321,3 +321,152 @@ export type TradeStrength = {
 
 export type SavedHomeLayout = { order: string[]; hidden: string[] };
 export type Preferences = { home: SavedHomeLayout | null };
+
+// --------------------------------------------------------------------------- requests and the board
+
+export type Violation = { rule: string; message: string };
+
+export type RequestStatus =
+  | "draft"
+  | "submitted"
+  | "in_review"
+  | "approved"
+  | "partially_filled"
+  | "filled"
+  | "rejected"
+  | "cancelled";
+
+export type LineStatus = "open" | "approved" | "rejected";
+
+export type LineSummary = {
+  trade: string;
+  headcount: number;
+  filled: number;
+  chosen: number;
+  status: LineStatus;
+};
+
+export type RequestRow = {
+  request_no: string;
+  project_code: string;
+  project_name: string;
+  needed_from: string;
+  needed_until: string | null;
+  priority: number;
+  status: RequestStatus;
+  requested_by: string;
+  created_at: string;
+  waiting_days: number;
+  lines: LineSummary[];
+};
+
+export type PickRow = {
+  code: string;
+  name: string;
+  level: number | null;
+  source: "hr" | "rules" | "agent";
+  reason: string | null;
+  removed_reason: string | null;
+  group: "free" | "finishing" | "late" | "reserved" | null;
+  from_project: string | null;
+  starts_on: string | null;
+  documents_until: string | null;
+  /** Empty = still cleared; otherwise something changed since the person was chosen. */
+  violations: Violation[];
+};
+
+export type ApprovedWorker = {
+  code: string;
+  name: string;
+  starts_on: string;
+  moving_from: string | null;
+  mob_no: string | null;
+};
+
+export type LineRow = {
+  id: string;
+  trade_code: string;
+  trade: string;
+  headcount: number;
+  min_level: number | null;
+  filled: number;
+  status: LineStatus;
+  decided_by: string | null;
+  decided_at: string | null;
+  decision_reason: string | null;
+  picks: PickRow[];
+  approved: ApprovedWorker[];
+};
+
+export type RequestDetail = Omit<RequestRow, "lines"> & {
+  project_status: string;
+  source_text: string | null;
+  requested_by_id: string;
+  lines: LineRow[];
+  can_approve: boolean;
+  approve_note: string | null;
+};
+
+export type BoardCandidate = {
+  code: string;
+  name: string;
+  level: number | null;
+  group: "free" | "finishing" | "late" | "reserved";
+  from_project: string | null;
+  ends_on: string | null;
+  starts_on: string;
+  documents_valid: boolean;
+  picked: boolean;
+};
+
+export type BoardExcluded = { code: string; name: string; rule: string; message: string };
+
+export type LineCandidates = {
+  candidates: BoardCandidate[];
+  excluded: BoardExcluded[];
+  open_slots: number;
+  window_end: string;
+};
+
+export type PickResult = {
+  code: string;
+  name: string;
+  outcome: "chosen" | "refused";
+  violations: Violation[];
+};
+
+export type PicksResponse = { results: PickResult[]; chosen: number };
+
+export type ApprovePerson = {
+  code: string;
+  name: string;
+  starts_on: string;
+  moving_from: string | null;
+  moving_from_ends: string | null;
+  becomes_mobilizing: boolean;
+  mob_no: string | null;
+  violations: Violation[];
+};
+
+export type ApproveResponse = {
+  preview: boolean;
+  ok: boolean;
+  request_no: string;
+  trade: string;
+  people: ApprovePerson[];
+  assignments: number;
+  mobilizations: number;
+  depend_on_other_jobs: number;
+  filled_after: number;
+  headcount: number;
+  request_status_after: RequestStatus;
+};
+
+export type NewRequestBody = {
+  project: string;
+  needed_from: string;
+  needed_until?: string | null;
+  priority: number;
+  source_text?: string | null;
+  lines: { trade: string; headcount: number; min_level?: number | null }[];
+};
