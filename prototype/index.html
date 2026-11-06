@@ -479,6 +479,15 @@ button.stat-link:hover { border-color: var(--border-strong, var(--text-muted)); 
 .sheet-head h2 { font-size: var(--text-md); font-weight: var(--w-semibold); }
 .sheet-head .icon-btn { margin-left: auto; }
 .sheet-body { flex: 1; overflow-y: auto; padding: var(--s-5); display: flex; flex-direction: column; gap: var(--s-5); }
+.dialog-scrim { z-index: 85; }
+.dialog { position: fixed; z-index: 90; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(460px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-pop); padding: var(--s-5); display: flex; flex-direction: column; gap: var(--s-4); animation: dialog-in var(--dur-base) var(--ease-out); }
+@keyframes dialog-in { from { opacity: 0; transform: translate(-50%, calc(-50% + 6px)); } to { opacity: 1; transform: translate(-50%, -50%); } }
+.dialog h2 { font-size: var(--text-md); font-weight: var(--w-semibold); }
+.dialog dl { display: grid; gap: var(--s-3); margin: 0; }
+.dialog dt { font-size: var(--text-xs); font-weight: var(--w-medium); color: var(--text-muted); }
+.dialog dd { margin: 0; font-size: var(--text-sm); }
+.dialog dd ul { margin: 0; padding-left: var(--s-4); }
+.dialog-actions { display: flex; justify-content: flex-end; gap: var(--s-2); }
 .sheet-foot { padding: var(--s-3) var(--s-5); border-top: 1px solid var(--border); }
 .section-title { font-size: var(--text-xs); font-weight: var(--w-medium); color: var(--text-muted); margin-bottom: var(--s-2); }
 .mini-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2); }
@@ -667,6 +676,7 @@ button.stat-link:hover { border-color: var(--border-strong, var(--text-muted)); 
 </div>
 
 <div id="overlayRoot"></div>
+<div id="dialogRoot"></div>
 <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 
 <script>
@@ -2063,6 +2073,29 @@ function openSheet(html, label) {
   document.getElementById('app').inert = true;
   const first = root.querySelector('[data-autofocus]') || root.querySelector('button, input'); if (first) first.focus();
 }
+/* Consequence preview: every risky action says what happens, who is told and whether it can be undone. */
+function askConfirm(trigger, spec) {
+  const root = document.getElementById('dialogRoot');
+  root.innerHTML = `<div class="scrim dialog-scrim" data-dialog-cancel></div><div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dlgTitle" aria-describedby="dlgBody">
+    <h2 id="dlgTitle">${esc(spec.title)}</h2>
+    <dl id="dlgBody"><div><dt>What happens</dt><dd><ul>${spec.happens.map((h) => `<li>${esc(h)}</li>`).join('')}</ul></dd></div>
+      <div><dt>Who is told</dt><dd>${esc(spec.told)}</dd></div>
+      <div><dt>Can it be undone?</dt><dd>${esc(spec.undo)}</dd></div></dl>
+    <div class="dialog-actions"><button type="button" class="btn" data-dialog-cancel${spec.cancelFirst ? ' data-autofocus' : ''}>Cancel</button><button type="button" class="btn btn-primary" data-dialog-ok${spec.cancelFirst ? '' : ' data-autofocus'}>${esc(spec.verb)}</button></div></div>`;
+  document.getElementById('app').inert = true; document.getElementById('overlayRoot').inert = true;
+  state.dialog = { trigger };
+  root.querySelector('[data-autofocus]').focus();
+  return true;
+}
+function closeConfirm(confirmed) {
+  const root = document.getElementById('dialogRoot'); if (!root.innerHTML) return false;
+  const trigger = state.dialog && state.dialog.trigger; state.dialog = null;
+  root.innerHTML = ''; document.getElementById('overlayRoot').inert = false;
+  document.getElementById('app').inert = !!document.getElementById('overlayRoot').innerHTML;
+  if (confirmed && trigger && document.contains(trigger)) { trigger._ok = true; trigger.click(); }
+  else if (trigger && document.contains(trigger)) trigger.focus();
+  return true;
+}
 function closeSheet() {
   const root = document.getElementById('overlayRoot'); if (!root.innerHTML) return false;
   root.innerHTML = ''; document.getElementById('app').inert = false; state.alertForm = null;
@@ -2237,6 +2270,7 @@ function boardClick(t) {
     const id = t.dataset.approve; const st = state.board[id]; const { req, line } = lineById(id);
     const problems = st.workers.map((c) => [c, validate(c, req, line)]).filter(([, e]) => e.length); // APPROVAL_REVALIDATE
     if (problems.length) { st.notice = `Can’t approve yet:<br>${problems.map(([c, e]) => `${esc(poolBy(c).name)}: ${e.map(([r, m]) => `${esc(m)} <span class="mono">${r}</span>`).join(' ')}`).join('<br>')}`; return rerenderBoard(), true; }
+    if (!t._ok) { const n = st.workers.length; return askConfirm(t, { title: `Approve ${n} ${line.trade.toLowerCase()}${n === 1 ? '' : 's'} for ${req.project}?`, happens: [`${n} ${n === 1 ? 'person is' : 'people are'} placed on ${req.project} from ${fmtDate(req.from)}.`, 'Their mobilization starts, which gets them ready to go to site.', ...(n < line.count ? [`${line.count - n} still to fill stays open on the request.`] : [])], told: `${req.raisedBy.split(' (')[0]} (the project manager who asked) and the Operations team see the result.`, undo: 'The approval itself can’t be taken back. You can still remove or swap a worker afterwards.', verb: `Approve ${n} ${n === 1 ? 'person' : 'people'}`, cancelFirst: true }), true; }
     const commit = () => {
       const n = st.workers.length; const mobs = mobRange(n);
       st.status = 'approved'; st.form = null; st.selected.clear(); st.notice = null; ui.swap = null;
@@ -2264,6 +2298,7 @@ function forecastClick(t) {
     const codes = [...(f.form.sel || [])];
     if (!codes.length) { f.formError = 'Select at least one worker to reserve.'; return rerenderKeepFocus('[data-fc-sel]'), true; }
     if (r.assigned + codes.length > r.needed) { f.formError = `RAK-07 needs ${r.needed - r.assigned} more ${trade.toLowerCase()}s; you selected ${codes.length}.`; return rerenderKeepFocus('[data-fc-sel]'), true; }
+    if (!t._ok) return askConfirm(t, { title: `Hold ${codes.length} ${trade.toLowerCase()}${codes.length === 1 ? '' : 's'} for RAK-07?`, happens: [`${codes.length} ${codes.length === 1 ? 'person is' : 'people are'} held for RAK-07 from ${fmtDate(f.start)}.`, 'A request is created, their placement is planned and draft mobilization is prepared.'], told: 'Nobody is messaged yet. The held workers show on the Requests screen.', undo: 'Yes. You can release them later from the Forecast or from a to-do.', verb: `Hold ${codes.length} ${codes.length === 1 ? 'person' : 'people'}`, cancelFirst: true }), true;
     const sr = `SR-2026-${String(state.nextSr++).padStart(4, '0')}`;
     const fromProjects = [...new Set(codes.map((c) => FC_WORKERS.find((w) => w.code === c).project).filter(Boolean))];
     f.reserved[trade] = (f.reserved[trade] || []).concat(codes);
@@ -2284,6 +2319,7 @@ function forecastClick(t) {
     if (!Number.isInteger(count) || count < 1) { f.formError = 'Headcount must be a whole number of at least 1.'; return rerenderKeepFocus('#rrCount'), true; }
     if (!by || by < TODAY) { f.formError = 'Needed-by must be a date from today onwards.'; return rerenderKeepFocus('#rrBy'), true; }
     if (reason.length < 10) { f.formError = `Give a reason of at least 10 characters (${reason.length} so far).`; return rerenderKeepFocus('#rrReason'), true; }
+    if (!t._ok) return askConfirm(t, { title: `Ask recruitment to hire ${count} ${trade.toLowerCase()}${count === 1 ? '' : 's'}?`, happens: [`A hiring request goes to recruitment for ${count} by ${fmtDate(by)}.`, 'The forecast counts them as “being hired” until they arrive.'], told: 'The recruitment team.', undo: 'A request that has been sent can’t be withdrawn in this version.', verb: 'Send to recruitment' }), true;
     const no = `RR-2027-${String(state.nextRr++).padStart(4, '0')}`;
     f.recruit.push({ no, trade, headcount: count, neededBy: by, reason, by: me() });
     f.form = null; f.formError = '';
@@ -2316,6 +2352,7 @@ function alertSheetClick(t) {
   else if (t.dataset.alertDismissConfirm) {
     const reason = document.getElementById('dismissReason').value.trim();
     if (reason.length < 10) { state.alertForm = { id, type: 'dismiss', draft: reason, error: `Give a reason of at least 10 characters (${reason.length} so far).` }; openAlert(id); document.getElementById('dismissReason').focus(); return true; }
+    if (!t._ok) return askConfirm(t, { title: 'Mark this as not a problem?', happens: ['It leaves everyone’s to-do list.', `Your reason is saved: “${reason}”`], told: 'Nobody is messaged. It is written to the history.', undo: 'It comes back by itself if things get worse.', verb: 'Mark as not a problem', cancelFirst: true }), true;
     a.status = 'dismissed'; a.resolution = `Marked as not a problem: ${reason}`; log(`Marked as not a problem: ${reason}`); state.alertForm = null; toast('Marked as not a problem. It comes back only if things get worse.');
   }
   renderNav(); renderBell(); renderPage(); openAlert(id);
@@ -2326,6 +2363,8 @@ document.addEventListener('click', (e) => {
   const t = e.target.closest('button, [data-close-sheet]');
   if (!e.target.closest('.pop-anchor')) closePopovers();
   if (!t || t.disabled) return;
+  if (t.hasAttribute('data-dialog-ok')) return closeConfirm(true);
+  if (t.hasAttribute('data-dialog-cancel')) return closeConfirm(false);
   if (t.id === 'roleBtn') return togglePopover('roleBtn', 'rolePop');
   if (t.id === 'bellBtn') { renderBell(); return togglePopover('bellBtn', 'bellPop'); }
   if (t.id === 'userBtn') return togglePopover('userBtn', 'userPop');
@@ -2396,7 +2435,7 @@ document.addEventListener('change', (e) => {
 });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    if (closePopovers()) return; if (closeSheet()) return;
+    if (closeConfirm(false)) return; if (closePopovers()) return; if (closeSheet()) return;
     if (state.page === 'allocation') {
       if (state.ui.swap) { const s = state.ui.swap; state.ui.swap = null; return rerenderBoard(`[data-swap="${s.line}|${s.code}"]`); }
       const open = Object.entries(state.board).find(([, s]) => s.form); if (open) { open[1].form = null; return rerenderBoard(`#line-${CSS.escape(open[0])} [data-reject-line]`); }
