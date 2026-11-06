@@ -2,37 +2,50 @@
  * Design tokens. The only place colours, durations and layout sizes are defined.
  * Rules: docs/design-direction.md. Components use these through Tailwind (see globals.css).
  * Light is the default; an explicit data-theme wins over the OS setting in both directions.
+ *
+ * Brand: red (action and navigation only), black (sidebar), white pages. Status colours
+ * never use a solid red fill: red means "brand", so status is always a soft tint + icon + word.
+ * The --accent* tokens hold the brand red.
  */
 :root {
   color-scheme: light;
 
-  /* Neutrals: warm stone greys */
-  --bg: #fafaf9;
+  /* Neutrals */
+  --bg: #f5f5f5;
   --surface: #ffffff;
   --surface-raised: #ffffff;
-  --surface-sunken: #f5f5f4;
-  --hover: #f5f5f4;
-  --border: #e7e5e4;
-  --border-strong: #d6d3d1;
-  --text: #1c1917;
-  --text-muted: #57534e;
-  --text-subtle: #78716c;
+  --surface-sunken: #f0f0f0;
+  --hover: #f0f0f0;
+  --border: #e5e5e5;
+  --border-strong: #d4d4d4;
+  --text: #1a1a1a;
+  --text-muted: #525252;
+  --text-subtle: #6b6b6b;
 
-  /* Accent: safety amber, used sparingly */
-  --accent: #f59e0b;
-  --accent-hover: #d97706;
-  --accent-on: #1c1917;
-  --accent-text: #b45309;
-  --accent-soft: #fef3c7;
-  --focus: #d97706;
+  /* Brand red: primary buttons, active nav bar, links, focus ring */
+  --accent: #b8202e;
+  --accent-hover: #9e1a27;
+  --accent-on: #ffffff;
+  --accent-text: #b8202e;
+  --accent-soft: #fcebed;
+  --focus: #b8202e;
+
+  /* Sidebar: black in both themes, white logo on it */
+  --sb-bg: #141414;
+  --sb-text: #f5f5f5;
+  --sb-muted: #a3a3a3;
+  --sb-hover: rgb(255 255 255 / 8%);
+  --sb-active: rgb(255 255 255 / 12%);
+  --sb-border: #2a2a2a;
+  --sb-accent: #e5484d;
 
   /* Status: always paired with an icon and a label */
   --success: #15803d;
   --success-text: #166534;
   --success-soft: #dcfce7;
-  --warning: #c2410c;
-  --warning-text: #9a3412;
-  --warning-soft: #ffedd5;
+  --warning: #b45309;
+  --warning-text: #92400e;
+  --warning-soft: #fef3c7;
   --danger: #b91c1c;
   --danger-text: #991b1b;
   --danger-soft: #fee2e2;
@@ -41,9 +54,9 @@
   --info-soft: #dbeafe;
 
   /* Data */
-  --chart-strong: #44403c;
-  --chart-mid: #a8a29e;
-  --track: #e7e5e4;
+  --chart-strong: #262626;
+  --chart-mid: #a3a3a3;
+  --track: #e5e5e5;
 
   /* Depth: shadows only on popovers, sheets and dialogs */
   --shadow-pop: 0 1px 2px rgb(28 25 23 / 6%), 0 8px 24px rgb(28 25 23 / 10%);
@@ -72,37 +85,39 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0c0a09;
-  --surface: #161412;
-  --surface-raised: #1c1917;
-  --surface-sunken: #110f0e;
-  --hover: #221f1d;
-  --border: #2a2624;
-  --border-strong: #3a3532;
-  --text: #f5f5f4;
-  --text-muted: #a8a29e;
-  --text-subtle: #918a84;
-  --accent: #fbbf24;
-  --accent-hover: #f59e0b;
-  --accent-on: #1c1917;
-  --accent-text: #fbbf24;
-  --accent-soft: rgb(251 191 36 / 14%);
-  --focus: #fbbf24;
+  --bg: #0f0f0f;
+  --surface: #171717;
+  --surface-raised: #1c1c1c;
+  --surface-sunken: #0b0b0b;
+  --hover: #222222;
+  --border: #262626;
+  --border-strong: #363636;
+  --text: #f5f5f5;
+  --text-muted: #a3a3a3;
+  --text-subtle: #8a8a8a;
+  --accent: #c8283a;
+  --accent-hover: #d93a4b;
+  --accent-on: #ffffff;
+  --accent-text: #ff6b74;
+  --accent-soft: rgb(229 72 77 / 14%);
+  --focus: #ff6b74;
+  --sb-bg: #0a0a0a;
+  --sb-border: #222222;
   --success: #4ade80;
   --success-text: #4ade80;
   --success-soft: rgb(74 222 128 / 12%);
-  --warning: #fb923c;
-  --warning-text: #fb923c;
-  --warning-soft: rgb(251 146 60 / 14%);
+  --warning: #fbbf24;
+  --warning-text: #fbbf24;
+  --warning-soft: rgb(251 191 36 / 14%);
   --danger: #f87171;
   --danger-text: #f87171;
   --danger-soft: rgb(248 113 113 / 14%);
   --info: #60a5fa;
   --info-text: #60a5fa;
   --info-soft: rgb(96 165 250 / 14%);
-  --chart-strong: #d6d3d1;
-  --chart-mid: #78716c;
-  --track: #2a2624;
+  --chart-strong: #d4d4d4;
+  --chart-mid: #737373;
+  --track: #262626;
   --shadow-pop: 0 1px 2px rgb(0 0 0 / 40%), 0 12px 32px rgb(0 0 0 / 50%);
   --scrim: rgb(0 0 0 / 55%);
 }
@@ -110,37 +125,39 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #0c0a09;
-    --surface: #161412;
-    --surface-raised: #1c1917;
-    --surface-sunken: #110f0e;
-    --hover: #221f1d;
-    --border: #2a2624;
-    --border-strong: #3a3532;
-    --text: #f5f5f4;
-    --text-muted: #a8a29e;
-    --text-subtle: #918a84;
-    --accent: #fbbf24;
-    --accent-hover: #f59e0b;
-    --accent-on: #1c1917;
-    --accent-text: #fbbf24;
-    --accent-soft: rgb(251 191 36 / 14%);
-    --focus: #fbbf24;
+    --bg: #0f0f0f;
+    --surface: #171717;
+    --surface-raised: #1c1c1c;
+    --surface-sunken: #0b0b0b;
+    --hover: #222222;
+    --border: #262626;
+    --border-strong: #363636;
+    --text: #f5f5f5;
+    --text-muted: #a3a3a3;
+    --text-subtle: #8a8a8a;
+    --accent: #c8283a;
+    --accent-hover: #d93a4b;
+    --accent-on: #ffffff;
+    --accent-text: #ff6b74;
+    --accent-soft: rgb(229 72 77 / 14%);
+    --focus: #ff6b74;
+    --sb-bg: #0a0a0a;
+    --sb-border: #222222;
     --success: #4ade80;
     --success-text: #4ade80;
     --success-soft: rgb(74 222 128 / 12%);
-    --warning: #fb923c;
-    --warning-text: #fb923c;
-    --warning-soft: rgb(251 146 60 / 14%);
+    --warning: #fbbf24;
+    --warning-text: #fbbf24;
+    --warning-soft: rgb(251 191 36 / 14%);
     --danger: #f87171;
     --danger-text: #f87171;
     --danger-soft: rgb(248 113 113 / 14%);
     --info: #60a5fa;
     --info-text: #60a5fa;
     --info-soft: rgb(96 165 250 / 14%);
-    --chart-strong: #d6d3d1;
-    --chart-mid: #78716c;
-    --track: #2a2624;
+    --chart-strong: #d4d4d4;
+    --chart-mid: #737373;
+    --track: #262626;
     --shadow-pop: 0 1px 2px rgb(0 0 0 / 40%), 0 12px 32px rgb(0 0 0 / 50%);
     --scrim: rgb(0 0 0 / 55%);
   }

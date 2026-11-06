@@ -32,18 +32,22 @@ Impact comes from data and motion, not ornament: the agent trace that appears st
 forecast Sankey and capacity heatmap, counters that update when HR acts. No maps for now.
 
 ## Tokens (`apps/web/styles/tokens.css`)
-- Neutrals: warm greys (stone-like). Background, surface, surface-raised, border, muted text, text.
-- Accent: safety amber, used sparingly — primary button, active nav item, focus ring, one highlight per screen.
-- Status: success green, warning amber-orange (distinct from accent), danger red, info blue. Each with a soft background tint for chips.
+- Brand: red `#B8202E` (the client's colour), black, white. Neutrals are plain greys (`#F5F5F5` page, white cards).
+- Red (`--accent*`) is for **actions and navigation only**: primary button, links, focus ring, the active-nav bar.
+  Black is the sidebar (`--sb-*`, black in both themes, white logo on it).
+- Status: success green, warning amber, danger red, info blue. Because red now means "brand", status never
+  uses a solid red fill: it is a soft tint plus an icon plus a word ("Urgent"). `scripts/check-contrast.mjs`
+  checks every text/background token pair against WCAG AA in light and dark.
 - Type: IBM Plex Sans (UI), IBM Plex Mono (IDs, codes). `font-variant-numeric: tabular-nums` on all numbers.
 - Type scale: 12 / 13 / 14 (body) / 16 / 20 / 24 / 30. Weights 400, 500, 600 only.
 - Spacing: 4px grid. Radius: 6px controls, 10px cards. Borders 1px. Shadows only on popovers and dialogs.
 - Light and dark mode from day one, both from the same tokens.
 
 ## Layout
-- Left sidebar (collapsible to icons): nav items come from the user's role permissions. Only built
-  screens are listed; unbuilt ones sit in one collapsible "Coming next" group as plain,
-  non-interactive text (no dead links).
+- Black left sidebar (collapsible to icons), HRM-style groups (Home / To-do, People, Work): nav items come
+  from the user's role permissions. Only built screens are listed; nothing unbuilt is shown. The active
+  item has a red bar that slides between items. HRM patterns come from BambooHR, Rippling, Personio,
+  Zoho People and Frappe HR (patterns only, never their branding).
 - Sidebar header: the Alhamra mark (`ALHAMRA-FAVICON-LOGO.svg`) with CONSTRUCTIQ beside it; only
   the mark when collapsed.
 - Top bar: page title + breadcrumb, global search, Cmd+K AI command bar, notifications, user menu.
