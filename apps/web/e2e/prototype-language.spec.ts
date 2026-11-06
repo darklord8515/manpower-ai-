@@ -116,6 +116,22 @@ const SCREENS: Screen[] = [
     ],
   },
   { name: "Projects", role: "hr_manager", steps: [visit("projects")] },
+  { name: "Workers", role: "hr_manager", steps: [visit("workers")] },
+  {
+    name: "Worker profile, documents tab",
+    role: "hr_manager",
+    steps: [
+      visit("workers"),
+      async (page) => {
+        await page.evaluate(() => {
+          // @ts-expect-error prototype globals
+          openWorker("EMP-0088", "docs");
+        });
+      },
+    ],
+  },
+  { name: "Documents", role: "hr_manager", steps: [visit("documents")] },
+  { name: "Documents as HR Executive", role: "hr_executive", steps: [visit("documents")] },
   { name: "CEO overview", role: "ceo", steps: [] },
 ];
 

@@ -399,6 +399,18 @@ button.stat-link:hover { border-color: var(--border-strong, var(--text-muted)); 
 .stat-link b { font-size: var(--text-2xl); font-variant-numeric: tabular-nums; }
 .stat-link span { font-size: var(--text-sm); color: var(--text-muted); }
 @media (max-width: 720px) { .stat-links { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.who { display: inline-flex; align-items: center; gap: var(--s-2); min-width: 0; }
+.code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-subtle); font-weight: var(--w-regular); }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); padding: var(--s-4) var(--s-5) var(--s-3); }
+.toolbar .field { flex: 1 1 220px; max-width: 320px; }
+.toolbar .seg { max-width: 100%; overflow-x: auto; }
+.seg button { white-space: nowrap; }
+.th-sort { display: inline-flex; align-items: center; gap: var(--s-1); border: 0; background: none; padding: 0; font: inherit; color: inherit; }
+.th-sort:hover { color: var(--text); }
+.avatar-lg { width: 48px; height: 48px; font-size: var(--text-md); }
+.card-more { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-5); border-top: 1px solid var(--border); }
+.phone { display: inline-flex; align-items: center; gap: var(--s-1); font-family: var(--font-mono); font-size: var(--text-xs); }
+.icon-btn-sm { width: 24px; height: 24px; }
 .ac-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); padding: 0 var(--s-5) var(--s-3); }
 .ac-filters .field { flex: 1 1 200px; max-width: 280px; }
 .sev-toggle { display: inline-flex; align-items: center; gap: var(--s-1); height: 28px; padding: 0 var(--s-2); border-radius: var(--radius-control); border: 1px solid var(--border); background: var(--surface); font-size: var(--text-xs); font-weight: var(--w-medium); color: var(--text-muted); }
@@ -599,6 +611,8 @@ button.stat-link:hover { border-color: var(--border-strong, var(--text-muted)); 
   <symbol id="i-trend" viewBox="0 0 24 24"><path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/></symbol>
   <symbol id="i-file" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8M16 17H8M10 9H8"/></symbol>
   <symbol id="i-hardhat" viewBox="0 0 24 24"><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M14 6a6 6 0 0 1 6 6v3"/><path d="M4 15v-3a6 6 0 0 1 6-6"/><rect x="2" y="15" width="20" height="4" rx="1"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></symbol>
   <symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></symbol>
   <symbol id="logo-wordmark" viewBox="0 0 122.22 23.57"><path d="M11.86,23.56a1.35,1.35,0,0,1-.74-.2,1.38,1.38,0,0,1-.54-.53,1.52,1.52,0,0,1,0-1.47,1.4,1.4,0,0,1,.54-.54,1.43,1.43,0,0,1,.74-.19,1.62,1.62,0,0,1,.58.11,1.23,1.23,0,0,1,.47.35,1.28,1.28,0,0,1,.27.56H12.8a.82.82,0,0,0-.2-.38.86.86,0,0,0-.33-.23,1.16,1.16,0,0,0-.42-.07,1.08,1.08,0,0,0-.56.14,1.09,1.09,0,0,0-.53,1,1.13,1.13,0,0,0,.14.58,1.15,1.15,0,0,0,.39.4,1.23,1.23,0,0,0,1,.07,1,1,0,0,0,.33-.23,1,1,0,0,0,.2-.38h.38a1.28,1.28,0,0,1-.27.56,1.26,1.26,0,0,1-.47.35,1.62,1.62,0,0,1-.58.11"/><path d="M16.35,23.56a1.54,1.54,0,0,1-1.3-.73,1.45,1.45,0,0,1,0-1.47,1.43,1.43,0,0,1,.55-.54,1.58,1.58,0,0,1,1.5,0,1.43,1.43,0,0,1,.55.54,1.39,1.39,0,0,1,0,1.47,1.54,1.54,0,0,1-1.3.73m0-.34a1.1,1.1,0,0,0,.57-.15,1.08,1.08,0,0,0,.42-.4,1.1,1.1,0,0,0,.15-.57,1.14,1.14,0,0,0-.15-.58,1.19,1.19,0,0,0-1.56-.41,1.18,1.18,0,0,0-.42.41,1.14,1.14,0,0,0-.15.58,1,1,0,0,0,.16.57,1.12,1.12,0,0,0,.41.4,1.1,1.1,0,0,0,.57.15"/><polygon points="19.74 20.69 20.05 20.69 21.78 22.9 21.78 22.9 21.78 20.69 22.15 20.69 22.15 23.5 21.84 23.5 20.1 21.3 20.1 23.5 19.74 23.5 19.74 20.69"/><path d="M25.12,23.57a1.41,1.41,0,0,1-.61-.13.81.81,0,0,1-.49-.75h.36a.06.06,0,0,0,0,0v.05a.68.68,0,0,0,.12.24.65.65,0,0,0,.25.17,1,1,0,0,0,.36.06,1.22,1.22,0,0,0,.41-.06.58.58,0,0,0,.25-.17.48.48,0,0,0,.09-.29.34.34,0,0,0-.1-.26.57.57,0,0,0-.25-.16,2.74,2.74,0,0,0-.39-.1,2.37,2.37,0,0,1-.51-.13.88.88,0,0,1-.38-.24.61.61,0,0,1-.15-.43.72.72,0,0,1,.44-.68,1.4,1.4,0,0,1,.58-.1,1.29,1.29,0,0,1,.55.1A.76.76,0,0,1,26,21a.74.74,0,0,1,.12.42h-.37a.44.44,0,0,0-.08-.25.48.48,0,0,0-.22-.17,1,1,0,0,0-.35-.06,1,1,0,0,0-.39.06.43.43,0,0,0-.2.17.46.46,0,0,0-.06.23.32.32,0,0,0,.09.24.55.55,0,0,0,.26.16,2,2,0,0,0,.44.09,2.34,2.34,0,0,1,.49.13.83.83,0,0,1,.35.26.63.63,0,0,1,.15.44.77.77,0,0,1-.14.45.88.88,0,0,1-.38.29,1.79,1.79,0,0,1-.6.1"/><polygon points="28.66 21.02 27.77 21.02 27.77 20.69 29.91 20.69 29.91 21.02 29.02 21.02 29.02 23.5 28.66 23.5 28.66 21.02"/><path d="M31.73,20.69h1.2a1.06,1.06,0,0,1,.48.11.82.82,0,0,1,.33.31.9.9,0,0,1,.12.46,1,1,0,0,1-.07.38,1,1,0,0,1-.22.28.85.85,0,0,1-.33.16l.68,1.12H33.5l-.62-1.06H32.1v1.06h-.37Zm1.19,1.44a.54.54,0,0,0,.29-.07.48.48,0,0,0,.21-.19.6.6,0,0,0,.08-.29.55.55,0,0,0-.08-.29.58.58,0,0,0-.21-.2.6.6,0,0,0-.3-.07H32.1v1.11Z"/><path d="M36.88,23.56a1.15,1.15,0,0,1-.59-.14,1,1,0,0,1-.42-.4,1.13,1.13,0,0,1-.16-.61V20.69h.37v1.7a1,1,0,0,0,.09.42.83.83,0,0,0,1.13.3.68.68,0,0,0,.28-.3.82.82,0,0,0,.1-.42v-1.7H38v1.72a1.19,1.19,0,0,1-.15.6,1,1,0,0,1-.41.41,1.33,1.33,0,0,1-.6.14"/><path d="M41.34,23.56a1.47,1.47,0,0,1-1.27-.73,1.45,1.45,0,0,1,0-1.47,1.38,1.38,0,0,1,.53-.54,1.43,1.43,0,0,1,.74-.19,1.62,1.62,0,0,1,.58.11,1.16,1.16,0,0,1,.47.35,1.28,1.28,0,0,1,.27.56h-.37a1.06,1.06,0,0,0-.2-.38,1,1,0,0,0-.33-.23,1.21,1.21,0,0,0-.43-.07,1,1,0,0,0-.55.14,1.1,1.1,0,0,0-.4.4,1.29,1.29,0,0,0,0,1.17,1.1,1.1,0,0,0,.4.4,1.12,1.12,0,0,0,.55.14,1.16,1.16,0,0,0,.42-.07,1,1,0,0,0,.33-.23.87.87,0,0,0,.2-.38h.38a1.18,1.18,0,0,1-.27.56,1.26,1.26,0,0,1-.47.35,1.58,1.58,0,0,1-.58.11"/><polygon points="44.96 21.02 44.07 21.02 44.07 20.69 46.22 20.69 46.22 21.02 45.33 21.02 45.33 23.5 44.96 23.5 44.96 21.02"/><rect x="48.04" y="20.69" width="0.37" height="2.82"/><path d="M51.79,23.56a1.41,1.41,0,0,1-.75-.2,1.47,1.47,0,0,1-.55-.53,1.45,1.45,0,0,1,0-1.47,1.48,1.48,0,0,1,1.3-.73,1.53,1.53,0,0,1,.76.19,1.5,1.5,0,0,1,.55.54,1.45,1.45,0,0,1,0,1.47,1.47,1.47,0,0,1-.55.53,1.44,1.44,0,0,1-.76.2m0-.34a1.17,1.17,0,0,0,.58-.15,1.12,1.12,0,0,0,.41-.4,1.1,1.1,0,0,0,.15-.57,1.12,1.12,0,0,0-.56-1,1.16,1.16,0,0,0-.58-.14,1.13,1.13,0,0,0-1.14,1.13,1.11,1.11,0,0,0,.16.57,1.12,1.12,0,0,0,.41.4,1.16,1.16,0,0,0,.57.15"/><polygon points="55.18 20.69 55.49 20.69 57.22 22.9 57.23 22.9 57.23 20.69 57.59 20.69 57.59 23.5 57.28 23.5 55.55 21.3 55.55 23.5 55.18 23.5 55.18 20.69"/><path d="M64,23.51a.94.94,0,0,0-.14-.16.46.46,0,0,0-.07-.07l-.07-.08a1.45,1.45,0,0,1-.43.26,1.1,1.1,0,0,1-.47.1,1.13,1.13,0,0,1-.49-.1.91.91,0,0,1-.35-.29.73.73,0,0,1-.12-.41.61.61,0,0,1,.1-.36.88.88,0,0,1,.24-.27,2.69,2.69,0,0,1,.35-.21,1.42,1.42,0,0,1-.25-.3.67.67,0,0,1-.1-.35.63.63,0,0,1,.09-.33.65.65,0,0,1,.26-.23.87.87,0,0,1,.4-.08,1,1,0,0,1,.39.07.6.6,0,0,1,.25.22.58.58,0,0,1,.09.33.55.55,0,0,1-.08.31.9.9,0,0,1-.21.23,3,3,0,0,1-.32.19l.69.76a1,1,0,0,0,.16-.28.91.91,0,0,0,.09-.31h.33A1.59,1.59,0,0,1,64,23l.12.13a.69.69,0,0,1,.11.13l.12.12.12.14Zm-1.19-.26a1,1,0,0,0,.38-.07,1,1,0,0,0,.32-.21l-.19-.21-.19-.21L63,22.34l-.18-.21-.28.16a1.14,1.14,0,0,0-.19.19.5.5,0,0,0-.08.27.47.47,0,0,0,.08.26.55.55,0,0,0,.22.18.73.73,0,0,0,.3.06m0-1.47h0l.24-.13a.8.8,0,0,0,.17-.15.45.45,0,0,0,.07-.23.35.35,0,0,0,0-.18.3.3,0,0,0-.13-.12.38.38,0,0,0-.19,0,.4.4,0,0,0-.22,0,.32.32,0,0,0-.14.14.41.41,0,0,0-.05.19.36.36,0,0,0,.06.2,1,1,0,0,0,.16.21l0,0,0,0"/><path d="M68.79,20.69h1a1.66,1.66,0,0,1,.78.18,1.29,1.29,0,0,1,.52.49,1.59,1.59,0,0,1,0,1.47,1.25,1.25,0,0,1-.52.5,1.61,1.61,0,0,1-.78.18h-1Zm1,2.48a1.25,1.25,0,0,0,.59-.13.87.87,0,0,0,.39-.37,1.14,1.14,0,0,0,.13-.57,1.2,1.2,0,0,0-.13-.57,1,1,0,0,0-.39-.38,1.26,1.26,0,0,0-.6-.13h-.66v2.15Z"/><polygon points="73.19 20.69 75.06 20.69 75.06 21.02 73.55 21.02 73.55 21.91 74.86 21.91 74.86 22.23 73.55 22.23 73.55 23.17 75.08 23.17 75.08 23.5 73.19 23.5 73.19 20.69"/><polygon points="76.6 20.69 76.99 20.69 77.97 23.03 77.97 23.02 78.94 20.69 79.33 20.69 78.14 23.5 77.8 23.5 76.6 20.69"/><polygon points="81.09 20.69 82.96 20.69 82.96 21.02 81.46 21.02 81.46 21.91 82.77 21.91 82.77 22.23 81.46 22.23 81.46 23.17 82.98 23.17 82.98 23.5 81.09 23.5 81.09 20.69"/><polygon points="84.84 20.69 85.21 20.69 85.21 23.17 86.58 23.17 86.58 23.5 84.84 23.5 84.84 20.69"/><path d="M89.56,23.56a1.42,1.42,0,0,1-.76-.2,1.38,1.38,0,0,1-.54-.53,1.39,1.39,0,0,1,0-1.47,1.4,1.4,0,0,1,.54-.54,1.52,1.52,0,0,1,2.06.54,1.45,1.45,0,0,1,0,1.47,1.47,1.47,0,0,1-.55.53,1.41,1.41,0,0,1-.75.2m0-.34a1.14,1.14,0,0,0,1-.55,1,1,0,0,0,.16-.57,1.06,1.06,0,0,0-.16-.58,1.15,1.15,0,0,0-.41-.41,1.12,1.12,0,0,0-.57-.14,1.12,1.12,0,0,0-1,.55,1.14,1.14,0,0,0-.15.58,1.1,1.1,0,0,0,.15.57,1.08,1.08,0,0,0,.42.4,1.1,1.1,0,0,0,.57.15"/><path d="M92.94,20.69H94.1a1,1,0,0,1,.48.12.9.9,0,0,1,.34.33.91.91,0,0,1,.12.47,1,1,0,0,1-.12.48.87.87,0,0,1-.33.33,1,1,0,0,1-.48.12h-.8v1h-.37Zm1.15,1.52a.52.52,0,0,0,.3-.08.58.58,0,0,0,.2-.21.68.68,0,0,0,.08-.31.57.57,0,0,0-.08-.29.56.56,0,0,0-.21-.22.57.57,0,0,0-.29-.08h-.78v1.19Z"/><polygon points="96.83 20.69 97.15 20.69 98.22 22.11 98.22 22.11 99.29 20.69 99.61 20.69 99.61 23.5 99.25 23.5 99.25 21.28 98.27 22.58 98.17 22.58 97.2 21.28 97.2 23.5 96.83 23.5 96.83 20.69"/><polygon points="101.71 20.69 103.58 20.69 103.58 21.02 102.08 21.02 102.08 21.91 103.39 21.91 103.39 22.23 102.08 22.23 102.08 23.17 103.6 23.17 103.6 23.5 101.71 23.5 101.71 20.69"/><polygon points="105.46 20.69 105.77 20.69 107.51 22.9 107.51 22.9 107.51 20.69 107.87 20.69 107.87 23.5 107.56 23.5 105.83 21.3 105.83 23.5 105.46 23.5 105.46 20.69"/><polygon points="110.58 21.02 109.69 21.02 109.69 20.69 111.84 20.69 111.84 21.02 110.95 21.02 110.95 23.5 110.58 23.5 110.58 21.02"/><polygon points="72.92 7.82 72.92 13.66 74.93 13.66 74.93 10.22 72.92 7.82"/><path d="M98.33,9.28c.55.73,1.11,1.48,1.58,2.23l1.61,2.15H104c-.79-1.11-1.62-2.21-2.43-3.29l-.72-1-.25-.33.38-.17a3.94,3.94,0,0,0,1.94-1.67l0,0a4.27,4.27,0,0,0,.79-2.58,4,4,0,0,0-.35-1.85l0-.06a4.14,4.14,0,0,0-.87-1.48A4.23,4.23,0,0,0,101,.37l-.06,0A4,4,0,0,0,99.07,0H92.9V1.73h6.17a2.31,2.31,0,0,1,1.32.34,1.94,1.94,0,0,1,.79.79,1.85,1.85,0,0,1,.31,1,2.34,2.34,0,0,1,.1.81,2.28,2.28,0,0,1-.22,1.2,2.27,2.27,0,0,1-.34.57l-.16.23,0,0a2.14,2.14,0,0,1-.87.45,2,2,0,0,1-.89.22H92.9v6.31H95V9.08h3.16Z"/><polygon points="86.67 13.66 86.67 0.34 79.75 8.48 72.92 0.45 72.92 3.27 79.75 11.56 84.56 5.83 84.56 13.66 86.67 13.66"/><polygon points="19.94 0 19.94 13.66 29.59 13.66 29.59 11.93 22.05 11.93 22.05 0 19.94 0"/><polygon points="58.94 2.25 64.59 13.66 66.91 13.66 59.96 0.12 58.94 2.25"/><polygon points="57.24 5.36 53.09 13.66 55.31 13.66 58.39 7.51 57.24 5.36"/><polygon points="114.25 2.25 119.91 13.66 122.22 13.66 115.27 0.12 114.25 2.25"/><polygon points="112.55 5.36 108.4 13.66 110.63 13.66 113.7 7.51 112.55 5.36"/><polygon points="5.85 2.25 11.51 13.66 13.82 13.66 6.87 0.12 5.85 2.25"/><polygon points="4.15 5.36 0 13.66 2.22 13.66 5.3 7.51 4.15 5.36"/><polygon points="37.26 6.2 37.26 5.56 37.26 0 35.24 0 35.24 7.93 35.24 7.93 35.24 13.66 37.26 13.66 37.26 7.63 37.26 7.63 37.26 6.2"/><polygon points="44.98 0 44.98 6.2 39.85 6.2 39.85 7.93 44.98 7.93 44.98 13.66 47.09 13.66 47.09 0 44.98 0"/></symbol>
   <symbol id="logo-mark" viewBox="0 0 65.47 75.87"><polygon points="25.84 38.72 10.04 55.26 25.99 55.26 30.82 43.94 25.84 38.72"/><polygon points="40.01 48.53 33.05 38.72 30.82 43.95 38.52 52.01 40.01 48.53"/><polygon points="30.82 43.94 25.99 55.26 37.13 55.26 38.52 52.01 30.82 43.94"/><polygon points="30.82 43.94 25.99 55.26 37.13 55.26 38.52 52.01 30.82 43.94"/><polygon points="43.28 50.3 40.76 46.75 40.01 48.53 42.41 51.92 43.28 50.3"/><polygon points="40.99 54.59 42.41 51.92 40.01 48.53 38.52 52.01 40.99 54.59"/><polygon points="38.52 52.01 37.13 55.26 40.63 55.26 40.99 54.59 38.52 52.01"/><polygon points="38.52 52.01 37.13 55.26 40.63 55.26 40.99 54.59 38.52 52.01"/><polygon points="46.46 50.93 44.27 48.45 43.28 50.3 44.99 52.71 46.46 50.93"/><polygon points="43.9 54.02 44.99 52.71 43.28 50.3 42.41 51.92 43.9 54.02"/><polygon points="42.41 51.92 40.99 54.59 41.63 55.26 42.88 55.26 43.9 54.02 42.41 51.92"/><polygon points="40.63 55.26 41.63 55.26 40.99 54.59 40.63 55.26"/><polygon points="40.99 54.59 40.99 54.59 40.63 55.26 41.63 55.26 40.99 54.59"/><polygon points="40.63 55.26 41.63 55.26 40.99 54.59 40.63 55.26"/><polygon points="47.59 49.56 46.46 50.93 50.3 55.26 55.43 55.26 47.59 49.56"/><polygon points="44.99 52.71 46.8 55.26 50.3 55.26 46.46 50.93 44.99 52.71"/><polygon points="43.9 54.02 44.79 55.26 46.8 55.26 44.99 52.71 43.9 54.02"/><polygon points="43.9 54.02 43.9 54.02 42.88 55.26 44.79 55.26 43.9 54.02"/><polygon points="42.88 55.26 44.79 55.26 43.9 54.02 42.88 55.26"/><path d="M7,58.49H58.49V7H7Zm58.49,7H0V0H65.47Z"/><path d="M9.64,73.6l-.05.13h1l0-.1-.48-1.24ZM11.15,75H9l-.35.84H7.07L9.55,70.1h1.08l2.58,5.77H11.5Z"/><polygon points="17.04 74.52 19.64 74.52 19.64 75.87 15.52 75.87 15.52 70.16 17.04 70.16 17.04 74.52"/><polygon points="23.52 72.31 25.15 72.31 25.15 70.16 26.67 70.16 26.67 75.87 25.15 75.87 25.15 73.66 23.52 73.66 23.52 75.87 22.01 75.87 22.01 70.16 23.52 70.16 23.52 72.31"/><path d="M31.49,73.6l0,.13h1l0-.1L32,72.39ZM33,75H30.89l-.34.84H28.93l2.48-5.77h1.08l2.57,5.77H33.35Z"/><polygon points="38.9 75.87 37.38 75.87 37.38 70.16 38.59 70.16 40.22 72.37 41.85 70.16 43.03 70.16 43.03 75.87 41.53 75.87 41.53 73.05 40.63 74.26 39.79 74.26 38.9 73.03 38.9 75.87"/><path d="M46.93,72.67h.87a.59.59,0,1,0,0-1.17h-.87Zm0,1.26v1.94H45.42V70.16h2.41a1.89,1.89,0,0,1,.92,3.64l1.33,1.81v.26H48.47l-1.29-1.94Z"/><path d="M54.84,73.6l-.05.13h1l0-.1-.47-1.24ZM56.36,75H54.24l-.34.84H52.28l2.48-5.77h1.08l2.57,5.77H56.7Z"/></symbol>
@@ -697,13 +711,16 @@ const ROLES = {
     perms: ['employee:read','employee:write','employee:read_sensitive','project:read','project:write','project:read_financial','staffing:read','mobilization:read','ai:use','agent:admin','user:admin','rules:write','report:read','automation:run'] },
 };
 const HR_ROLES = ['hr_manager', 'hr_executive'];
-const BUILT_DASHBOARDS = ['ceo', 'hr_manager', 'hr_executive'];
+// MVP audience: HR and MD/CEO only. Other teams come after the MVP.
+const MVP_ROLES = ['hr_manager', 'hr_executive', 'ceo'];
 
 // Only screens that exist are listed. Anything unbuilt is not shown at all (no dead links).
 // Labels are the words HR uses: Home, To-do, Requests, Forecast, Projects.
 const NAV_BUILT = [
   { id: 'dashboard', icon: 'dashboard', any: null, group: '' },
   { id: 'actions', label: 'To-do', icon: 'inbox', any: ['alert:read'], group: '' },
+  { id: 'workers', label: 'Workers', icon: 'users', any: ['employee:read'], group: 'People' },
+  { id: 'documents', label: 'Documents', icon: 'file', any: ['employee:read'], group: 'People' },
   { id: 'allocation', label: 'Requests', icon: 'arrows', any: ['staffing:read'], group: 'Work' },
   { id: 'forecast', label: 'Forecast', icon: 'trend', any: ['forecast:read'], group: 'Work' },
   { id: 'projects', label: 'Projects', icon: 'building', any: ['project:read'], group: 'Work' },
@@ -948,11 +965,81 @@ const store = { get(k) { try { return localStorage.getItem(k); } catch { return 
 // Credit links only where the photo isn't inside a clickable card (a link can't sit inside a button).
 const photo = (key, w, cls = 'photo', link = true) => { const p = PHOTOS[key]; const by = link ? `<a href="${p.page}" target="_blank" rel="noopener">${esc(p.by)}</a>` : esc(p.by); return `<figure class="${cls}" style="margin:0"><img src="${UNSPLASH(p.id, w)}" alt="${esc(p.alt)}" loading="lazy"><figcaption class="credit">Photo: ${by} / Unsplash</figcaption></figure>`; };
 
+/* =====================================================================
+   Workers and documents. Fictional, built the same way every time so the
+   numbers match the project cards (112 deployed) and the document counts.
+   ===================================================================== */
+const DOC_TYPES = ['Visa', 'Emirates ID', 'Medical fitness', 'Labour card'];
+const dayDiff = (iso) => Math.round((asDate(iso) - asDate(TODAY)) / 864e5);
+const FIRST_NAMES = ['Aamir', 'Bilal', 'Chandan', 'Dinesh', 'Eshwar', 'Farhan', 'Ganesh', 'Harish', 'Irfan', 'Jagdish', 'Kiran', 'Lokesh', 'Mahesh', 'Naresh', 'Omar', 'Pradeep', 'Qasim', 'Rohit', 'Sandeep', 'Tariq', 'Umesh', 'Vijay', 'Waqar', 'Yasir', 'Zahid', 'Anwar', 'Basheer', 'Devendra', 'Elias', 'Firoz'];
+const LAST_NAMES = ['Ali', 'Barua', 'Chaudhry', 'Dhakal', 'Ekka', 'Fernandes', 'Gurung', 'Hossain', 'Iqbal', 'Jha', 'Khan', 'Lama', 'Mondal', 'Nair', 'Oraon', 'Pandey', 'Rai', 'Sheikh', 'Thakur', 'Uddin', 'Verma', 'Yadav', 'Zaman', 'Ansari', 'Biswas', 'Chettri', 'Das', 'Mirza'];
+const TRADES_FOR_GEN = ['General labour', 'Mason', 'Carpenter', 'Electrician', 'Painter'];
+const singularTrade =(s) => s.replace(/s$/, '');
+const WORKERS = (() => {
+  const used = new Set(); const out = [];
+  const add = (w) => { used.add(w.name); out.push(w); return w; };
+  const issueType = (w) => (/medical/i.test(w.docIssue || '') ? 'Medical fitness' : 'Visa');
+  POOL.forEach((p) => { const later = p.from > TODAY; add({ code: p.code, name: p.name, trade: p.trade, level: p.level, status: later ? 'deployed' : 'available', project: later ? 'RAK-02' : null, min: { until: p.docsUntil, type: issueType(p) } }); });
+  const placed = { 'EMP-0231': 'RAK-04', 'EMP-0232': 'RAK-04', 'EMP-0410': 'RAK-04', 'EMP-0411': 'RAK-04', 'EMP-0233': 'RAK-03', 'EMP-0230': 'RAK-03', 'EMP-0412': 'RAK-03', 'EMP-0413': 'RAK-03' };
+  FC_WORKERS.forEach((w) => { const project = w.project || placed[w.code] || null; add({ code: w.code, name: w.name, trade: w.trade, level: 3, status: project ? 'deployed' : 'available', project, min: { until: w.docsUntil, type: issueType(w) } }); });
+  add({ code: 'EMP-0088', name: 'Sanjeev Rana', trade: 'Mason', level: 3, status: 'deployed', project: 'RAK-01', min: { until: addDays(TODAY, 7), type: 'Visa' } });
+  add({ code: 'EMP-0094', name: 'Yusuf Demo', trade: 'Equipment operator', level: 3, status: 'mobilizing', project: 'RAK-01' });
+  let g = 0;
+  const nameAt = (n) => { for (let k = 0; ; k++) { const nm = `${FIRST_NAMES[(n * 7 + k * 5) % FIRST_NAMES.length]} ${LAST_NAMES[(n * 11 + k * 3 + 1) % LAST_NAMES.length]}`; if (!used.has(nm)) return nm; } };
+  const gen = (extra) => { g++; return { code: `EMP-${String(500 + g).padStart(4, '0')}`, name: nameAt(g), level: [2, 3, 3, 4, 2, 3, 1, 4, 3, 5][g % 10], ...extra }; };
+  ACTIVE_PROJECTS.forEach((p) => {
+    const have = out.filter((w) => w.status === 'deployed' && w.project === p.code).length;
+    const mix = p.trades.flatMap(([n, , d]) => Array(d).fill(singularTrade(n)));
+    for (let i = 0; i < p.dep - have; i++) add(gen({ trade: mix[i % mix.length], status: 'deployed', project: p.code }));
+  });
+  ['RAK-06', 'RAK-06', 'RAK-06', 'RAK-06', 'RAK-06', 'RAK-05', 'RAK-01', 'RAK-03'].forEach((project, i) => add(gen({ trade: ['Steel fixer', 'Carpenter', 'General labour', 'Mason'][i % 4], status: 'mobilizing', project })));
+  ['On leave', 'On leave', 'On leave', 'On leave', 'On leave', 'Medical', 'Medical', 'Medical'].forEach((reason, i) => add(gen({ trade: TRADES_FOR_GEN[i % 5], status: 'unavailable', project: null, reason })));
+  const docNo = (type, i, k) => {
+    const n = String(((i + 1) * 7919 + (k + 1) * 104729) % 10000000).padStart(7, '0');
+    return type === 'Visa' ? `784/2025/${n}` : type === 'Emirates ID' ? `784-198${i % 10}-${n}-${k}` : type === 'Medical fitness' ? `MED-${n.slice(1)}` : `LC${n}`;
+  };
+  out.forEach((w, i) => {
+    w.phone = `+971 5${i % 6} ${100 + ((i * 37) % 900)} ${1000 + ((i * 7919) % 9000)}`;
+    const min = w.min || { until: addDays(TODAY, 150 + ((i * 53) % 560)), type: DOC_TYPES[i % 4] };
+    const gap = dayDiff(min.until) <= 90 ? 100 : 40;   // keep the other documents clear of the 90-day window
+    w.docs = DOC_TYPES.map((type, k) => ({ type, until: type === min.type ? min.until : addDays(min.until, gap + ((i * 17 + k * 41) % 170)), number: docNo(type, i, k) }));
+    delete w.min;
+  });
+  // Documents running out: 7 more inside 30 days (the 8th is Sanjeev Rana's visa), 10 in 31-60 and 14 in 61-90, 2 already expired.
+  const soon = [3, 12, 15, 19, 22, 26, 29, 33, 35, 38, 41, 44, 47, 50, 53, 56, 59, 63, 64, 66, 70, 72, 73, 75, 78, 80, 82, 84, 86, 88, 90];
+  const deployedGen = out.filter((w) => w.code >= 'EMP-0501' && w.status === 'deployed');
+  soon.forEach((off, k) => { const w = deployedGen[k * 2]; w.docs[k % 4].until = addDays(TODAY, off); });
+  out.filter((w) => w.status === 'unavailable').slice(0, 2).forEach((w, k) => { w.docs[k === 0 ? 0 : 2].until = addDays(TODAY, k === 0 ? -4 : -11); });
+  out.forEach((w) => { const m = w.docs.reduce((a, d) => (d.until < a.until ? d : a)); w.next = { type: m.type, until: m.until, days: dayDiff(m.until) }; });
+  return out;
+})();
+const workerBy = (code) => WORKERS.find((w) => w.code === code);
+const ALL_DOCS = WORKERS.flatMap((w) => w.docs.map((d) => ({ w, ...d, days: dayDiff(d.until) })));
+Object.assign(DOCS, {
+  expired: ALL_DOCS.filter((d) => d.days < 0).length,
+  d30: ALL_DOCS.filter((d) => d.days >= 0 && d.days <= 30).length,
+  d60: ALL_DOCS.filter((d) => d.days > 30 && d.days <= 60).length,
+  d90: ALL_DOCS.filter((d) => d.days > 60 && d.days <= 90).length,
+});
+const WK_STATUS = { available: ['success', 'check', 'Available'], deployed: ['neutral', 'building', 'On a project'], mobilizing: ['info', 'clock', 'Mobilizing'], unavailable: ['warning', 'alert', 'Not available'] };
+const wkStatusChip = (w) => (w.status === 'unavailable' ? chip('warning', 'alert', w.reason) : chip(...WK_STATUS[w.status]));
+const expiryChip = (days, type) => {
+  const label = type ? `${type} · ` : '';
+  if (days < 0) return chip('danger', 'xcircle', `${label}Expired ${-days} d ago`);
+  if (days <= 30) return chip('danger', 'alert', `${label}${days} d left`);
+  if (days <= 60) return chip('warning', 'clock', `${label}${days} d left`);
+  if (days <= 90) return chip('info', 'clock', `${label}${days} d left`);
+  return chip('success', 'check', 'Valid');
+};
+const maskNo = (s) => `•••• ${s.slice(-4)}`;
+
 const state = {
   role: 'hr_manager', page: 'login', decisions: {}, nextMob: 110, nextSr: 46, nextRr: 1, nextAlert: 1050,
   comingOpen: false, kpiShown: {}, board: {}, alerts: [], flags: {},
   ui: { req: 'SR-2026-0042', line: 'SR-2026-0042-1', q: '', status: 'open', project: 'all', poolQ: '', poolTrade: 'line', poolLevel: 'line', docsOnly: true, availOnly: true, preview: 'live', swap: null },
   ac: { urgency: 'all', mine: false, showAll: false, preview: 'live' },
+  wk: { q: '', trade: 'all', project: 'all', status: 'all', expSoon: false, sort: { key: 'name', dir: 1 }, shown: 25, tab: 'overview', animated: false },
+  dc: { tab: 'd30', q: '', type: 'all' },
   fc: { start: FC.start, rak02Steel: '2027-01-31', reserved: {}, reservations: [], recruit: [], expanded: 'Mason', form: null, formError: '', explain: null },
 };
 const can = (perm) => ROLES[state.role].perms.includes(perm);
@@ -1200,7 +1287,7 @@ function renderLogin() {
         <h1>Sign in</h1>
         <p class="muted" style="font-size:var(--text-sm)">Demo accounts with fictional data. Choosing an account signs in as that seeded user through the normal login; it never bypasses permissions.</p>
         <div class="form-row"><label for="loginRole">Demo account</label>
-          <select class="select" id="loginRole">${Object.entries(ROLES).map(([k, r]) => `<option value="${k}"${k === state.role ? ' selected' : ''}>${esc(r.user)} · ${esc(r.name)}</option>`).join('')}</select></div>
+          <select class="select" id="loginRole">${MVP_ROLES.map((k) => [k, ROLES[k]]).map(([k, r]) => `<option value="${k}"${k === state.role ? ' selected' : ''}>${esc(r.user)} · ${esc(r.name)}</option>`).join('')}</select></div>
         <div class="form-row"><label for="loginEmail">Email</label><input class="input" id="loginEmail" type="email" autocomplete="username" value="${esc(ROLES[state.role].email)}"></div>
         <div class="form-row"><label for="loginPw">Password</label><input class="input" id="loginPw" type="password" autocomplete="current-password" value="demo-password"></div>
         <p class="field-error" id="loginError" role="alert" hidden></p>
@@ -1215,6 +1302,7 @@ function renderLogin() {
    Navigation, popovers, top bar
    ===================================================================== */
 function navCount(id) {
+  if (id === 'documents') return DOCS.expired + DOCS.d30;
   if (id === 'allocation') return REQUESTS.filter(isOpenReq).filter((r) => !scopedProjects() || scopedProjects().includes(r.project)).length;
   if (id === 'actions' || (id === 'dashboard' && HR_ROLES.includes(state.role))) { const c = sevCounts(); return c.critical + c.action_needed; }
   return null;
@@ -1243,7 +1331,7 @@ function positionNavBar() {
 }
 window.addEventListener('resize', () => positionNavBar());
 function renderRoleMenu() {
-  document.getElementById('rolePop').innerHTML = `<div class="pop-head">Demo mode: sign in as</div>` + Object.entries(ROLES).map(([key, r]) =>
+  document.getElementById('rolePop').innerHTML = `<div class="pop-head">Demo mode: sign in as</div>` + MVP_ROLES.map((key) => [key, ROLES[key]]).map(([key, r]) =>
     `<button type="button" class="menu-item" role="menuitemradio" aria-checked="${key === state.role}" data-role="${key}">${esc(r.name)}${key === state.role ? `<span class="check-ic">${icon('tick', 16)}</span>` : ''}</button>`).join('');
 }
 function renderUserMenu() {
@@ -1269,7 +1357,7 @@ function renderBell() {
     ${top.length ? top.map((a) => `<button type="button" class="menu-item bell-item" data-alert="${a.id}">${sevChip(a.severity)}<span>${esc(a.title)}</span><small>${a.project ? `${a.project} · ` : ''}${ago(a.created)}</small></button>`).join('') : '<p class="pop-head">Nothing needs you right now.</p>'}
     <div style="border-top:1px solid var(--border);margin-top:var(--s-1);padding-top:var(--s-1)"><button type="button" class="menu-item" data-goto="actions">${icon('inbox')}Open your to-do list</button></div>`;
 }
-const PAGE_NAMES = { actions: ['Work', 'To-do'], allocation: ['Work', 'Requests'], forecast: ['Work', 'Forecast'], projects: ['Work', 'Projects'] };
+const PAGE_NAMES = { workers: ['People', 'Workers'], documents: ['People', 'Documents'], actions: ['Work', 'To-do'], allocation: ['Work', 'Requests'], forecast: ['Work', 'Forecast'], projects: ['Work', 'Projects'] };
 function renderTop() {
   const r = ROLES[state.role];
   const [root, name] = PAGE_NAMES[state.page] || ['Dashboards', r.dashboard];
@@ -1453,8 +1541,9 @@ function renderHRConsole() {
       ${tile(c.critical + c.action_needed, 'Things that need you now', 'actions')}
       ${tile(open.length, 'Requests waiting for approval', 'allocation')}
       ${tile(shortTrades, `Trades short on ${fmtShort(FC.start)}`, 'forecast')}
-      <div class="stat-link" aria-label="Documents expiring"><b>${DOCS.d30}</b><span>Documents expiring in 30 days</span></div>
-    </div>`;
+      ${tile(DOCS.d30, 'Documents expiring in 30 days', 'documents')}
+    </div>
+    <section class="card" aria-labelledby="soonT"><div class="card-head"><div><h2 id="soonT">Documents running out soon</h2><p>The next five, soonest first</p></div><button type="button" class="btn btn-sm head-right" data-goto="documents">See all</button></div>${docTableHTML(ALL_DOCS.filter((d) => d.days >= 0).sort((a, b) => a.days - b.days).slice(0, 5))}</section>`;
 }
 
 function openAlert(id) {
@@ -1831,13 +1920,135 @@ function renderProjects() {
 }
 
 /* =====================================================================
-   Other dashboards
+   Workers (directory + profile) and Documents (who is running out)
    ===================================================================== */
-function renderEmptyDashboard() {
-  const r = ROLES[state.role];
-  document.getElementById('main').innerHTML = `<div class="page-intro"><h1>${esc(r.dashboard)}</h1><span class="spacer"></span>${protoTags}</div>
-    <section class="card">${emptyBlock('dashboard', `${r.dashboard} is coming next`, `This prototype draws the HR Console, the Allocation Board, the Manpower Forecast, Projects and the CEO overview. The sidebar shows what a ${esc(r.name)} can reach, because nav items come from role permissions.`,
-      `<div style="display:flex;gap:var(--s-2);flex-wrap:wrap;justify-content:center">${can('alert:read') ? '<button type="button" class="btn btn-primary" data-goto="actions">Open Action Center</button>' : ''}${can('staffing:read') ? '<button type="button" class="btn" data-goto="allocation">Open Allocation Board</button>' : ''}<button type="button" class="btn" data-role-jump="hr_manager">View as HR Manager</button></div>`)}</section>`;
+const whoCell = (w) => `<button type="button" class="row-link" data-worker="${w.code}"><span class="who"><span class="avatar avatar-sm" aria-hidden="true">${initials(w.name)}</span><span><span class="name">${esc(w.name)}</span> <span class="code">${w.code}</span></span></span></button>`;
+function wkFiltered() {
+  const f = state.wk; const q = f.q.trim().toLowerCase();
+  const val = { name: (w) => w.name, trade: (w) => w.trade, level: (w) => w.level, project: (w) => w.project || '~', docs: (w) => w.next.days }[f.sort.key];
+  return WORKERS.filter((w) => (f.trade === 'all' || w.trade === f.trade) && (f.project === 'all' || w.project === f.project) && (f.status === 'all' || w.status === f.status)
+      && (!f.expSoon || w.next.days <= 30) && (!q || `${w.name} ${w.code} ${w.trade}`.toLowerCase().includes(q)))
+    .sort((a, b) => { const x = val(a); const y = val(b); return (x < y ? -1 : x > y ? 1 : a.name.localeCompare(b.name)) * f.sort.dir; });
+}
+const wkIsFiltered = () => { const f = state.wk; return f.q.trim() || f.trade !== 'all' || f.project !== 'all' || f.status !== 'all' || f.expSoon; };
+const sortHead = (key, label, cls = '') => { const s = state.wk.sort; const on = s.key === key; return `<th scope="col" class="${cls}" aria-sort="${on ? (s.dir > 0 ? 'ascending' : 'descending') : 'none'}"><button type="button" class="th-sort" data-wk-sort="${key}">${label}${on ? icon(s.dir > 0 ? 'chevron-down' : 'chevron-right', 12) : ''}</button></th>`; };
+function renderWorkers() {
+  const f = state.wk; const pv = state.ui.preview;
+  const trades = [...new Set(WORKERS.map((w) => w.trade))].sort();
+  const statuses = [['all', 'Everyone'], ['available', 'Available'], ['deployed', 'On a project'], ['mobilizing', 'Mobilizing'], ['unavailable', 'Not available']];
+  const list = pv === 'live' ? wkFiltered() : [];
+  const shown = list.slice(0, f.shown);
+  const toolbar = `<div class="toolbar">
+      <label class="field">${icon('search')}<span class="sr-only">Search workers</span><input id="wkSearch" type="search" placeholder="Name, code or trade" value="${esc(f.q)}"></label>
+      <select class="select" id="wkTrade" aria-label="Trade"><option value="all">All trades</option>${trades.map((t) => `<option${f.trade === t ? ' selected' : ''}>${t}</option>`).join('')}</select>
+      <select class="select" id="wkProject" aria-label="Project"><option value="all">All projects</option>${ACTIVE_PROJECTS.map((p) => `<option value="${p.code}"${f.project === p.code ? ' selected' : ''}>${p.code}</option>`).join('')}</select>
+      <div class="seg" role="group" aria-label="Status">${statuses.map(([v, t]) => `<button type="button" data-wk-status="${v}" aria-pressed="${f.status === v}">${t}</button>`).join('')}</div>
+      <label class="check"><input type="checkbox" id="wkExp"${f.expSoon ? ' checked' : ''}>Documents running out (30 days)</label></div>`;
+  let body;
+  if (pv === 'loading') body = skeleton(8, 44);
+  else if (pv === 'error') body = emptyBlock('alert', 'Couldn’t load workers', 'The server didn’t answer. Try again in a moment.', '<button type="button" class="btn" data-wk-retry>Try again</button>');
+  else if (pv === 'empty') body = emptyBlock('users', 'No workers yet', 'Workers appear here once they are added or imported from a spreadsheet.');
+  else if (!list.length) body = emptyBlock('search', 'No workers match', 'Try a different name or clear the filters.', '<button type="button" class="btn" data-wk-reset>Clear filters</button>');
+  else body = `<div class="table-wrap responsive"><table class="wk-table"><caption class="sr-only">Workers</caption>
+      <thead><tr>${sortHead('name', 'Worker')}${sortHead('trade', 'Trade')}${sortHead('level', 'Level (1–5)', 'num')}${sortHead('project', 'Project')}<th scope="col">Status</th>${sortHead('docs', 'Documents')}</tr></thead>
+      <tbody>${shown.map((w, i) => `<tr class="${state.booted && f.animated ? '' : (i < 8 ? 'row-in' : '')}" style="animation-delay:${i * 25}ms"><td>${whoCell(w)}</td><td>${esc(w.trade)}</td><td class="num">${w.level}</td><td>${w.project ? `<span class="mono">${w.project}</span>` : '<span class="subtle small">None</span>'}</td><td>${wkStatusChip(w)}</td><td>${expiryChip(w.next.days, w.next.type)}</td></tr>`).join('')}</tbody></table></div>
+    <ul class="cards-mobile">${shown.map((w) => `<li><button type="button" class="row-link" data-worker="${w.code}"><span class="m-row">${wkStatusChip(w)}${expiryChip(w.next.days, w.next.type)}</span><span class="name" style="white-space:normal">${esc(w.name)} <span class="code">${w.code}</span></span><span class="small muted">${esc(w.trade)} · level ${w.level} · ${w.project || 'No project'}</span></button></li>`).join('')}</ul>
+    <div class="card-more"><span class="count-line">Showing ${shown.length} of ${list.length}${wkIsFiltered() ? ` (${WORKERS.length} workers in total)` : ''}</span>${list.length > shown.length ? '<button type="button" class="btn btn-sm" data-wk-more>Show 25 more</button>' : ''}</div>`;
+  document.getElementById('main').innerHTML = `<div class="page-intro"><h1>Workers</h1><span class="muted" style="font-size:var(--text-sm)">${WORKERS.length} people on the books. Select a name to see their profile.</span></div>
+    <section class="card" aria-label="Workers">${toolbar}${body}</section>
+    <footer class="footer"><span>Prototype with fictional people.</span></footer>`;
+  f.animated = true;
+}
+
+function docsInTab(tab) {
+  const t = { expired: (d) => d.days < 0, d30: (d) => d.days >= 0 && d.days <= 30, d60: (d) => d.days > 30 && d.days <= 60, d90: (d) => d.days > 60 && d.days <= 90 }[tab];
+  const q = state.dc.q.trim().toLowerCase();
+  return ALL_DOCS.filter(t).filter((d) => state.dc.type === 'all' || d.type === state.dc.type)
+    .filter((d) => !q || `${d.w.name} ${d.w.code} ${d.w.trade}`.toLowerCase().includes(q)).sort((a, b) => a.days - b.days || a.w.name.localeCompare(b.w.name));
+}
+const copyBtn = (text, label) => `<button type="button" class="icon-btn icon-btn-sm" data-copy="${esc(text)}" aria-label="Copy ${esc(label)}" title="Copy">${icon('copy', 14)}</button>`;
+function docTableHTML(list, limit) {
+  const rows = limit ? list.slice(0, limit) : list;
+  return `<div class="table-wrap responsive"><table class="wk-table"><caption class="sr-only">Documents running out</caption>
+      <thead><tr><th scope="col">Worker</th><th scope="col">Document</th><th scope="col">Expires</th><th scope="col">Time left</th><th scope="col">Project</th><th scope="col">Phone</th></tr></thead>
+      <tbody>${rows.map((d, i) => `<tr class="${i < 8 ? 'row-in' : ''}" style="animation-delay:${i * 25}ms"><td>${whoCell(d.w)}</td><td>${d.type}</td><td>${fmtDate(d.until)}</td><td>${expiryChip(d.days)}</td><td>${d.w.project ? `<span class="mono">${d.w.project}</span>` : '<span class="subtle small">None</span>'}</td><td><span class="phone">${d.w.phone}${copyBtn(d.w.phone, `${d.w.name}’s phone number`)}</span></td></tr>`).join('')}</tbody></table></div>
+    <ul class="cards-mobile">${rows.map((d) => `<li><button type="button" class="row-link" data-worker="${d.w.code}" data-wk-tab="docs"><span class="m-row">${expiryChip(d.days)}</span><span class="name" style="white-space:normal">${esc(d.w.name)} <span class="code">${d.w.code}</span></span><span class="small muted">${d.type} · ${fmtDate(d.until)} · ${d.w.project || 'No project'}</span></button></li>`).join('')}</ul>`;
+}
+function renderDocuments() {
+  const f = state.dc; const pv = state.ui.preview;
+  const tabs = [['expired', 'Expired', DOCS.expired], ['d30', 'Next 30 days', DOCS.d30], ['d60', '31–60 days', DOCS.d60], ['d90', '61–90 days', DOCS.d90]];
+  const list = pv === 'live' ? docsInTab(f.tab) : [];
+  const toolbar = `<div class="toolbar">
+      <div class="seg" role="group" aria-label="When it expires">${tabs.map(([v, t, n]) => `<button type="button" data-dc-tab="${v}" aria-pressed="${f.tab === v}">${t} · ${n}</button>`).join('')}</div>
+      <label class="field">${icon('search')}<span class="sr-only">Search workers</span><input id="dcSearch" type="search" placeholder="Worker name or code" value="${esc(f.q)}"></label>
+      <select class="select" id="dcType" aria-label="Document type"><option value="all">All documents</option>${DOC_TYPES.map((t) => `<option${f.type === t ? ' selected' : ''}>${t}</option>`).join('')}</select>
+      <span style="flex:1"></span><button type="button" class="btn btn-sm" data-dc-csv${list.length ? '' : ' disabled'}>${icon('download', 14)}Download list (CSV)</button></div>`;
+  let body;
+  if (pv === 'loading') body = skeleton(6, 44);
+  else if (pv === 'error') body = emptyBlock('alert', 'Couldn’t load documents', 'The server didn’t answer. Try again in a moment.', '<button type="button" class="btn" data-wk-retry>Try again</button>');
+  else if (pv === 'empty' || !list.length) body = emptyBlock(f.q || f.type !== 'all' ? 'search' : 'check', f.q || f.type !== 'all' ? 'No documents match' : 'Nothing running out in this period', f.q || f.type !== 'all' ? 'Try a different name or document.' : 'Every document in this group is valid for longer.', f.q || f.type !== 'all' ? '<button type="button" class="btn" data-dc-reset>Clear filters</button>' : '');
+  else body = `${docTableHTML(list)}<div class="card-more"><span class="count-line">${list.length} document${list.length === 1 ? '' : 's'}, soonest first</span></div>`;
+  document.getElementById('main').innerHTML = `<div class="page-intro"><h1>Documents</h1><span class="muted" style="font-size:var(--text-sm)">Who has a visa, ID, medical or labour card running out.</span></div>
+    <section class="card" aria-label="Documents running out">${toolbar}${body}</section>
+    <footer class="footer"><span>Prototype with fictional people.</span></footer>`;
+}
+function downloadDocsCsv() {
+  const list = docsInTab(state.dc.tab); const q = (s) => `"${String(s).replace(/"/g, '""')}"`;
+  const csv = ['Worker,Code,Trade,Project,Phone,Document,Expires,Days left', ...list.map((d) => [d.w.name, d.w.code, d.w.trade, d.w.project || '', d.w.phone, d.type, d.until, d.days].map(q).join(','))].join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `documents-${state.dc.tab}-${TODAY}.csv`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast(`Saved ${list.length} row${list.length === 1 ? '' : 's'} to ${a.download}.`, 'check');
+}
+
+function openWorker(code, tab) {
+  const w = workerBy(code); if (!w) return;
+  state.wk.tab = tab || 'overview';
+  const n = Number(w.code.slice(-3));
+  const proj = w.project ? projectBy(w.project) : null;
+  const sensitive = can('employee:read_sensitive');
+  const prev = ACTIVE_PROJECTS.filter((p) => p.code !== w.project)[n % (ACTIVE_PROJECTS.length - (w.project ? 1 : 0))];
+  const since = addDays(TODAY, -(40 + (n % 220)));
+  const tabs = [['overview', 'Overview'], ['docs', 'Documents'], ['jobs', 'Projects']];
+  let pane;
+  if (state.wk.tab === 'docs') {
+    pane = `<div><p class="section-title">Documents</p><table class="facts-table"><tbody>${w.docs.map((d) => `<tr><th scope="row">${d.type}</th><td><span class="mono small">${sensitive ? esc(d.number) : maskNo(d.number)}</span><br>${fmtDate(d.until)} ${expiryChip(dayDiff(d.until))}</td></tr>`).join('')}</tbody></table>
+      ${sensitive ? '' : '<p class="note" style="margin-top:var(--s-2)">Document numbers are shown in full to the HR Manager only.</p>'}</div>`;
+  } else if (state.wk.tab === 'jobs') {
+    pane = `<div><p class="section-title">Current</p>${w.project ? `<p style="font-size:var(--text-sm)"><b>${w.project}</b> · ${esc(proj.name)}<br><span class="muted">Since ${fmtDate(since)}${w.status === 'mobilizing' ? ' (getting ready to start)' : ''}</span></p>` : '<p class="note">Not on a project right now.</p>'}</div>
+      <div><p class="section-title">Before that</p><p style="font-size:var(--text-sm)"><b>${prev.code}</b> · ${esc(prev.name)}<br><span class="muted">${fmtDate(addDays(since, -(120 + (n % 90))))} to ${fmtDate(since)}</span></p></div>`;
+  } else {
+    pane = `<div><table class="facts-table"><tbody>
+        <tr><th scope="row">Trade</th><td>${esc(w.trade)}</td></tr>
+        <tr><th scope="row">Skill level</th><td>${w.level} of 5</td></tr>
+        <tr><th scope="row">Project</th><td>${w.project ? `<span class="mono">${w.project}</span> · ${esc(proj.name)}` : 'None right now'}</td></tr>
+        <tr><th scope="row">Phone</th><td><span class="phone">${w.phone}${copyBtn(w.phone, 'phone number')}</span></td></tr>
+        <tr><th scope="row">Next document</th><td>${esc(w.next.type)} · ${fmtDate(w.next.until)}<br>${expiryChip(w.next.days)}</td></tr></tbody></table></div>
+      ${w.status === 'available' && can('staffing:read') ? `<div><button type="button" class="btn btn-sm" data-goto="allocation">See open requests</button></div>` : ''}`;
+  }
+  openSheet(`<div class="sheet-head"><span class="avatar avatar-lg" aria-hidden="true">${initials(w.name)}</span>
+      <div style="min-width:0"><h2>${esc(w.name)}</h2><p class="small muted"><span class="mono">${w.code}</span> · ${esc(w.trade)}</p><div style="margin-top:var(--s-2)">${wkStatusChip(w)}</div></div>
+      <button type="button" class="icon-btn" data-close-sheet aria-label="Close" data-autofocus>${icon('x', 18)}</button></div>
+    <div class="sheet-body"><div class="seg" role="group" aria-label="Profile section" style="align-self:flex-start">${tabs.map(([v, t]) => `<button type="button" data-wk-tab="${v}" data-worker="${w.code}" aria-pressed="${state.wk.tab === v}">${t}</button>`).join('')}</div>${pane}</div>`, `Worker ${w.name}`);
+  if (tab) { const on = document.querySelector('.sheet [data-wk-tab][aria-pressed="true"]'); if (on) on.focus(); }
+}
+function copyText(text) {
+  const ok = () => toast('Copied.', 'check'); const fail = () => toast('Couldn’t copy. Select it and press Ctrl+C.');
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(ok, fail);
+  else { const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy') ? ok() : fail(); } catch { fail(); } ta.remove(); }
+}
+function peopleClick(t) {
+  const w = state.wk; const d = state.dc;
+  if (t.dataset.copy) { copyText(t.dataset.copy); return true; }
+  if (t.dataset.worker) { openWorker(t.dataset.worker, t.dataset.wkTab); return true; }
+  if (t.dataset.wkStatus) { w.status = t.dataset.wkStatus; w.shown = 25; return rerenderKeepFocus(`[data-wk-status="${w.status}"]`), true; }
+  if (t.dataset.wkSort) { const k = t.dataset.wkSort; w.sort = { key: k, dir: w.sort.key === k ? -w.sort.dir : 1 }; return rerenderKeepFocus(`[data-wk-sort="${k}"]`), true; }
+  if (t.hasAttribute('data-wk-more')) { w.shown += 25; return rerenderKeepFocus('[data-wk-more]'), true; }
+  if (t.hasAttribute('data-wk-reset')) { Object.assign(w, { q: '', trade: 'all', project: 'all', status: 'all', expSoon: false, shown: 25 }); return rerenderKeepFocus('#wkSearch'), true; }
+  if (t.hasAttribute('data-wk-retry')) { state.ui.preview = 'live'; state.ac.preview = 'live'; renderUserMenu(); return rerenderKeepFocus(), true; }
+  if (t.dataset.dcTab) { d.tab = t.dataset.dcTab; return rerenderKeepFocus(`[data-dc-tab="${d.tab}"]`), true; }
+  if (t.hasAttribute('data-dc-reset')) { Object.assign(d, { q: '', type: 'all' }); return rerenderKeepFocus('#dcSearch'), true; }
+  if (t.hasAttribute('data-dc-csv')) { downloadDocsCsv(); return true; }
+  return false;
 }
 
 /* =====================================================================
@@ -1902,17 +2113,17 @@ function renderPage() {
   if (state.page === 'forecast') return renderForecast();
   if (state.page === 'projects') return renderProjects();
   if (state.page === 'actions') return renderActionsPage();
+  if (state.page === 'workers') return renderWorkers();
+  if (state.page === 'documents') return renderDocuments();
   if (state.role === 'ceo') return renderCEO();
   if (HR_ROLES.includes(state.role)) return renderHRConsole();
-  return renderEmptyDashboard();
 }
-const PAGE_PERM = { allocation: 'staffing:read', forecast: 'forecast:read', projects: 'project:read', actions: 'alert:read' };
+const PAGE_PERM = { workers: 'employee:read', documents: 'employee:read', allocation: 'staffing:read', forecast: 'forecast:read', projects: 'project:read', actions: 'alert:read' };
 function render() {
   if (state.page === 'login') return renderLogin();
   document.getElementById('login').hidden = true; document.getElementById('login').innerHTML = '';
   document.getElementById('app').hidden = false;
   if (PAGE_PERM[state.page] && !can(PAGE_PERM[state.page])) state.page = 'dashboard';
-  if (state.page === 'actions' && HR_ROLES.includes(state.role)) state.page = 'dashboard';
   renderNav(); renderRoleMenu(); renderUserMenu(); renderBell(); renderTop(); renderPage();
 }
 function goto(page, reqNo) {
@@ -2138,6 +2349,7 @@ document.addEventListener('click', (e) => {
   if (state.page === 'allocation' && boardClick(t)) return;
   if (state.page === 'forecast' && forecastClick(t)) return;
   if (acClick(t)) return;
+  if (peopleClick(t)) return;
   if (t.dataset.project) return openProject(t.dataset.project);
   if (t.hasAttribute('data-close-sheet')) return closeSheet();
 });
@@ -2155,6 +2367,8 @@ document.addEventListener('submit', (e) => {
 document.addEventListener('input', (e) => {
   const el = e.target;
   if (el.id === 'reqSearch') { state.ui.q = el.value; return rerenderBoard(); }
+  if (el.id === 'wkSearch') { state.wk.q = el.value; state.wk.shown = 25; return rerenderKeepFocus('#wkSearch'); }
+  if (el.id === 'dcSearch') { state.dc.q = el.value; return rerenderKeepFocus('#dcSearch'); }
   if (el.id === 'poolSearch') { state.ui.poolQ = el.value; return rerenderBoard(); }
   if (el.dataset.draft) { const st = state.board[el.dataset.draft]; st.draft = el.value; const c = document.getElementById(`rjc-${el.dataset.draft}`); if (c) c.textContent = `${el.value.trim().length} / 10 characters minimum`; }
   if (el.id === 'dismissReason') { if (state.alertForm) state.alertForm.draft = el.value; const c = document.getElementById('dismissCount'); if (c) c.textContent = `${el.value.trim().length} / 10 characters minimum`; }
@@ -2167,6 +2381,10 @@ document.addEventListener('change', (e) => {
   if (el.id === 'docsOnly' || el.id === 'availOnly') { ui[el.id] = el.checked; return rerenderBoard(`#${el.id}`); }
   if (el.id && el.id.startsWith('rm-')) { const st = state.board[el.id.slice(3)]; if (st) { st.draft = el.value; st.formError = ''; } return; }
   if (el.dataset.select) { const [lineId, code] = el.dataset.select.split('|'); const sel = state.board[lineId].selected; if (el.checked) sel.add(code); else sel.delete(code); return rerenderBoard(`[data-select="${el.dataset.select}"]`); }
+  if (el.id === 'wkTrade') { state.wk.trade = el.value; state.wk.shown = 25; return rerenderKeepFocus('#wkTrade'); }
+  if (el.id === 'wkProject') { state.wk.project = el.value; state.wk.shown = 25; return rerenderKeepFocus('#wkProject'); }
+  if (el.id === 'wkExp') { state.wk.expSoon = el.checked; state.wk.shown = 25; return rerenderKeepFocus('#wkExp'); }
+  if (el.id === 'dcType') { state.dc.type = el.value; return rerenderKeepFocus('#dcType'); }
   if (el.id === 'acUrgency') { state.ac.urgency = el.value; return rerenderKeepFocus('#acUrgency'); }
   if (el.id === 'acOwner') { state.ac.mine = el.value === 'mine'; return rerenderKeepFocus('#acOwner'); }
   if (el.id === 'acShowAll') { state.ac.showAll = el.checked; return rerenderKeepFocus('#acShowAll'); }
