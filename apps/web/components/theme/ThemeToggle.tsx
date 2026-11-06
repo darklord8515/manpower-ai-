@@ -12,6 +12,17 @@ function currentTheme(): Theme {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
+/** The menu offers a third choice: follow the operating system again. */
+export function applyThemeChoice(choice: Theme | "system"): void {
+  if (choice !== "system") return applyTheme(choice);
+  document.documentElement.removeAttribute("data-theme");
+  try {
+    localStorage.removeItem(THEME_STORAGE_KEY);
+  } catch {
+    // Storage blocked: the page already follows the system for this visit.
+  }
+}
+
 function applyTheme(theme: Theme): void {
   document.documentElement.setAttribute("data-theme", theme);
   try {

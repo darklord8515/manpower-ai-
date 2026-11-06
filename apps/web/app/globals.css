@@ -91,6 +91,29 @@ body {
   transform: scale(0.98);
 }
 
+/* Menus open from the button they belong to (Radix sets the origin) and close faster than they open. */
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@keyframes menu-out {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+.menu-content {
+  transform-origin: var(--radix-dropdown-menu-content-transform-origin);
+}
+.menu-content[data-state="open"] {
+  animation: menu-in 150ms var(--ease-out);
+}
+.menu-content[data-state="closed"] {
+  animation: menu-out 100ms var(--ease-out) forwards;
+}
+
 /* Loading skeleton shimmer: the only looping animation allowed, and only while loading. */
 @keyframes shimmer {
   from {

@@ -48,7 +48,7 @@ for (const viewport of VIEWPORTS) {
 
       test("healthy state", async ({ page }) => {
         await mockHealth(page, "ok");
-        await page.goto("/");
+        await page.goto("/status");
         await expect(page.getByText("Connected")).toBeVisible();
         await expect(page.getByRole("img", { name: "Alhamra" })).toBeVisible();
         await expectNoHorizontalOverflow(page);
@@ -62,7 +62,7 @@ test.describe("other states (1440 light and 390 dark)", () => {
   test("loading skeleton", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await mockHealth(page, "slow");
-    await page.goto("/");
+    await page.goto("/status");
     await expect(page.getByLabel("Checking the API")).toBeVisible();
     await page.screenshot({ path: "e2e/screenshots/status-loading-1440-light.png" });
   });
@@ -74,7 +74,7 @@ test.describe("other states (1440 light and 390 dark)", () => {
     });
     const page = await context.newPage();
     await mockHealth(page, "down");
-    await page.goto("/");
+    await page.goto("/status");
     await expect(apiErrorAlert(page)).toBeVisible();
     await expect(page.getByRole("button", { name: "Retry" })).toBeVisible();
     await expectNoHorizontalOverflow(page);
@@ -85,7 +85,7 @@ test.describe("other states (1440 light and 390 dark)", () => {
   test("degraded database is a warning, not an error", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await mockHealth(page, "degraded");
-    await page.goto("/");
+    await page.goto("/status");
     await expect(page.getByText("Unreachable")).toBeVisible();
     await page.screenshot({ path: "e2e/screenshots/status-degraded-1440-light.png" });
   });
@@ -98,7 +98,7 @@ test.describe("interaction", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await mockHealth(page, "ok");
     await page.emulateMedia({ colorScheme: "light" });
-    await page.goto("/");
+    await page.goto("/status");
 
     const background = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
     const lightBackground = await background();
@@ -120,7 +120,7 @@ test.describe("interaction", () => {
     await page.route("**/health", (route) =>
       healthy ? route.fulfill({ json: HEALTHY }) : route.abort("connectionrefused"),
     );
-    await page.goto("/");
+    await page.goto("/status");
     await expect(apiErrorAlert(page)).toBeVisible();
     healthy = true;
     await page.getByRole("button", { name: "Retry" }).click();

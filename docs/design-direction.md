@@ -271,3 +271,14 @@ One screen for HR to turn open staffing requests into approved workers.
 - Keyboard: focus ring visible, Esc closes sheets, Cmd+K works.
 - Contrast passes WCAG AA in both themes.
 - Looks right at 1440px and 390px.
+
+## Sign-in and Home (the first thing people see)
+- **Sign-in:** the time-of-day picture on the left (dark at the top for the wordmark, dark at the bottom for the caption), the form on the right; at 390px the picture is a strip above the form.
+  Real behaviour only: inline errors, show/hide password, Caps Lock warning, lock-out countdown from `Retry-After`, `next` redirect (own-site paths only), demo accounts only when the API says demo mode is on.
+  No forgot-password button until email exists (n8n); the page says "Ask your administrator".
+- **Home hero:** the same picture, a role label, "Good morning, Noura", one sentence from real numbers, the date. Dark overlay on the left third only.
+- **Time rule:** Gulf Standard Time (`Asia/Dubai`, UTC+4) whatever the visitor's computer says. 05:00-11:59 morning, 12:00-16:59 afternoon, 17:00-04:59 evening. The picture and greeting change at those times without a reload.
+  Demo mode: the avatar menu has "Preview morning / afternoon / evening" for presenters.
+- **Pictures:** `morning.png`, `afternoon.png`, `evening.png` (repo root, 2172x724) are converted by `node scripts/build-hero-images.mjs` to `apps/web/public/hero/*.webp` (about 120-210 KB; half-width versions for phones). One picture loads at a time; it cross-fades in 400ms (the only motion over 200ms besides the count-up).
+- **Home anatomy:** hero, four KPI tiles, one large chart and one side chart, then a table. HR: documents running out per week (90 days), where everyone is, documents to deal with first, planned against deployed. MD/CEO: planned against deployed, where everyone is, projects table.
+  Red is used for emphasis only (the tint under the documents line, the shortfall part of a bar); status colours keep their meaning.

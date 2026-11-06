@@ -18,6 +18,8 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
     command: `npm run dev -- --port ${PORT}`,
+    // The live spec (e2e/live.spec.ts) points the web app at a real API: LIVE_API_URL.
+    env: { API_URL: process.env.LIVE_API_URL ?? "http://localhost:8000" },
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

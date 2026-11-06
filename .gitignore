@@ -12,3 +12,8 @@ playwright-report/
 apps/web/e2e/screenshots/
 coverage/
 .vscode/
+
+# Source pictures for the Home hero (large); the web-ready WebP versions are committed instead
+/morning.png
+/afternoon.png
+/evening.png
