@@ -27,8 +27,10 @@ make lint       # ruff, pyright, eslint, tsc
 ```
 apps/api/    FastAPI service (rules, permissions, agent tools)
 apps/web/    Next.js app
+assets/      brand logos (originals) and hero source pictures
 infra/       docker-compose (Postgres 16, n8n)
 db/          schema.sql, the Alembic baseline
+scripts/     build and setup scripts (brand, hero images, env, contrast check)
 docs/        plan, design rules, agents, rules
 prototype/   static HTML design prototype (reference only)
 legacy-web/  the old frontend (read-only reference)

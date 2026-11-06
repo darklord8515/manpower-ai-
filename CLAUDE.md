@@ -48,7 +48,7 @@ to production is a configuration change, never a code rewrite.
 
 ## Brand
 The company logos are `ALHAMRA-LOGO.svg` (wordmark with "Construction & Development") and
-`ALHAMRA-FAVICON-LOGO.svg` (square mark), at the repo root. Both are all-white artwork.
+`ALHAMRA-FAVICON-LOGO.svg` (square mark), in `assets/brand/`. Both are all-white artwork.
 - Never edit the originals. The app copies them to `apps/web/public/brand/` and uses them as inline
   SVG symbols coloured with `currentColor` from the tokens, so they show on light and dark.
 - Wordmark: login screen only (on the photo overlay). Mark: sidebar header and the browser-tab

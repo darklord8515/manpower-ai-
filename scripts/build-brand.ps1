@@ -1,5 +1,5 @@
 # Copies the company logos into the web app and generates their inline-SVG markup module.
-# The originals (ALHAMRA-LOGO.svg, ALHAMRA-FAVICON-LOGO.svg at the repo root) are never edited.
+# The originals (ALHAMRA-LOGO.svg, ALHAMRA-FAVICON-LOGO.svg in assets/brand) are never edited.
 # Re-run after replacing a logo:  powershell -File scripts/build-brand.ps1
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -8,7 +8,7 @@ $publicBrand = Join-Path $root 'apps\web\public\brand'
 New-Item -ItemType Directory -Force $publicBrand | Out-Null
 
 function Read-Logo([string]$file) {
-    $svg = [System.IO.File]::ReadAllText((Join-Path $root $file))
+    $svg = [System.IO.File]::ReadAllText((Join-Path $root (Join-Path 'assets\brand' $file)))
     $viewBox = [regex]::Match($svg, 'viewBox="([^"]+)"').Groups[1].Value
     $inner = [regex]::Match($svg, '<g id="Layer_1-2"[^>]*>(.*)</g></g></svg>', 'Singleline').Groups[1].Value
     # The artwork is white-only; drop the class attributes so the shapes inherit currentColor.
@@ -17,8 +17,8 @@ function Read-Logo([string]$file) {
     [pscustomobject]@{ ViewBox = $viewBox; Inner = $inner }
 }
 
-Copy-Item (Join-Path $root 'ALHAMRA-LOGO.svg') $publicBrand -Force
-Copy-Item (Join-Path $root 'ALHAMRA-FAVICON-LOGO.svg') $publicBrand -Force
+Copy-Item (Join-Path $root 'assets\brand\ALHAMRA-LOGO.svg') $publicBrand -Force
+Copy-Item (Join-Path $root 'assets\brand\ALHAMRA-FAVICON-LOGO.svg') $publicBrand -Force
 
 $word = Read-Logo 'ALHAMRA-LOGO.svg'
 $mark = Read-Logo 'ALHAMRA-FAVICON-LOGO.svg'

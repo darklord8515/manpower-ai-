@@ -14,6 +14,4 @@ coverage/
 .vscode/
 
 # Source pictures for the Home hero (large); the web-ready WebP versions are committed instead
-/morning.png
-/afternoon.png
-/evening.png
+/assets/hero-source/*.png

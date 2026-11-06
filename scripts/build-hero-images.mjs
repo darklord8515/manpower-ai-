@@ -1,4 +1,4 @@
-// Turns the three source pictures (repo root: morning.png, afternoon.png, evening.png) into the
+// Turns the three source pictures (assets/hero-source: morning.png, afternoon.png, evening.png) into the
 // web-ready versions the app serves. Run again whenever a picture is replaced:
 //   node scripts/build-hero-images.mjs
 // The originals are never edited. Output: apps/web/public/hero/<name>.webp (full width) and
@@ -16,7 +16,7 @@ const out = resolve(root, "apps/web/public/hero");
 mkdirSync(out, { recursive: true });
 
 for (const name of ["morning", "afternoon", "evening"]) {
-  const source = resolve(root, `${name}.png`);
+  const source = resolve(root, `assets/hero-source/${name}.png`);
   const full = resolve(out, `${name}.webp`);
   const small = resolve(out, `${name}-sm.webp`);
   await sharp(source).webp({ quality: 74, effort: 6 }).toFile(full);

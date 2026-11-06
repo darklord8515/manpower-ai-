@@ -18,7 +18,7 @@ or big empty cards into the app.
 
 ## Photos
 - **Login:** one full-height construction-site photo with a dark overlay (`--photo-overlay`) and the
-  Alhamra wordmark (`ALHAMRA-LOGO.svg`, white, see `CLAUDE.md` → Brand) with CONSTRUCTIQ set in
+  Alhamra wordmark (`assets/brand/ALHAMRA-LOGO.svg`, white, see `CLAUDE.md` → Brand) with CONSTRUCTIQ set in
   type beneath it; the sign-in form sits beside it.
 - **Projects:** one site photo per project card and in the project DetailSheet header.
 - **Nowhere else.** No photos on data screens (dashboards, board, forecast, Action Center).
@@ -48,7 +48,7 @@ forecast Sankey and capacity heatmap, counters that update when HR acts. No maps
   from the user's role permissions. Only built screens are listed; nothing unbuilt is shown. The active
   item has a red bar that slides between items. HRM patterns come from BambooHR, Rippling, Personio,
   Zoho People and Frappe HR (patterns only, never their branding).
-- Sidebar header: the Alhamra mark (`ALHAMRA-FAVICON-LOGO.svg`) with CONSTRUCTIQ beside it; only
+- Sidebar header: the Alhamra mark (`assets/brand/ALHAMRA-FAVICON-LOGO.svg`) with CONSTRUCTIQ beside it; only
   the mark when collapsed.
 - Top bar: page title + breadcrumb, global search, Cmd+K AI command bar, notifications, user menu.
   In demo mode, a role switcher pill ("Viewing as: Project Manager").
@@ -279,6 +279,6 @@ One screen for HR to turn open staffing requests into approved workers.
 - **Home hero:** the same picture, a role label, "Good morning, Noura", one sentence from real numbers, the date. Dark overlay on the left third only.
 - **Time rule:** Gulf Standard Time (`Asia/Dubai`, UTC+4) whatever the visitor's computer says. 05:00-11:59 morning, 12:00-16:59 afternoon, 17:00-04:59 evening. The picture and greeting change at those times without a reload.
   Demo mode: the avatar menu has "Preview morning / afternoon / evening" for presenters.
-- **Pictures:** `morning.png`, `afternoon.png`, `evening.png` (repo root, 2172x724) are converted by `node scripts/build-hero-images.mjs` to `apps/web/public/hero/*.webp` (about 120-210 KB; half-width versions for phones). One picture loads at a time; it cross-fades in 400ms (the only motion over 200ms besides the count-up).
+- **Pictures:** `morning.png`, `afternoon.png`, `evening.png` (`assets/hero-source/`, 2172x724) are converted by `node scripts/build-hero-images.mjs` to `apps/web/public/hero/*.webp` (about 120-210 KB; half-width versions for phones). One picture loads at a time; it cross-fades in 400ms (the only motion over 200ms besides the count-up).
 - **Home anatomy:** hero, four KPI tiles, one large chart and one side chart, then a table. HR: documents running out per week (90 days), where everyone is, documents to deal with first, planned against deployed. MD/CEO: planned against deployed, where everyone is, projects table.
   Red is used for emphasis only (the tint under the documents line, the shortfall part of a bar); status colours keep their meaning.
