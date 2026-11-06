@@ -27,7 +27,7 @@ CREATE EXTENSION IF NOT EXISTS citext;       -- case-insensitive emails
 -- ---------------------------------------------------------------------
 CREATE TYPE employment_status  AS ENUM ('active', 'on_leave', 'suspended', 'resigned', 'terminated');
 CREATE TYPE availability_state AS ENUM ('available', 'deployed', 'mobilizing', 'demobilizing', 'unavailable');
-CREATE TYPE document_type      AS ENUM ('emirates_id', 'passport', 'visa', 'work_permit', 'labour_card',
+CREATE TYPE document_type      AS ENUM ('passport', 'residency_visa', 'work_permit', 'labour_card',
                                         'medical_fitness', 'trade_certificate', 'safety_certificate',
                                         'driving_licence', 'other');
 CREATE TYPE document_status    AS ENUM ('pending_check', 'verified', 'rejected', 'expired');
@@ -129,7 +129,7 @@ CREATE TABLE employees (
     employment_status employment_status NOT NULL DEFAULT 'active',
     availability      availability_state NOT NULL DEFAULT 'available',
     -- No salary data: the client will not provide it. The sensitive fields are
-    -- employee_documents.doc_number (passport / EID numbers).
+    -- employee_documents.doc_number (passport numbers and the Emirates ID number held on the residency visa).
     is_demo           boolean NOT NULL DEFAULT false,
     created_at        timestamptz NOT NULL DEFAULT now(),
     updated_at        timestamptz NOT NULL DEFAULT now()
@@ -153,7 +153,7 @@ CREATE TABLE employee_documents (
     id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     employee_id     uuid NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
     doc_type        document_type NOT NULL,
-    doc_number      text,                        -- sensitive for passport / EID
+    doc_number      text,                        -- sensitive: passport no. / Emirates ID no. (residency_visa)
     issued_on       date,
     expiry_date     date,
     status          document_status NOT NULL DEFAULT 'pending_check',

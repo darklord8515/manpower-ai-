@@ -65,5 +65,5 @@ def test_documents_running_out_match_the_counts_on_the_dashboards() -> None:
 
 def test_the_visa_in_the_to_do_expires_in_seven_days() -> None:
     sanjeev = next(w for w in build_workers() if w.code == "EMP-0088")
-    assert sanjeev.next_doc.type == "Visa"
+    assert sanjeev.next_doc.type == "Residency visa"
     assert sanjeev.next_doc.until == SEED_TODAY + timedelta(days=7)

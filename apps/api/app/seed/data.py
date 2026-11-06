@@ -8,10 +8,10 @@ from datetime import date
 # The seeded "today" (Thursday 5 Nov 2026). The Clock adapter replaces this in the app later.
 SEED_TODAY = date(2026, 11, 5)
 
-DOC_TYPES = ["Visa", "Emirates ID", "Medical fitness", "Labour card"]
+# The residency visa and the Emirates ID are one document (one expiry, one renewal).
+DOC_TYPES = ["Residency visa", "Medical fitness", "Labour card"]
 DOC_TYPE_CODE = {
-    "Visa": "visa",
-    "Emirates ID": "emirates_id",
+    "Residency visa": "residency_visa",
     "Medical fitness": "medical_fitness",
     "Labour card": "labour_card",
 }
@@ -88,7 +88,7 @@ class NamedWorker:
     trade: str
     level: int
     docs_until: date
-    doc_type: str = "Visa"  # which document `docs_until` belongs to
+    doc_type: str = "Residency visa"  # which document `docs_until` belongs to
     available_from: date = SEED_TODAY  # later than today = still on RAK-02 until then
     project: str | None = None
     placed: str | None = None  # a project the worker is deployed on although the source had none

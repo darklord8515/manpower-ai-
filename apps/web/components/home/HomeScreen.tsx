@@ -29,8 +29,7 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 const DOCUMENT_NAME: Record<string, string> = {
-  visa: "Visa",
-  emirates_id: "Emirates ID",
+  residency_visa: "Residency visa",
   medical_fitness: "Medical fitness",
   labour_card: "Labour card",
   passport: "Passport",

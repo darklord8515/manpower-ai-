@@ -94,7 +94,7 @@ own / site / project / department / all. Project and site scope come only from
 All seeded in `db/schema.sql` (roles, permissions, role_permissions).
 
 There is no salary data: the client will not provide it. The sensitive fields are passport and
-Emirates ID numbers (`employee_documents.doc_number`) and project contract values.
+Emirates ID numbers (the number on the `residency_visa` document, `employee_documents.doc_number`; shown masked, revealed with an eye icon that is audited) and project contract values.
 
 | Role | Employees | Projects | Staffing requests | Mob / demob | Approvals | Forecast / recruitment | Action Center | Passport / EID nos. | Contract value | AI | Agent admin |
 |---|---|---|---|---|---|---|---|---|---|---|---|

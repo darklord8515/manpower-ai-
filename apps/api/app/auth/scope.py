@@ -64,7 +64,7 @@ def full_profile(user: AuthUser) -> bool:
 
 
 def mask_number(user: AuthUser, number: str | None) -> str | None:
-    """Passport and Emirates ID numbers are shown in full only with employee:read_sensitive."""
+    """Passport and Emirates ID numbers: full only with employee:read_sensitive."""
     if number is None or user.can("employee:read_sensitive"):
         return number
     return f"•••• {number[-4:]}"

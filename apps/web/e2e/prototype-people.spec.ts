@@ -89,14 +89,14 @@ test("Documents: tab counts match the rows, and numbers are hidden from the HR E
     // @ts-expect-error prototype globals
     openWorker("EMP-0088", "docs");
   });
-  await expect(page.getByText(/784\/2025\/\d{7}/)).toBeVisible();
+  await expect(page.getByText(/784-198\d-\d{7}-\d/)).toBeVisible();
   await page.keyboard.press("Escape");
   await as(page, "hr_executive");
   await page.evaluate(() => {
     // @ts-expect-error prototype globals
     openWorker("EMP-0088", "docs");
   });
-  await expect(page.getByText(/784\/2025\/\d{7}/)).toHaveCount(0);
+  await expect(page.getByText(/784-198\d-\d{7}-\d/)).toHaveCount(0);
   await expect(page.getByText("•••• ", { exact: false }).first()).toBeVisible();
 });
 

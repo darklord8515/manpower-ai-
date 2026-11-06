@@ -109,7 +109,7 @@ def test_seeding_twice_gives_the_same_database(migrated_db: Engine) -> None:
     first = _scalar(migrated_db, "SELECT count(*) FROM employee_documents")
     _load(migrated_db)
     assert _scalar(migrated_db, "SELECT count(*) FROM employees") == 150
-    assert _scalar(migrated_db, "SELECT count(*) FROM employee_documents") == first == 600
+    assert _scalar(migrated_db, "SELECT count(*) FROM employee_documents") == first == 450
 
 
 def test_seed_and_reset_refuse_to_run_in_production(migrated_db: Engine) -> None:

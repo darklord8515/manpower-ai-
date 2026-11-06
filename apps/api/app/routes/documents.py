@@ -29,7 +29,7 @@ _WINDOWS: dict[str, str] = {
     "d90": "d.expiry_date - :today BETWEEN 61 AND 90",
 }
 _DOC_TYPES = {
-    "visa", "emirates_id", "medical_fitness", "labour_card", "passport", "work_permit",
+    "residency_visa", "medical_fitness", "labour_card", "passport", "work_permit",
 }  # fmt: skip
 
 

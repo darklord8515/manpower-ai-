@@ -34,7 +34,7 @@ validators must catch the problem first so the user gets a clear message.
 
 | Code | Rule | Notes |
 |---|---|---|
-| `DOC_VALID_THROUGH` | Required documents must be `verified`, current, and expire **after** the end of the assignment. If `needed_until` is null, the check runs to today + `DOC_CHECK_DEFAULT_HORIZON_DAYS` (90). | Required set (config): `visa`, `emirates_id`, `work_permit`, `medical_fitness`. |
+| `DOC_VALID_THROUGH` | Required documents must be `verified`, current, and expire **after** the end of the assignment. If `needed_until` is null, the check runs to today + `DOC_CHECK_DEFAULT_HORIZON_DAYS` (90). | Required set (config): `residency_visa` (the visa and the Emirates ID are one document), `work_permit`, `medical_fitness`. |
 | `DOC_PENDING` | A document in `pending_check` doesn't count as valid. | |
 | `DOC_ONE_CURRENT` | One current document per employee and type (except `other`). Renewal supersedes the old one (`is_current = false`), never deletes it. | DB: `employee_documents_one_current`. |
 | `DOC_UPLOAD` | File type in an allow-list (PDF, JPEG, PNG), size ≤ 10 MB, stored via `StorageBackend`, served by signed URL only. | |

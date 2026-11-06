@@ -51,7 +51,7 @@ export const SUMMARY = {
 
 const DUE = [
   ["EMP-0595", "Farhan Khan", "medical_fitness", "2026-10-25", -11],
-  ["EMP-0088", "Sanjeev Rana", "visa", "2026-11-12", 7],
+  ["EMP-0088", "Sanjeev Rana", "residency_visa", "2026-11-12", 7],
 ].map(([code, name, type, expiry, days]) => ({
   worker_code: code,
   worker_name: name,

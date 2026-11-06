@@ -54,10 +54,8 @@ def _singular(plural: str) -> str:
 
 def _doc_number(doc_type: str, i: int, k: int) -> str:
     n = f"{((i + 1) * 7919 + (k + 1) * 104729) % 10_000_000:07d}"
-    if doc_type == "Visa":
-        return f"784/2025/{n}"
-    if doc_type == "Emirates ID":
-        return f"784-198{i % 10}-{n}-{k}"
+    if doc_type == "Residency visa":
+        return f"784-198{i % 10}-{n}-{k}"  # the Emirates ID number
     if doc_type == "Medical fitness":
         return f"MED-{n[1:]}"
     return f"LC{n}"
@@ -92,7 +90,7 @@ def build_workers(today: date = SEED_TODAY) -> list[WorkerSeed]:
             )
         )  # fmt: skip
     add(WorkerSeed("EMP-0088", "Sanjeev Rana", "Mason", 3, "deployed", "RAK-01",
-                   earliest=(today + timedelta(days=7), "Visa")))  # fmt: skip
+                   earliest=(today + timedelta(days=7), "Residency visa")))  # fmt: skip
     add(WorkerSeed("EMP-0094", "Yusuf Demo", "Equipment operator", 3, "mobilizing", "RAK-01"))
 
     counter = 0
@@ -135,7 +133,7 @@ def build_workers(today: date = SEED_TODAY) -> list[WorkerSeed]:
 
     for i, w in enumerate(out):
         w.phone = f"+971 5{i % 6} {100 + (i * 37) % 900} {1000 + (i * 7919) % 9000}"
-        earliest = w.earliest or (today + timedelta(days=150 + (i * 53) % 560), DOC_TYPES[i % 4])
+        earliest = w.earliest or (today + timedelta(days=150 + (i * 53) % 560), DOC_TYPES[i % 3])
         gap = 100 if (earliest[0] - today).days <= 90 else 40  # keep other docs clear of the window
         w.docs = [
             DocSeed(
@@ -151,7 +149,7 @@ def build_workers(today: date = SEED_TODAY) -> list[WorkerSeed]:
 
     deployed_generated = [w for w in out if w.code >= "EMP-0501" and w.status == "deployed"]
     for k, offset in enumerate(SOON_OFFSETS):
-        deployed_generated[k * 2].docs[k % 4].until = today + timedelta(days=offset)
+        deployed_generated[k * 2].docs[k % 3].until = today + timedelta(days=offset)
     unavailable = [w for w in out if w.status == "unavailable"][:2]
     for k, worker in enumerate(unavailable):
         worker.docs[0 if k == 0 else 2].until = today + timedelta(days=EXPIRED_OFFSETS[k])

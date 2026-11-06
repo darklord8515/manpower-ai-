@@ -886,7 +886,7 @@ const SEED_CONDITIONS = [
       template: 'Visa expires in 7 days: EMP-0088 on RAK-01',
       title: 'Visa expires in 7 days: Sanjeev Rana (EMP-0088) on RAK-01',
       explanation: 'Sanjeev Rana’s visa expires on 12 Nov 2026 while he is assigned to RAK-01 until 31 Jan 2027. No renewal has started, so he can’t work on site after 12 Nov 2026.',
-      facts: [['Employee', 'Sanjeev Rana · EMP-0088'], ['Document', 'Visa'], ['Expires', '12 Nov 2026'], ['Days left', '7'], ['Assigned to', 'RAK-01 until 31 Jan 2027'], ['Renewal started', 'No']],
+      facts: [['Employee', 'Sanjeev Rana · EMP-0088'], ['Document', 'Residency visa'], ['Expires', '12 Nov 2026'], ['Days left', '7'], ['Assigned to', 'RAK-01 until 31 Jan 2027'], ['Renewal started', 'No']],
       actions: ['send_reminder', 'mark_renewed'] } },
   { dedupe: 'transfer_dependency:RAK-05:RAK-02:2026-12-01', created: '2026-11-04T15:10:00Z', escalation: 2, due: '2026-11-05T12:00:00Z',
     holds: () => !state.flags.released1038,
@@ -926,7 +926,7 @@ const SEED_CONDITIONS = [
       template: 'Visa expires in 45 days: EMP-0120',
       title: 'Visa expires in 45 days: Prakash Shrestha (EMP-0120)',
       explanation: 'Prakash Shrestha’s visa expires on 20 Dec 2026. He is free to assign, but the system leaves him out of jobs that need cover beyond that date.',
-      facts: [['Employee', 'Prakash Shrestha · EMP-0120'], ['Document', 'Visa'], ['Expires', '20 Dec 2026'], ['Days left', '45'], ['Current status', 'Free to assign, not on a project']],
+      facts: [['Employee', 'Prakash Shrestha · EMP-0120'], ['Document', 'Residency visa'], ['Expires', '20 Dec 2026'], ['Days left', '45'], ['Current status', 'Free to assign, not on a project']],
       actions: ['send_reminder'] } },
   { dedupe: 'midday_ban:RAK-01-S2:2027', created: '2026-11-05T07:00:00Z', escalation: 0, due: null,
     holds: () => true,
@@ -980,7 +980,7 @@ const photo = (key, w, cls = 'photo', link = true) => { const p = PHOTOS[key]; c
    Workers and documents. Fictional, built the same way every time so the
    numbers match the project cards (112 deployed) and the document counts.
    ===================================================================== */
-const DOC_TYPES = ['Visa', 'Emirates ID', 'Medical fitness', 'Labour card'];
+const DOC_TYPES = ['Residency visa', 'Medical fitness', 'Labour card'];   // the residency visa and the Emirates ID are one document
 const dayDiff = (iso) => Math.round((asDate(iso) - asDate(TODAY)) / 864e5);
 const FIRST_NAMES = ['Aamir', 'Bilal', 'Chandan', 'Dinesh', 'Eshwar', 'Farhan', 'Ganesh', 'Harish', 'Irfan', 'Jagdish', 'Kiran', 'Lokesh', 'Mahesh', 'Naresh', 'Omar', 'Pradeep', 'Qasim', 'Rohit', 'Sandeep', 'Tariq', 'Umesh', 'Vijay', 'Waqar', 'Yasir', 'Zahid', 'Anwar', 'Basheer', 'Devendra', 'Elias', 'Firoz'];
 const LAST_NAMES = ['Ali', 'Barua', 'Chaudhry', 'Dhakal', 'Ekka', 'Fernandes', 'Gurung', 'Hossain', 'Iqbal', 'Jha', 'Khan', 'Lama', 'Mondal', 'Nair', 'Oraon', 'Pandey', 'Rai', 'Sheikh', 'Thakur', 'Uddin', 'Verma', 'Yadav', 'Zaman', 'Ansari', 'Biswas', 'Chettri', 'Das', 'Mirza'];
@@ -989,11 +989,11 @@ const singularTrade =(s) => s.replace(/s$/, '');
 const WORKERS = (() => {
   const used = new Set(); const out = [];
   const add = (w) => { used.add(w.name); out.push(w); return w; };
-  const issueType = (w) => (/medical/i.test(w.docIssue || '') ? 'Medical fitness' : 'Visa');
+  const issueType = (w) => (/medical/i.test(w.docIssue || '') ? 'Medical fitness' : 'Residency visa');
   POOL.forEach((p) => { const later = p.from > TODAY; add({ code: p.code, name: p.name, trade: p.trade, level: p.level, status: later ? 'deployed' : 'available', project: later ? 'RAK-02' : null, min: { until: p.docsUntil, type: issueType(p) } }); });
   const placed = { 'EMP-0231': 'RAK-04', 'EMP-0232': 'RAK-04', 'EMP-0410': 'RAK-04', 'EMP-0411': 'RAK-04', 'EMP-0233': 'RAK-03', 'EMP-0230': 'RAK-03', 'EMP-0412': 'RAK-03', 'EMP-0413': 'RAK-03' };
   FC_WORKERS.forEach((w) => { const project = w.project || placed[w.code] || null; add({ code: w.code, name: w.name, trade: w.trade, level: 3, status: project ? 'deployed' : 'available', project, min: { until: w.docsUntil, type: issueType(w) } }); });
-  add({ code: 'EMP-0088', name: 'Sanjeev Rana', trade: 'Mason', level: 3, status: 'deployed', project: 'RAK-01', min: { until: addDays(TODAY, 7), type: 'Visa' } });
+  add({ code: 'EMP-0088', name: 'Sanjeev Rana', trade: 'Mason', level: 3, status: 'deployed', project: 'RAK-01', min: { until: addDays(TODAY, 7), type: 'Residency visa' } });
   add({ code: 'EMP-0094', name: 'Yusuf Demo', trade: 'Equipment operator', level: 3, status: 'mobilizing', project: 'RAK-01' });
   let g = 0;
   const nameAt = (n) => { for (let k = 0; ; k++) { const nm = `${FIRST_NAMES[(n * 7 + k * 5) % FIRST_NAMES.length]} ${LAST_NAMES[(n * 11 + k * 3 + 1) % LAST_NAMES.length]}`; if (!used.has(nm)) return nm; } };
@@ -1007,11 +1007,11 @@ const WORKERS = (() => {
   ['On leave', 'On leave', 'On leave', 'On leave', 'On leave', 'Medical', 'Medical', 'Medical'].forEach((reason, i) => add(gen({ trade: TRADES_FOR_GEN[i % 5], status: 'unavailable', project: null, reason })));
   const docNo = (type, i, k) => {
     const n = String(((i + 1) * 7919 + (k + 1) * 104729) % 10000000).padStart(7, '0');
-    return type === 'Visa' ? `784/2025/${n}` : type === 'Emirates ID' ? `784-198${i % 10}-${n}-${k}` : type === 'Medical fitness' ? `MED-${n.slice(1)}` : `LC${n}`;
+    return type === 'Residency visa' ? `784-198${i % 10}-${n}-${k}` : type === 'Medical fitness' ? `MED-${n.slice(1)}` : `LC${n}`;
   };
   out.forEach((w, i) => {
     w.phone = `+971 5${i % 6} ${100 + ((i * 37) % 900)} ${1000 + ((i * 7919) % 9000)}`;
-    const min = w.min || { until: addDays(TODAY, 150 + ((i * 53) % 560)), type: DOC_TYPES[i % 4] };
+    const min = w.min || { until: addDays(TODAY, 150 + ((i * 53) % 560)), type: DOC_TYPES[i % 3] };
     const gap = dayDiff(min.until) <= 90 ? 100 : 40;   // keep the other documents clear of the 90-day window
     w.docs = DOC_TYPES.map((type, k) => ({ type, until: type === min.type ? min.until : addDays(min.until, gap + ((i * 17 + k * 41) % 170)), number: docNo(type, i, k) }));
     delete w.min;
@@ -1019,7 +1019,7 @@ const WORKERS = (() => {
   // Documents running out: 7 more inside 30 days (the 8th is Sanjeev Rana's visa), 10 in 31-60 and 14 in 61-90, 2 already expired.
   const soon = [3, 12, 15, 19, 22, 26, 29, 33, 35, 38, 41, 44, 47, 50, 53, 56, 59, 63, 64, 66, 70, 72, 73, 75, 78, 80, 82, 84, 86, 88, 90];
   const deployedGen = out.filter((w) => w.code >= 'EMP-0501' && w.status === 'deployed');
-  soon.forEach((off, k) => { const w = deployedGen[k * 2]; w.docs[k % 4].until = addDays(TODAY, off); });
+  soon.forEach((off, k) => { const w = deployedGen[k * 2]; w.docs[k % 3].until = addDays(TODAY, off); });
   out.filter((w) => w.status === 'unavailable').slice(0, 2).forEach((w, k) => { w.docs[k === 0 ? 0 : 2].until = addDays(TODAY, k === 0 ? -4 : -11); });
   out.forEach((w) => { const m = w.docs.reduce((a, d) => (d.until < a.until ? d : a)); w.next = { type: m.type, until: m.until, days: dayDiff(m.until) }; });
   return out;
@@ -1480,7 +1480,7 @@ function renderCEO() {
         <ul class="approvals">${approvedList || '<li class="decided"><span class="muted">Nothing approved yet.</span></li>'}</ul></section>
       <section class="card" aria-labelledby="mobTitle"><div class="card-head"><div><h2 id="mobTitle">Upcoming mobilizations</h2><p>Next 10 days · ${W.mobilizing} people mobilizing</p></div><span class="tag">Demo data</span></div><ul class="list">${mobs}</ul></section>
       <div class="stack">
-        <section class="card" aria-labelledby="docTitle"><div class="card-head"><div><h2 id="docTitle">Document compliance</h2><p>Visa, Emirates ID, work permit, medical</p></div><span class="tag">Demo data</span></div>
+        <section class="card" aria-labelledby="docTitle"><div class="card-head"><div><h2 id="docTitle">Document compliance</h2><p>Residency visa, work permit, medical</p></div><span class="tag">Demo data</span></div>
           <div class="card-body"><div style="display:flex;align-items:baseline;gap:var(--s-2)"><span class="big">${fmtPct(docPct)}</span><span class="muted small">${fmtInt(DOCS.verified)} of ${fmtInt(DOCS.required)} valid and verified</span></div>
             <div class="stat-row"><div class="stat"><b>${DOCS.d30}</b><span>≤ 30 days</span></div><div class="stat"><b>${DOCS.d60}</b><span>31–60 days</span></div><div class="stat"><b>${DOCS.d90}</b><span>61–90 days</span></div></div></div></section>
         <section class="card" aria-labelledby="banTitle"><div class="card-head"><div><h2 id="banTitle">Midday work ban</h2><p>Outdoor sites, 12:30–15:00</p></div>${chip('info', 'sun', 'Not in force')}</div>
