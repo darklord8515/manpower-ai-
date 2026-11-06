@@ -444,3 +444,48 @@ class AdvanceRecruitment(BaseModel):
 class AdvanceResult(BaseModel):
     advanced: RecruitmentRow
     remaining: RecruitmentRow | None  # the people who did not move, when only some did
+
+
+# ----------------------------------------------------------------------------- Home layout
+
+# The widgets a Home can hold. The browser may only ever store ids from this list.
+HOME_WIDGETS = (
+    "expiry",
+    "workforce",
+    "due",
+    "projects_chart",
+    "projects_table",
+    "leaving",
+    "pipeline",
+    "by_trade",
+    "unavailable",
+)
+
+
+class HomeLayout(BaseModel):
+    order: list[str] = Field(max_length=20)
+    hidden: list[str] = Field(max_length=20)
+
+    @field_validator("order", "hidden")
+    @classmethod
+    def _known_and_unique(cls, value: list[str]) -> list[str]:
+        if len(set(value)) != len(value):
+            raise ValueError("A widget can appear only once.")
+        unknown = [w for w in value if w not in HOME_WIDGETS]
+        if unknown:
+            raise ValueError(f"Unknown widget: {', '.join(unknown)}")
+        return value
+
+
+class Preferences(BaseModel):
+    home: HomeLayout | None = None  # None = the default layout
+
+
+class TradeStrength(BaseModel):
+    trade: str
+    group: str | None
+    deployed: int
+    mobilizing: int
+    available: int
+    unavailable: int
+    total: int

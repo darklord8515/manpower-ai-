@@ -21,7 +21,7 @@ import type { ProjectRow, Summary } from "@/lib/api-types";
 
 const AXIS = { fontSize: 12, fill: "var(--text-subtle)" } as const;
 
-function ChartCard({
+export function ChartCard({
   title,
   subtitle,
   action,
@@ -36,7 +36,7 @@ function ChartCard({
 }) {
   return (
     <section
-      className={`rounded-card border border-border bg-surface p-4 md:p-5 ${className ?? ""}`}
+      className={`h-full rounded-card border border-border bg-surface p-4 md:p-5 ${className ?? ""}`}
     >
       <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
         <div>
@@ -97,7 +97,6 @@ export function ExpiryChart({ weeks }: { weeks: Summary["expiry_by_week"] }) {
       title="Documents running out"
       subtitle={`${total} in this period, by week`}
       action={<SlidingTabs tabs={RANGES} value={range} onChange={setRange} label="Period" />}
-      className="lg:col-span-2"
     >
       <div
         className="h-64"

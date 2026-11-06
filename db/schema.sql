@@ -88,6 +88,7 @@ CREATE TABLE users (
     employee_id   uuid,                          -- FK added after employees exists
     is_active     boolean NOT NULL DEFAULT true,
     mfa_enabled   boolean NOT NULL DEFAULT false,
+    ui_preferences jsonb NOT NULL DEFAULT '{}',   -- the person's own screen layout, nothing else
     last_login_at timestamptz,
     is_demo       boolean NOT NULL DEFAULT false,
     created_at    timestamptz NOT NULL DEFAULT now()

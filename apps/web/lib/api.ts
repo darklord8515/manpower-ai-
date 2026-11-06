@@ -12,8 +12,10 @@ import type {
   ReserveResponse,
   RecruitmentStage,
   ProjectRow,
+  Preferences,
   PublicConfig,
   Summary,
+  TradeStrength,
   Trade,
   WorkerDetail,
   WorkerFacets,
@@ -94,6 +96,13 @@ export const api = {
   summary: () => request<Summary>("/summary"),
   expiring: (window: "expired" | "d30" | "d60" | "d90") =>
     request<ExpiringList>(`/documents/expiring?window=${window}`),
+  summaryByTrade: () => request<TradeStrength[]>("/summary/trades"),
+  preferences: () => request<Preferences>("/auth/me/preferences"),
+  savePreferences: (preferences: Preferences) =>
+    request<Preferences>("/auth/me/preferences", {
+      method: "PUT",
+      body: JSON.stringify(preferences),
+    }),
   projects: () => request<ProjectRow[]>("/projects"),
   trades: () => request<Trade[]>("/trades"),
   createProject: (project: NewProject) =>

@@ -304,3 +304,16 @@ export type NewRecruitment = {
 };
 
 export type AdvanceResult = { advanced: RecruitmentRow; remaining: RecruitmentRow | null };
+
+export type TradeStrength = {
+  trade: string;
+  group: string | null;
+  deployed: number;
+  mobilizing: number;
+  available: number;
+  unavailable: number;
+  total: number;
+};
+
+export type SavedHomeLayout = { order: string[]; hidden: string[] };
+export type Preferences = { home: SavedHomeLayout | null };

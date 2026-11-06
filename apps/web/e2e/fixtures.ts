@@ -100,24 +100,111 @@ const DUE = [
 const json = (route: Route, body: unknown, status = 200, headers: Record<string, string> = {}) =>
   route.fulfill({ status, json: body, headers });
 
-/** Pretend to be the API. `user: null` means nobody is signed in. */
+/** A saved Home layout, as the API stores it. */
+export type SavedLayout = { order: string[]; hidden: string[] };
+
+const TRADE_STRENGTH = [
+  {
+    trade: "Steel fixer",
+    group: "Structure",
+    deployed: 25,
+    mobilizing: 2,
+    available: 10,
+    unavailable: 0,
+    total: 37,
+  },
+  {
+    trade: "Mason",
+    group: "Finishes",
+    deployed: 27,
+    mobilizing: 2,
+    available: 2,
+    unavailable: 2,
+    total: 33,
+  },
+  {
+    trade: "General labour",
+    group: "General",
+    deployed: 25,
+    mobilizing: 2,
+    available: 3,
+    unavailable: 2,
+    total: 32,
+  },
+  {
+    trade: "Carpenter",
+    group: "Structure",
+    deployed: 20,
+    mobilizing: 2,
+    available: 2,
+    unavailable: 2,
+    total: 26,
+  },
+];
+
+const UNAVAILABLE = ["Kiran Jha", "Rohit Verma", "Omar Ali"].map((name, i) => ({
+  code: `EMP-060${i}`,
+  name,
+  trade: "Mason",
+  level: 3,
+  status: "unavailable",
+  project: null,
+  phone: "+971 50 000 0000",
+  next_document: null,
+}));
+
+/**
+ * Pretend to be the API. `user: null` means nobody is signed in. Returns what the page saved, so a
+ * test can check it: `saved` holds every layout the page sent, `reads` counts requests per widget feed.
+ */
 export async function mockApi(
   page: Page,
-  options: { user?: typeof HR_USER | null; demo?: boolean } = {},
+  options: {
+    user?: typeof HR_USER | null;
+    demo?: boolean;
+    /** The layout this person has saved before (null = never changed it). */
+    layout?: SavedLayout | null;
+    /** Make saving a layout fail. */
+    failSave?: boolean;
+  } = {},
 ) {
   const user = options.user === undefined ? HR_USER : options.user;
+  const seen = { saved: [] as (SavedLayout | null)[], recruitment: 0, trades: 0, unavailable: 0 };
+  let layout = options.layout ?? null;
   await page.route("**/api/auth/config", (r) => json(r, { demo_mode: options.demo ?? false }));
   await page.route("**/api/auth/me", (r) =>
     user ? json(r, user) : json(r, { detail: "Sign in to continue" }, 401),
   );
+  await page.route("**/api/auth/me/preferences", (r) => {
+    if (r.request().method() === "PUT") {
+      if (options.failSave) return json(r, { detail: "Couldn’t save right now." }, 500);
+      const body = r.request().postDataJSON() as { home: SavedLayout | null };
+      layout = body.home;
+      seen.saved.push(body.home);
+      return json(r, body);
+    }
+    return json(r, { home: layout });
+  });
   await page.route("**/api/summary", (r) => json(r, SUMMARY));
+  await page.route("**/api/summary/trades", (r) => {
+    seen.trades += 1;
+    return json(r, TRADE_STRENGTH);
+  });
+  await page.route("**/api/recruitment-requests", (r) => {
+    seen.recruitment += 1;
+    return json(r, RECRUITMENT);
+  });
+  await page.route(/\/api\/workers\?.*status=unavailable/, (r) => {
+    seen.unavailable += 1;
+    return json(r, { total: UNAVAILABLE.length, items: UNAVAILABLE });
+  });
   await page.route("**/api/documents/expiring**", (r) => {
     const window = new URL(r.request().url()).searchParams.get("window");
     const counts = SUMMARY.documents;
     json(r, { counts, items: window === "expired" ? [DUE[0]] : window === "d30" ? [DUE[1]] : [] });
   });
+  return seen;
 }
-
 /** The cookie the sign-in sets. The web app's proxy only checks that it exists. */
 export async function haveSession(page: Page) {
   await page

@@ -277,6 +277,25 @@ One screen for HR to turn open staffing requests into approved workers.
 - **What if:** a start-date field re-runs the forecast; "Back to project start" returns. The date is in the
   address bar. Reserve transfers and Raise recruitment request are the next slice and are not shown yet.
 
+### Home widgets and Customize (HR, MD/CEO)
+- **Fixed above, flexible below.** The hero and the four KPI tiles never move. Everything under them is a widget in a
+  3-column grid (one column on a phone). Each widget has a fixed width of 1, 2 or 3 columns; people change the order,
+  not the size.
+- **Default layout.** HR: Documents running out, Where everyone is, Documents to deal with first, Projects planned and
+  deployed, People by trade, People not available, Leaving soon, Recruitment pipeline. MD/CEO: Projects chart, Where
+  everyone is, Projects table, Recruitment pipeline, Leaving soon; People by trade is off until asked for.
+- **Customize** (a quiet button above the widgets) switches the grid into edit mode. Each widget gets a slim bar above
+  it with a drag handle, its title and a Hide button; the widget itself is inert while editing, so a chart is never
+  clicked by accident. The bar sits above the widget and never covers anything in its header. Hidden widgets are listed
+  below with a Show button (shown ones go to the end). Done saves; Reset to default restores ours; Cancel discards.
+  A failed save keeps the changes on screen and says why.
+- **Dragging.** Mouse and touch (the handle only, after 6 px); keyboard: focus the handle, Space, arrow keys, Space.
+  Screen readers hear "Picked up ..., position 3 of 8" and "Dropped ... in position 1 of 8". Motion is off when the
+  person asks for reduced motion.
+- **Loading.** Widgets that load their own data show a skeleton, an empty state and an error with Retry. A hidden
+  widget costs no request.
+- **Not built, on purpose:** nationality mix (no data), headcount trend (no leaver history), per-trade shortage (the seed's
+  trade mix does not match the project plans, so it would disagree with the project totals), a team-wide default set by HR.
 ### Reserve, raise a request and Recruitment (HR)
 - **On each trade card** three buttons: Show people, **Reserve people**, **Raise recruitment request**. Without the
   permission a button is disabled with its reason (tooltip and the line "Some actions need the HR Manager"); it is never

@@ -272,3 +272,39 @@ test("Reserve: HR holds the masons for RAK-07, and the forecast moves them to Al
     .click();
   await expect(mason.getByRole("heading", { name: "Reserved (9)" })).toBeVisible();
 });
+
+test("Home: the real widgets show real numbers, and a person's layout is saved for them only", async ({
+  page,
+  browser,
+}) => {
+  await signInAs(page, /HR Manager/);
+  const widget = (id: string) => page.locator(`[data-widget="${id}"]`);
+  await expect(widget("leaving").getByText("Nabin Magar")).toBeVisible();
+  await expect(widget("leaving").getByText("Contract 15 Mar 2027")).toBeVisible();
+  await expect(widget("pipeline").getByText("3 arrive late")).toBeVisible(); // 1 labourer + 2 masons
+  await expect(widget("by_trade").getByRole("img", { name: /Steel fixer 37/ })).toBeVisible();
+  await expect(widget("unavailable").getByText("8 on leave or medical")).toBeVisible();
+
+  await page.getByRole("button", { name: "Customize" }).click();
+  await page.getByRole("button", { name: "Hide Where everyone is" }).click();
+  await page.getByRole("button", { name: "Done" }).click();
+  await expect(page.getByText("Your layout was saved.")).toBeVisible();
+  await page.reload();
+  await expect(widget("expiry")).toBeVisible();
+  await expect(widget("workforce")).toHaveCount(0); // still hidden after a reload
+
+  // Another person on another browser is not affected.
+  const other = await browser.newPage();
+  await other.goto("/login");
+  await other.getByRole("button", { name: /HR Executive/ }).click();
+  await expect(other.locator('[data-widget="workforce"]')).toBeVisible();
+  await other.close();
+
+  // Put it back, so the demo is as we found it.
+  await page.getByRole("button", { name: "Customize" }).click();
+  await page.getByRole("button", { name: "Reset to default" }).click();
+  await page.getByRole("button", { name: "Done" }).click();
+  await expect(page.getByText("Your layout was saved.")).toBeVisible();
+  await page.reload();
+  await expect(widget("workforce")).toBeVisible();
+});

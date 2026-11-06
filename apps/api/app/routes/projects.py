@@ -24,6 +24,7 @@ from app.schemas import (
     ProjectRow,
     Summary,
     Trade,
+    TradeStrength,
     WorkforceCounts,
 )
 
@@ -148,6 +149,37 @@ def create_project(
         )  # fmt: skip
     write_audit(session, request, "project.created", "project", user, entity_id=project_id)
     return next(p for p in _projects(session, user) if p.code == project_code)
+
+
+@router.get("/summary/trades")
+def summary_by_trade(
+    session: SessionDep,
+    user: Annotated[AuthUser, Depends(require("employee:read"))],
+) -> list[TradeStrength]:
+    """People by trade and availability, inside the caller's scope."""
+    scope_sql, params = employee_scope(user, "employee:read")
+    people: dict[str, TradeStrength] = {}
+    for r in session.execute(
+        text(
+            f"""SELECT t.name AS trade, t.category AS grp, e.availability::text AS availability,
+                       count(*) AS n
+                FROM employees e JOIN trades t ON t.id = e.primary_trade_id
+                WHERE ({scope_sql}) GROUP BY 1, 2, 3"""  # noqa: S608
+        ),
+        params,
+    ).mappings():
+        row = people.setdefault(
+            r["trade"],
+            TradeStrength(
+                trade=r["trade"], group=r["grp"], deployed=0, mobilizing=0, available=0,
+                unavailable=0, total=0,
+            ),
+        )  # fmt: skip
+        n = int(r["n"])
+        row.total += n
+        if r["availability"] in ("deployed", "mobilizing", "available", "unavailable"):
+            setattr(row, r["availability"], getattr(row, r["availability"]) + n)
+    return sorted(people.values(), key=lambda t: (-t.total, t.trade))
 
 
 @router.get("/summary")
