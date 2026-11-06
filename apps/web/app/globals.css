@@ -114,6 +114,26 @@ body {
   animation: menu-out 100ms var(--ease-out) forwards;
 }
 
+/* Sign-in page lines: each one is drawn in, then erased, and ends invisible so the loop has no seam.
+   Only stroke-dashoffset and stroke-opacity change (never `opacity`, which is costly on SVG). */
+@keyframes flow-line {
+  0% {
+    stroke-dashoffset: 1;
+    stroke-opacity: 0;
+  }
+  15%,
+  85% {
+    stroke-opacity: var(--flow-alpha);
+  }
+  100% {
+    stroke-dashoffset: -1;
+    stroke-opacity: 0;
+  }
+}
+.flow-line {
+  animation: flow-line var(--flow-duration, 26s) linear infinite;
+}
+
 /* Loading skeleton shimmer: the only looping animation allowed, and only while loading. */
 @keyframes shimmer {
   from {

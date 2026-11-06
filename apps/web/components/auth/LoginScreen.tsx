@@ -4,10 +4,10 @@ import { Eye, EyeOff, Loader2, TriangleAlert } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { AlhamraWordmark } from "@/components/brand/Logo";
-import { HeroImage } from "@/components/brand/HeroImage";
+import { FlowingLines } from "@/components/brand/FlowingLines";
+import { Reveal } from "@/components/motion/Reveal";
 import { api, ApiError, safeNext } from "@/lib/api";
 import type { DemoRole } from "@/lib/api-types";
-import { useDayPeriod } from "@/lib/use-day-period";
 import { cn } from "@/lib/utils";
 import { useAuth } from "./AuthProvider";
 
@@ -28,6 +28,22 @@ function formatCountdown(seconds: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+/** One short side-to-side shake (180ms) when a sign-in is refused. Skipped for reduced motion. */
+function shake(element: HTMLElement | null) {
+  if (!element || typeof element.animate !== "function") return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  element.animate(
+    [
+      { transform: "translateX(0)" },
+      { transform: "translateX(-6px)" },
+      { transform: "translateX(5px)" },
+      { transform: "translateX(-3px)" },
+      { transform: "translateX(0)" },
+    ],
+    { duration: 180, easing: "ease-out" },
+  );
+}
+
 const INPUT =
   "h-10 w-full rounded-control border border-border-strong bg-surface px-3 text-base text-fg placeholder:text-subtle transition-colors hover:border-subtle aria-invalid:border-danger focus-visible:border-accent";
 
@@ -37,7 +53,7 @@ export function LoginScreen() {
   const next = safeNext(params.get("next"));
   const notice = NOTICES[params.get("reason") ?? ""];
   const { status, signIn, demoSignIn } = useAuth();
-  const period = useDayPeriod();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const emailId = useId();
   const passwordId = useId();
@@ -108,6 +124,7 @@ export function LoginScreen() {
         setNow(Date.now());
         setFormError("Too many attempts.");
       } else if (error instanceof ApiError && error.status === 401) {
+        shake(formRef.current);
         setFormError("Email or password is not right.");
         setPassword("");
         passwordRef.current?.focus();
@@ -136,25 +153,28 @@ export function LoginScreen() {
   const busy = submitting || locked;
 
   return (
-    <main className="grid min-h-screen lg:grid-cols-[minmax(0,1.15fr)_minmax(420px,1fr)]">
-      <HeroImage
-        period={period}
-        priority
-        overlay="both"
-        sizes="(min-width: 1024px) 58vw, 100vw"
-        className="flex min-h-44 flex-col justify-between p-6 text-(--on-photo) lg:min-h-screen lg:p-12"
-      >
-        <AlhamraWordmark className="h-12 w-auto max-w-72 lg:h-16" />
-        <div className="hidden max-w-md lg:block">
-          <p className="text-2xl leading-8 font-semibold">CONSTRUCTIQ</p>
-          <p className="mt-2 text-base text-(--photo-caption)">
+    <main className="grid min-h-screen lg:grid-cols-2">
+      <div className="relative isolate flex min-h-44 flex-col justify-end overflow-hidden bg-(--sb-bg) p-6 text-(--sb-text) lg:min-h-screen lg:p-12">
+        <FlowingLines />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-(--sb-bg)/70"
+        />
+        <div className="relative z-10 flex flex-col gap-3">
+          <AlhamraWordmark className="h-12 w-auto max-w-72 lg:h-16" />
+          <p className="text-sm font-semibold tracking-[0.24em]">CONSTRUCTIQ</p>
+          <p className="hidden max-w-sm text-base text-(--sb-muted) lg:block">
             Workforce operations for Alhamra Construction &amp; Development.
           </p>
         </div>
-      </HeroImage>
-
-      <section className="flex items-center justify-center bg-surface px-6 py-10 lg:px-12">
-        <div className="w-full max-w-sm">
+      </div>
+      <section className="relative flex items-center justify-center overflow-hidden bg-surface px-6 py-10 lg:px-12">
+        {/* A soft light in the top-right corner, drawn from the text colour so it works in both themes. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-48 -right-40 size-130 rounded-full bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--text)_7%,transparent),transparent)]"
+        />
+        <Reveal index={0} className="relative w-full max-w-sm">
           <h1 className="text-xl leading-8 font-semibold">Sign in</h1>
           <p className="mt-1 text-sm text-muted">Use your CONSTRUCTIQ account.</p>
 
@@ -167,7 +187,7 @@ export function LoginScreen() {
             </p>
           )}
 
-          <form onSubmit={onSubmit} noValidate className="mt-6 flex flex-col gap-4">
+          <form ref={formRef} onSubmit={onSubmit} noValidate className="mt-6 flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label htmlFor={emailId} className="text-sm font-medium">
                 Email
@@ -308,7 +328,7 @@ export function LoginScreen() {
           <p className="mt-8 text-xs text-subtle">
             Need access or a new password? Ask your administrator.
           </p>
-        </div>
+        </Reveal>
       </section>
     </main>
   );

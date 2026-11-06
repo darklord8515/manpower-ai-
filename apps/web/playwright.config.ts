@@ -5,6 +5,9 @@ const PORT = 3100;
 export default defineConfig({
   testDir: "./e2e",
   outputDir: "./test-results",
+  // The dev server compiles each page the first time it is opened (charts take a while), so a
+  // test that is first to open a page needs more than the default 30 seconds.
+  timeout: 60_000,
   // The first request to a page also compiles it in dev, so give assertions headroom.
   expect: { timeout: 10_000 },
   fullyParallel: true,
