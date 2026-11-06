@@ -24,6 +24,14 @@ class LoginThrottle:
     def blocked(self, email: str, now: float | None = None) -> bool:
         return len(self._recent(email.lower(), time.time() if now is None else now)) >= MAX_FAILURES
 
+    def retry_after(self, email: str, now: float | None = None) -> int:
+        """Seconds until the oldest counted failure leaves the window (0 when not blocked)."""
+        moment = time.time() if now is None else now
+        failures = self._recent(email.lower(), moment)
+        if len(failures) < MAX_FAILURES:
+            return 0
+        return max(1, int(failures[0] + WINDOW_SECONDS - moment) + 1)
+
     def fail(self, email: str, now: float | None = None) -> None:
         moment = time.time() if now is None else now
         self._recent(email.lower(), moment).append(moment)

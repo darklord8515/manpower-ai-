@@ -21,6 +21,7 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         "/docs",
         "/docs/oauth2-redirect",
         "/redoc",
+        "/auth/config",
         "/auth/login",
         "/auth/demo-login",  # answers 404 unless DEMO_MODE is on
     }

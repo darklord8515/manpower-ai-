@@ -110,8 +110,19 @@ class WorkforceCounts(BaseModel):
     unavailable: int
 
 
+class ExpiryWeek(BaseModel):
+    week_start: date
+    count: int
+
+
 class Summary(BaseModel):
     today: date
     workforce: WorkforceCounts
     documents: ExpiryCounts
+    expiry_by_week: list[ExpiryWeek]  # 13 weeks (90 days) from today
+    short_total: int  # people short across active projects (planned minus deployed)
     projects: list[ProjectRow]
+
+
+class PublicConfig(BaseModel):
+    demo_mode: bool

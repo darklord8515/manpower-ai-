@@ -53,5 +53,5 @@ def test_declared_permissions_look_like_resource_colon_action() -> None:
 def test_the_public_list_is_short_and_known() -> None:
     assert {
         "/health", "/openapi.json", "/docs", "/docs/oauth2-redirect", "/redoc",
-        "/auth/login", "/auth/demo-login",
+        "/auth/config", "/auth/login", "/auth/demo-login",
     } == PUBLIC_PATHS  # fmt: skip

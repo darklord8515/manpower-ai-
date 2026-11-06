@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
@@ -13,7 +14,7 @@ from app.auth.scope import employee_scope, full_profile
 from app.clock import Clock
 from app.db import get_session
 from app.routes.documents import expiring
-from app.schemas import ExpiryCounts, ProjectRow, Summary, WorkforceCounts
+from app.schemas import ExpiryCounts, ExpiryWeek, ProjectRow, Summary, WorkforceCounts
 
 router = APIRouter(tags=["projects"])
 
@@ -92,4 +93,31 @@ def summary(
         else ExpiryCounts(expired=0, d30=0, d60=0, d90=0)
     )
     projects = _projects(session, user) if user.can("project:read") else []
-    return Summary(today=clock.today(), workforce=workforce, documents=documents, projects=projects)
+    today = clock.today()
+    return Summary(
+        today=today,
+        workforce=workforce,
+        documents=documents,
+        expiry_by_week=_expiry_by_week(session, user, today),
+        short_total=sum(max(p.planned - p.deployed, 0) for p in projects if p.status == "active"),
+        projects=projects,
+    )
+
+
+def _expiry_by_week(session: Session, user: AuthUser, today: date) -> list[ExpiryWeek]:
+    weeks = [ExpiryWeek(week_start=today + timedelta(days=7 * i), count=0) for i in range(13)]
+    if not full_profile(user):
+        return weeks
+    scope_sql, params = employee_scope(user, "employee:read")
+    rows = session.execute(
+        text(
+            f"""SELECT (d.expiry_date - :today) / 7 AS week, count(*)
+                FROM employee_documents d JOIN employees e ON e.id = d.employee_id
+                WHERE d.is_current AND d.expiry_date - :today BETWEEN 0 AND 90 AND ({scope_sql})
+                GROUP BY 1"""
+        ),
+        {**params, "today": today},
+    )
+    for week, count in rows:
+        weeks[int(week)].count = int(count)
+    return weeks

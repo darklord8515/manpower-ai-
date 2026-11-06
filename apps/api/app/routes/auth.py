@@ -13,7 +13,7 @@ from app.auth.deps import AuthUser, authenticated, load_user
 from app.auth.throttle import LoginThrottle
 from app.config import AppEnv, Settings, get_settings
 from app.db import get_session
-from app.schemas import DemoLoginRequest, LoginRequest, Me
+from app.schemas import DemoLoginRequest, LoginRequest, Me, PublicConfig
 from app.security import SESSION_COOKIE, SESSION_SECONDS, create_session_token, verify_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -55,6 +55,12 @@ def _me(session: Session, user: AuthUser, settings: Settings) -> Me:
     )
 
 
+@router.get("/config")
+def public_config(settings: SettingsDep) -> PublicConfig:
+    """What the sign-in page may know before anyone signs in."""
+    return PublicConfig(demo_mode=settings.demo_mode)
+
+
 @router.post("/login")
 def login(
     body: LoginRequest,
@@ -66,7 +72,9 @@ def login(
     email = body.email.strip().lower()
     if throttle.blocked(email):
         raise HTTPException(
-            status.HTTP_429_TOO_MANY_REQUESTS, "Too many attempts. Try again later."
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Too many attempts. Try again later.",
+            headers={"Retry-After": str(throttle.retry_after(email))},
         )
     row = session.execute(
         text("SELECT id, password_hash FROM users WHERE email = :email AND is_active"),

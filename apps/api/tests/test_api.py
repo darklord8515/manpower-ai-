@@ -403,3 +403,39 @@ def test_the_real_clock_is_used_when_the_simulated_one_is_off(
     client = make_client(simulated_clock=False)
     sign_in(client, HR_MANAGER)
     assert client.get("/summary").json()["today"] == date.today().isoformat()
+
+
+def test_the_sign_in_page_can_ask_whether_demo_accounts_are_on(
+    make_client: Callable[..., TestClient],
+) -> None:
+    assert make_client().get("/auth/config").json() == {"demo_mode": True}
+    assert make_client(demo_mode=False).get("/auth/config").json() == {"demo_mode": False}
+
+
+def test_a_locked_out_email_is_told_how_long_to_wait(client: TestClient) -> None:
+    for _ in range(5):
+        client.post("/auth/login", json={"email": HR_EXECUTIVE, "password": "wrong"})
+    blocked = client.post("/auth/login", json={"email": HR_EXECUTIVE, "password": PASSWORD})
+    assert blocked.status_code == 429
+    assert 800 <= int(blocked.headers["retry-after"]) <= 901  # about 15 minutes
+
+
+def test_the_summary_has_a_90_day_weekly_series_and_the_shortfall(client: TestClient) -> None:
+    sign_in(client, HR_MANAGER)
+    summary = client.get("/summary").json()
+    weeks = summary["expiry_by_week"]
+    assert len(weeks) == 13 and weeks[0]["week_start"] == SEED_TODAY.isoformat()
+    assert weeks[1]["week_start"] == "2026-11-12"
+    assert sum(w["count"] for w in weeks) == 36  # 8 + 11 + 17 running out within 90 days
+    assert (
+        summary["short_total"] == 3 + 0 + 8 + 0 + 1 + 6
+    )  # planned minus deployed, active projects
+
+
+def test_the_shortfall_is_zero_for_a_narrow_projection(
+    client: TestClient, migrated_db: Engine
+) -> None:
+    add_user(migrated_db, "logistics2@constructiq.test", "logistics_coordinator")
+    sign_in(client, "logistics2@constructiq.test")
+    weeks = client.get("/summary").json()["expiry_by_week"]
+    assert all(w["count"] == 0 for w in weeks)
