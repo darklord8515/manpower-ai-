@@ -26,6 +26,7 @@ from app.seed.data import (
     NAMED_EXITS,
     PROJECTS,
     RECRUITMENT,
+    REQUESTS,
     SEED_TODAY,
     TRADE_GROUPS,
 )
@@ -52,6 +53,13 @@ _RESET_ORDER = (
     "employee_assignments",
     "employee_documents",
     "employee_skills",
+    "mobilization_tasks",
+    "mobilizations",
+    "staffing_request_picks",
+    "staffing_request_lines",
+    "approval_steps",
+    "approval_requests",
+    "staffing_requests",
     "recruitment_requests",
     "leave_records",
     "user_project_access",
@@ -338,3 +346,55 @@ def _load_workers(
             )
         ],
     )  # fmt: skip
+    _seed_requests(connection, demo_id("user", "hr_executive"), projects, trades)
+
+
+def _seed_requests(
+    connection: Connection,
+    requester: uuid.UUID,
+    projects: dict[str, uuid.UUID],
+    trades: dict[str, uuid.UUID],
+) -> None:
+    """The open requests the Allocation Board starts with, each with its approval waiting."""
+    for n, (project, first, last, priority, note, lines) in enumerate(REQUESTS, start=1):
+        request_id = demo_id("request", project)
+        request_no = f"SR-2026-{n:04d}"
+        connection.execute(
+            text(
+                """INSERT INTO staffing_requests
+                       (id, request_no, project_id, requested_by, needed_from, needed_until,
+                        priority, status, source_text, is_demo)
+                   VALUES (:id, :no, :project, :user, :first, :last, :priority, 'submitted',
+                           :note, true)"""
+            ),
+            {"id": request_id, "no": request_no, "project": projects[project], "user": requester,
+             "first": first, "last": last, "priority": priority, "note": note},
+        )  # fmt: skip
+        for trade, headcount, level in lines:
+            connection.execute(
+                text(
+                    """INSERT INTO staffing_request_lines
+                           (request_id, trade_id, headcount, min_level)
+                       VALUES (:request, :trade, :headcount, :level)"""
+                ),
+                {"request": request_id, "trade": trades[trade], "headcount": headcount,
+                 "level": level},
+            )  # fmt: skip
+        people = sum(line[1] for line in lines)
+        approval_id = demo_id("approval", request_no)
+        connection.execute(
+            text(
+                """INSERT INTO approval_requests
+                       (id, subject_type, subject_id, requested_by, summary)
+                   VALUES (:id, 'staffing_request', :request, :user, :summary)"""
+            ),
+            {"id": approval_id, "request": request_id, "user": requester,
+             "summary": f"{request_no}: {people} people for {project} from {first:%d %b %Y}"},
+        )  # fmt: skip
+        connection.execute(
+            text(
+                """INSERT INTO approval_steps (approval_id, step_no, role_id)
+                   SELECT :approval, 1, id FROM roles WHERE code = 'hr_manager'"""
+            ),
+            {"approval": approval_id},
+        )

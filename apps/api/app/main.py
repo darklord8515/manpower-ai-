@@ -18,6 +18,7 @@ from app.routes import (
     preferences,
     projects,
     recruitment,
+    requests,
     reservations,
     workers,
 )
@@ -91,6 +92,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(preferences.router)
     app.include_router(reservations.router)
     app.include_router(recruitment.router)
+    app.include_router(requests.router)
     return app
 
 

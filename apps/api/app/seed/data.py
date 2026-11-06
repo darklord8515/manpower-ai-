@@ -223,3 +223,15 @@ LEAVES: tuple[tuple[str, str, date, date], ...] = (
     ("RAK-01", "Mason", date(2027, 2, 1), date(2027, 2, 28)),
     ("RAK-05", "Mason", date(2027, 2, 10), date(2027, 3, 10)),
 )
+
+# Open staffing requests raised by the HR Executive, for the Allocation Board:
+# (project, from, until, priority, note, ((trade, headcount, minimum level), ...)).
+# SR-2026-0001 asks for 7 steel fixers: 7 people are cleared, 3 are left out with a reason (two visas
+# end first, one is resigning). SR-2026-0002 asks for 3 carpenters but only 2 are free, so it shows
+# a partial fill.
+REQUESTS: tuple[tuple[str, date, date, int, str, tuple[tuple[str, int, int], ...]], ...] = (
+    ("RAK-03", date(2026, 11, 8), date(2027, 2, 3), 2,
+     "Steel fixers for the Block B slab, from Sunday", (("Steel fixer", 7, 2),)),
+    ("RAK-06", date(2026, 11, 16), date(2027, 3, 31), 3,
+     "Carpenters for the warehouse units", (("Carpenter", 3, 3),)),
+)  # fmt: skip

@@ -49,6 +49,7 @@ CREATE TYPE run_status         AS ENUM ('running', 'succeeded', 'failed', 'refus
 CREATE TYPE recruitment_status AS ENUM ('open', 'sourcing', 'offer_issued', 'visa_processing', 'arrived',
                                         'filled', 'cancelled');
 CREATE TYPE recruit_source     AS ENUM ('local', 'overseas');
+CREATE TYPE line_status        AS ENUM ('open', 'approved', 'rejected');
 CREATE TYPE alert_type         AS ENUM ('upcoming_shortfall', 'ending_without_next', 'document_expiry',
                                         'mobilization_stuck', 'transfer_dependency_broken',
                                         'approval_waiting', 'midday_ban_conflict');
@@ -284,8 +285,30 @@ CREATE TABLE staffing_request_lines (
     headcount   integer NOT NULL CHECK (headcount > 0),
     min_level   smallint CHECK (min_level BETWEEN 1 AND 5),
     filled      integer NOT NULL DEFAULT 0 CHECK (filled >= 0),
-    CHECK (filled <= headcount)
+    status      line_status NOT NULL DEFAULT 'open',
+    decided_by  uuid REFERENCES users(id),
+    decided_at  timestamptz,
+    decision_reason text,                        -- why a line was rejected (at least 10 characters)
+    CHECK (filled <= headcount),
+    CONSTRAINT staffing_request_lines_reject_reason_check
+        CHECK (status <> 'rejected' OR length(btrim(coalesce(decision_reason, ''))) >= 10)
 );
+
+-- Who HR has chosen on a line before it is approved, and who was taken off and why. The line's
+-- approved people are the assignments that carry its request_line_id.
+CREATE TABLE staffing_request_picks (
+    id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    line_id       uuid NOT NULL REFERENCES staffing_request_lines(id) ON DELETE CASCADE,
+    employee_id   uuid NOT NULL REFERENCES employees(id),
+    source        text NOT NULL DEFAULT 'hr' CHECK (source IN ('hr', 'rules', 'agent')),
+    reason        text,                          -- one line on why this person
+    picked_by     uuid NOT NULL REFERENCES users(id),
+    removed_reason text,                         -- set = taken off the line (Restore clears it)
+    created_at    timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (line_id, employee_id)
+);
+CREATE INDEX staffing_request_picks_employee_idx ON staffing_request_picks (employee_id)
+    WHERE removed_reason IS NULL;
 
 CREATE TABLE employee_assignments (
     id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -723,6 +746,8 @@ FROM (VALUES
  ('hr_manager','rules:write','all'), ('hr_manager','ai:use','all'),
  -- HR plans the work: it adds new projects and their manpower requirements.
  ('hr_manager','project:write','all'),
+ -- HR raises and prepares staffing requests; the HR Manager approves them (nobody approves their own).
+ ('hr_manager','staffing:create','all'),
 
  ('hr_executive','employee:read','all'), ('hr_executive','employee:write','all'),
  ('hr_executive','document:verify','all'), ('hr_executive','document:upload','all'),
@@ -731,6 +756,7 @@ FROM (VALUES
  ('hr_executive','forecast:read','all'), ('hr_executive','recruitment:read','all'),
  ('hr_executive','alert:read','all'), ('hr_executive','alert:act','all'),
  ('hr_executive','project:write','all'),
+ ('hr_executive','staffing:create','all'),
 
  ('project_manager','employee:read','project'), ('project_manager','project:read','project'),
  ('project_manager','staffing:read','project'), ('project_manager','staffing:create','project'),

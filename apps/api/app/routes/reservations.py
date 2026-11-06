@@ -28,6 +28,7 @@ from app.schemas import (
     ReserveResponse,
     ReserveResult,
 )
+from app.services.assignments import plan_assignment
 from app.services.forecast import ForecastError, forecast_project
 
 router = APIRouter(tags=["reservations"])
@@ -108,28 +109,16 @@ def reserve_people(
         first_day = max(forecast.start, ends_on + timedelta(days=1)) if ends_on else forecast.start
         try:
             with session.begin_nested():
-                session.execute(
-                    text(
-                        """INSERT INTO employee_assignments
-                               (employee_id, project_id, period, status, depends_on_assignment_id,
-                                approved_by, approved_at)
-                           SELECT e.id, :project_id, daterange(:first, :last, '[)'), 'planned',
-                                  (SELECT a.id FROM employee_assignments a
-                                   JOIN projects p ON p.id = a.project_id
-                                   WHERE a.employee_id = e.id AND p.code = :from_project
-                                     AND a.status IN ('planned', 'active')
-                                     AND upper(a.period) = :after_last
-                                   LIMIT 1),
-                                  :approver, now()
-                           FROM employees e WHERE e.employee_code = :code"""
-                    ),
-                    {
-                        "project_id": project["id"], "first": first_day, "last": last_exclusive,
-                        "from_project": from_project,
-                        "after_last": ends_on + timedelta(days=1) if ends_on else None,
-                        "approver": user.id, "code": employee_code,
-                    },
-                )  # fmt: skip
+                plan_assignment(
+                    session,
+                    employee_code=employee_code,
+                    project_id=project["id"],
+                    first_day=first_day,
+                    last_exclusive=last_exclusive,
+                    approver_id=user.id,
+                    from_project=from_project,
+                    after_last=ends_on + timedelta(days=1) if ends_on else None,
+                )
         except IntegrityError:
             results.append(
                 ReserveResult(

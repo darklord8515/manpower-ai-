@@ -12,21 +12,17 @@ from __future__ import annotations
 
 import uuid
 from collections import defaultdict
-from dataclasses import dataclass
 from datetime import date, timedelta
-from typing import Any, Literal
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.auth.deps import AuthUser
 from app.config import Settings
-from app.labels import EXIT_LABEL, OPEN_STAGES, document_label, stage_label, stage_phrase
+from app.labels import OPEN_STAGES, stage_label, stage_phrase
 from app.schemas import (
     Advice,
     Arrival,
-    Candidate,
-    ExcludedWorker,
     ForecastProject,
     ForecastSource,
     LateCandidate,
@@ -34,6 +30,7 @@ from app.schemas import (
     ReservedWorker,
     TradeForecast,
 )
+from app.services.cover import classify, load_world
 
 
 class ForecastError(ValueError):
@@ -44,28 +41,8 @@ def _day(value: date) -> str:
     return f"{value.day} {value:%b %Y}"
 
 
-ExcludedReason = Literal["on_leave", "documents", "already_reserved", "unavailable", "leaving"]
-
-
-def _excluded(person: Any, reason: ExcludedReason, detail: str) -> ExcludedWorker:
-    return ExcludedWorker(code=person["code"], name=person["name"], reason=reason, detail=detail)
-
-
 def _days(n: int) -> str:
     return f"{n} day" if n == 1 else f"{n} days"
-
-
-@dataclass
-class _Assignment:
-    project_id: uuid.UUID
-    project_code: str
-    status: str
-    first: date
-    after_last: date | None  # None = open-ended
-
-    @property
-    def last_day(self) -> date | None:
-        return None if self.after_last is None else self.after_last - timedelta(days=1)
 
 
 def project_is_visible(user: AuthUser, project_id: uuid.UUID) -> bool:
@@ -124,80 +101,7 @@ def forecast_project(
     )
     trade_ids = [n["id"] for n in needs]
 
-    people = (
-        session.execute(
-            text(
-                """SELECT e.id, e.employee_code AS code, e.full_name AS name,
-                          e.primary_trade_id AS trade_id, e.availability::text AS availability,
-                          e.contract_end_on, e.exit_on, e.exit_reason::text AS exit_reason,
-                          es.level
-                   FROM employees e
-                   LEFT JOIN employee_skills es
-                          ON es.employee_id = e.id AND es.trade_id = e.primary_trade_id
-                   WHERE e.primary_trade_id = ANY(:trades)
-                     AND e.employment_status NOT IN
-                         ('resigned', 'terminated', 'suspended', 'absconded')
-                   ORDER BY e.employee_code"""
-            ),
-            {"trades": trade_ids},
-        )
-        .mappings()
-        .all()
-    )
-    ids = [p["id"] for p in people]
-
-    assignments: dict[uuid.UUID, list[_Assignment]] = defaultdict(list)
-    for r in session.execute(
-        text(
-            """SELECT a.employee_id, a.project_id, pr.code AS project_code,
-                      a.status::text AS status,
-                      lower(a.period) AS first, upper(a.period) AS after_last
-               FROM employee_assignments a JOIN projects pr ON pr.id = a.project_id
-               WHERE a.employee_id = ANY(:ids) AND a.status IN ('planned', 'active')
-                 AND (upper(a.period) IS NULL OR upper(a.period) > :today)"""
-        ),
-        {"ids": ids, "today": today},
-    ).mappings():
-        assignments[r["employee_id"]].append(
-            _Assignment(
-                r["project_id"], r["project_code"], r["status"], r["first"], r["after_last"]
-            )
-        )
-
-    on_leave: dict[uuid.UUID, tuple[date, date]] = {}
-    for r in session.execute(
-        text(
-            """SELECT employee_id, lower(period) AS first, upper(period) AS after_last
-               FROM leave_records
-               WHERE approved AND employee_id = ANY(:ids)
-                 AND period && daterange(:start, :end, '[)')"""
-        ),
-        {"ids": ids, "start": start, "end": window_end},
-    ).mappings():
-        on_leave[r["employee_id"]] = (r["first"], r["after_last"] - timedelta(days=1))
-
-    required = settings.required_document_types
-    documents: dict[uuid.UUID, dict[str, tuple[date | None, str]]] = defaultdict(dict)
-    for r in session.execute(
-        text(
-            """SELECT employee_id, doc_type::text AS doc_type, expiry_date, status::text AS status
-               FROM employee_documents
-               WHERE employee_id = ANY(:ids) AND is_current AND doc_type::text = ANY(:types)"""
-        ),
-        {"ids": ids, "types": required},
-    ).mappings():
-        documents[r["employee_id"]][r["doc_type"]] = (r["expiry_date"], r["status"])
-
-    def document_problem(employee_id: uuid.UUID) -> str | None:
-        """Why the required documents do not cover the window, or None when they do."""
-        held = documents[employee_id]
-        for doc_type in required:
-            expiry, status = held.get(doc_type, (None, "missing"))
-            if status != "verified" or expiry is None:
-                return f"{document_label(doc_type)} is not verified"
-            if expiry < window_end:
-                return f"{document_label(doc_type)} ends {_day(expiry)}"
-        return None
+    world = load_world(session, trade_ids, today, start, window_end, settings)
 
     already = {
         r["trade_id"]: int(r["n"])
@@ -258,96 +162,11 @@ def forecast_project(
             )
         )
 
-    by_trade: dict[uuid.UUID, list[Any]] = defaultdict(list)
-    for person in people:
-        by_trade[person["trade_id"]].append(person)
-
     trades: list[TradeForecast] = []
     for need in needs:
-        available: list[Candidate] = []
-        ending: dict[tuple[str, date], list[Candidate]] = defaultdict(list)
-        late: list[LateCandidate] = []
-        excluded: list[ExcludedWorker] = []
-
-        for person in by_trade[need["id"]]:
-            mine = assignments[person["id"]]
-            if any(a.project_id == project["id"] for a in mine):
-                continue  # already on this project (counted in "already assigned")
-            problem = document_problem(person["id"])
-            candidate = Candidate(
-                code=person["code"],
-                name=person["name"],
-                level=person["level"],
-                documents_valid=problem is None,
-            )
-            if person["availability"] == "unavailable":
-                excluded.append(
-                    _excluded(person, "unavailable", "Not available (leave or medical)")
-                )
-                continue
-
-            # What the worker is doing during the cover window decides everything else.
-            overlapping = [
-                a
-                for a in mine
-                if a.first < window_end and (a.after_last is None or a.after_last > start)
-            ]
-            reserved = [a for a in overlapping if a.first > today]
-            if reserved:
-                a = reserved[0]
-                excluded.append(
-                    _excluded(
-                        person,
-                        "already_reserved",
-                        f"Planned on {a.project_code} from {_day(a.first)}",
-                    )
-                )
-                continue
-            if overlapping and any(a.last_day is None for a in overlapping):
-                continue  # an open-ended assignment never counts as ending
-            if overlapping:
-                latest = max(overlapping, key=lambda a: a.last_day or date.max)
-            elif mine:
-                latest = max(mine, key=lambda a: a.last_day or date.max)
-            else:
-                latest = None
-            if latest is None and person["availability"] != "available":
-                continue  # nothing on file and not marked available: not offered
-            last = latest.last_day if latest else None
-            if last is not None and last > start + timedelta(
-                days=settings.forecast_late_window_days
-            ):
-                continue  # busy well past the start
-
-            leaving = _leaving(person, window_end)
-            if leaving:
-                excluded.append(_excluded(person, "leaving", leaving))
-                continue
-            leave = on_leave.get(person["id"])
-            if leave:
-                excluded.append(
-                    _excluded(
-                        person, "on_leave", f"Approved leave {_day(leave[0])} to {_day(leave[1])}"
-                    )
-                )
-                continue
-            if latest is not None and last is not None and last > must_finish_by:
-                late.append(
-                    LateCandidate(
-                        **candidate.model_dump(),
-                        project_code=latest.project_code,
-                        ends_on=last,
-                        days_after_start=(last - start).days,
-                    )
-                )
-                continue
-            if problem:
-                excluded.append(_excluded(person, "documents", problem))
-                continue
-            if latest is None or last is None:
-                available.append(candidate)
-            else:
-                ending[(latest.project_code, last)].append(candidate)
+        classified = classify(world, need["id"], project["id"], today, settings)
+        available, ending = classified.available, classified.ending
+        late, excluded = classified.late, classified.excluded
         sources: list[ForecastSource] = []
         if available:
             sources.append(
@@ -429,22 +248,6 @@ def forecast_project(
         late_window_days=settings.forecast_late_window_days,
         trades=trades,
     )
-
-
-def _leaving(person: Any, window_end: date) -> str | None:
-    """Why this person will not be here for the whole cover window, or None.
-
-    An exit date or a contract end before the window closes means they cannot be counted on.
-    (A renewal is not modelled yet; until HR can edit employees the dates come from the data.)
-    """
-    exit_on: date | None = person["exit_on"]
-    if exit_on is not None and exit_on < window_end:
-        why = EXIT_LABEL.get(person["exit_reason"] or "other", "leaving")
-        return f"Leaving the company on {_day(exit_on)} ({why})"
-    contract_end: date | None = person["contract_end_on"]
-    if contract_end is not None and contract_end < window_end:
-        return f"Contract ends {_day(contract_end)}"
-    return None
 
 
 def _arrival_sentence(late: list[Arrival]) -> str:

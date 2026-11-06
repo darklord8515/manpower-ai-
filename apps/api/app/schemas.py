@@ -491,3 +491,237 @@ class TradeStrength(BaseModel):
     available: int
     unavailable: int
     total: int
+
+
+# --------------------------------------------------------------------------- requests and the board
+
+
+class Violation(BaseModel):
+    """A hard rule a person fails for a line: plain words first, the rule code beside it."""
+
+    rule: str
+    message: str
+
+
+class NewRequestLine(BaseModel):
+    trade: str = Field(min_length=1, max_length=60)  # trade code
+    headcount: int = Field(ge=1, le=500)
+    min_level: int | None = Field(default=None, ge=1, le=5)
+
+
+class NewRequest(BaseModel):
+    project: str = Field(min_length=1, max_length=20)  # project code
+    needed_from: date
+    needed_until: date | None = None
+    priority: int = Field(default=3, ge=1, le=5)
+    source_text: str | None = Field(default=None, max_length=1000)
+    lines: list[NewRequestLine] = Field(min_length=1, max_length=10)
+
+    @field_validator("source_text")
+    @classmethod
+    def _note(cls, value: str | None) -> str | None:
+        return (value.strip() or None) if value is not None else None
+
+    @model_validator(mode="after")
+    def _consistent(self) -> NewRequest:
+        if self.needed_until is not None and self.needed_until < self.needed_from:
+            raise ValueError("The end date must not be before the start date.")
+        trades = [line.trade for line in self.lines]
+        if len(set(trades)) != len(trades):
+            raise ValueError("Each trade can appear once.")
+        return self
+
+
+LineStatus = Literal["open", "approved", "rejected"]
+RequestStatus = Literal[
+    "draft", "submitted", "in_review", "approved", "partially_filled", "filled", "rejected",
+    "cancelled",
+]  # fmt: skip
+
+
+class LineSummary(BaseModel):
+    trade: str
+    headcount: int
+    filled: int  # approved people
+    chosen: int  # chosen but not yet approved
+    status: LineStatus
+
+
+class RequestRow(BaseModel):
+    request_no: str
+    project_code: str
+    project_name: str
+    needed_from: date
+    needed_until: date | None
+    priority: int
+    status: RequestStatus
+    requested_by: str
+    created_at: datetime
+    waiting_days: int
+    lines: list[LineSummary]
+
+
+class PickRow(BaseModel):
+    code: str
+    name: str
+    level: int | None
+    source: Literal["hr", "rules", "agent"]
+    reason: str | None
+    removed_reason: str | None
+    group: str | None  # free | finishing | late | reserved
+    from_project: str | None
+    starts_on: date | None
+    documents_until: date | None
+    violations: list[Violation]  # empty = still cleared; otherwise something changed since
+
+
+class ApprovedWorker(BaseModel):
+    code: str
+    name: str
+    starts_on: date
+    moving_from: str | None
+    mob_no: str | None
+
+
+class LineRow(BaseModel):
+    id: str
+    trade_code: str
+    trade: str
+    headcount: int
+    min_level: int | None
+    filled: int
+    status: LineStatus
+    decided_by: str | None
+    decided_at: datetime | None
+    decision_reason: str | None
+    picks: list[PickRow]
+    approved: list[ApprovedWorker]
+
+
+class RequestDetail(RequestRow):
+    project_status: str
+    source_text: str | None
+    requested_by_id: str
+    lines: list[LineRow]  # type: ignore[assignment]
+    can_approve: bool  # the caller may approve (and did not raise it)
+    approve_note: str | None  # why not, in words
+
+
+class BoardCandidate(BaseModel):
+    """The candidate projection: no phone, no document numbers."""
+
+    code: str
+    name: str
+    level: int | None
+    group: Literal["free", "finishing", "late", "reserved"]
+    from_project: str | None
+    ends_on: date | None  # their last day on the project they come from
+    starts_on: date
+    documents_valid: bool
+    picked: bool
+
+
+class BoardExcluded(BaseModel):
+    code: str
+    name: str
+    rule: str
+    message: str
+
+
+class LineCandidates(BaseModel):
+    candidates: list[BoardCandidate]
+    excluded: list[BoardExcluded]
+    open_slots: int
+    window_end: date
+
+
+class PicksRequest(BaseModel):
+    employee_codes: list[str] = Field(min_length=1, max_length=50)
+
+    @field_validator("employee_codes")
+    @classmethod
+    def _unique(cls, value: list[str]) -> list[str]:
+        return list(dict.fromkeys(c.strip() for c in value if c.strip()))
+
+
+class RemovePick(BaseModel):
+    employee_code: str = Field(min_length=1, max_length=20)
+    reason: str = Field(max_length=300)
+
+    @field_validator("reason")
+    @classmethod
+    def _reason(cls, value: str) -> str:
+        value = value.strip()
+        if len(value) < 3:
+            raise ValueError("Give a reason of at least 3 characters.")
+        return value
+
+
+class RestorePick(BaseModel):
+    employee_code: str = Field(min_length=1, max_length=20)
+
+
+class PickResult(BaseModel):
+    code: str
+    name: str
+    outcome: Literal["chosen", "refused"]
+    violations: list[Violation]
+
+
+class PicksResponse(BaseModel):
+    results: list[PickResult]
+    chosen: int
+
+
+class ApproveBody(BaseModel):
+    employee_codes: list[str] | None = None  # None = everyone chosen on the line
+    preview: bool = False
+
+
+class ApprovePerson(BaseModel):
+    code: str
+    name: str
+    starts_on: date
+    moving_from: str | None
+    moving_from_ends: date | None
+    becomes_mobilizing: bool
+    mob_no: str | None = None  # only after approving
+    violations: list[Violation] = []
+
+
+class ApproveResponse(BaseModel):
+    preview: bool
+    ok: bool
+    request_no: str
+    trade: str
+    people: list[ApprovePerson]
+    assignments: int
+    mobilizations: int
+    depend_on_other_jobs: int
+    filled_after: int
+    headcount: int
+    request_status_after: RequestStatus
+
+
+class RejectBody(BaseModel):
+    reason: str = Field(max_length=500)
+
+    @field_validator("reason")
+    @classmethod
+    def _reason(cls, value: str) -> str:
+        value = value.strip()
+        if len(value) < 10:
+            raise ValueError("Give a reason of at least 10 characters.")
+        return value
+
+
+class CancelBody(BaseModel):
+    reason: str = Field(max_length=500)
+
+    @field_validator("reason")
+    @classmethod
+    def _reason(cls, value: str) -> str:
+        value = value.strip()
+        if len(value) < 3:
+            raise ValueError("Give a reason of at least 3 characters.")
+        return value
