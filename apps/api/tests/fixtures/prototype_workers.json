@@ -1,0 +1,4802 @@
+[
+ {
+  "code": "EMP-0142",
+  "name": "Anil Kumar",
+  "trade": "Steel fixer",
+  "level": 4,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 50 100 1000",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-08-03",
+    "number": "784/2025/0112648"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-10-23",
+    "number": "784-1980-0217377-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-12-03",
+    "number": "MED-322106"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-01-13",
+    "number": "LC0426835"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0107",
+  "name": "Bikash Rai",
+  "trade": "Steel fixer",
+  "level": 4,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 51 137 8919",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-06-14",
+    "number": "784/2025/0120567"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-09-20",
+    "number": "784-1981-0225296-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-10-31",
+    "number": "MED-330025"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-12-11",
+    "number": "LC0434754"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0118",
+  "name": "Mohammed Salim",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 52 174 7838",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-05-20",
+    "number": "784/2025/0128486"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-09-12",
+    "number": "784-1982-0233215-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-10-23",
+    "number": "MED-337944"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-12-03",
+    "number": "LC0442673"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0125",
+  "name": "Suresh Nair",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 53 211 6757",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-03-30",
+    "number": "784/2025/0136405"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-08-09",
+    "number": "784-1983-0241134-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-09-19",
+    "number": "MED-345863"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-05-13",
+    "number": "LC0450592"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0131",
+  "name": "Joseph Mathew",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 54 248 5676",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-11",
+    "number": "784/2025/0144324"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-02-07",
+    "number": "784-1984-0249053-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-03-19",
+    "number": "MED-353782"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-11-11",
+    "number": "LC0458511"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0133",
+  "name": "Ramesh Yadav",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 55 285 4595",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-04-02",
+    "number": "784/2025/0152243"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-09-15",
+    "number": "784-1985-0256972-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-10-26",
+    "number": "MED-361701"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-06-19",
+    "number": "LC0466430"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0139",
+  "name": "Kamal Hossain",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 50 322 3514",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-07-19",
+    "number": "784/2025/0160162"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-01-18",
+    "number": "784-1986-0264891-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-09-11",
+    "number": "MED-369620"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-10-22",
+    "number": "LC0474349"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0146",
+  "name": "Dilip Gurung",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 51 359 2433",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-02-01",
+    "number": "784/2025/0168081"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-08-19",
+    "number": "784-1987-0272810-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-04-12",
+    "number": "MED-377539"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-05-23",
+    "number": "LC0482268"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0111",
+  "name": "Faisal Ahmed",
+  "trade": "Steel fixer",
+  "level": 4,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 52 396 1352",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-01-12",
+    "number": "784/2025/0176000"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-04-29",
+    "number": "784-1988-0280729-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-06-09",
+    "number": "MED-385458"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-07-20",
+    "number": "LC0490187"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0120",
+  "name": "Prakash Shrestha",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 53 433 9271",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2026-12-20",
+    "number": "784/2025/0183919"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-04-23",
+    "number": "784-1989-0288648-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-06-03",
+    "number": "MED-393377"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-07-14",
+    "number": "LC0498106"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0150",
+  "name": "Rajesh Thapa",
+  "trade": "Steel fixer",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 54 470 8190",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-10-01",
+    "number": "784/2025/0191838"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-12-21",
+    "number": "784-1980-0296567-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-01-31",
+    "number": "MED-401296"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-03-12",
+    "number": "LC0506025"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0152",
+  "name": "Nabin Magar",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 55 507 7109",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-11-30",
+    "number": "784/2025/0199757"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-03-07",
+    "number": "784-1981-0304486-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-04-17",
+    "number": "MED-409215"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-05-28",
+    "number": "LC0513944"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0170",
+  "name": "Ram Bahadur",
+  "trade": "General labour",
+  "level": 2,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 50 544 6028",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-06-01",
+    "number": "784/2025/0207676"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-09-24",
+    "number": "784-1982-0312405-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-11-04",
+    "number": "MED-417134"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-12-15",
+    "number": "LC0521863"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0171",
+  "name": "Abdul Karim",
+  "trade": "General labour",
+  "level": 1,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 51 581 4947",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-01-20",
+    "number": "784/2025/0215595"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-07-31",
+    "number": "784-1983-0320324-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-09-10",
+    "number": "MED-425053"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-05-04",
+    "number": "LC0529782"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0172",
+  "name": "Gopal Das",
+  "trade": "General labour",
+  "level": 2,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 52 618 3866",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-09",
+    "number": "784/2025/0223514"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-02-05",
+    "number": "784-1984-0328243-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-03-17",
+    "number": "MED-432972"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-11-09",
+    "number": "LC0537701"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0160",
+  "name": "Vinod Pillai",
+  "trade": "Electrician",
+  "level": 4,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 53 655 2785",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-12-01",
+    "number": "784/2025/0231433"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-05-15",
+    "number": "784-1985-0336162-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-06-25",
+    "number": "MED-440891"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-02-17",
+    "number": "LC0545620"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0161",
+  "name": "Sabin KC",
+  "trade": "Electrician",
+  "level": 3,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 54 692 1704",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-08-15",
+    "number": "784/2025/0239352"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-02-14",
+    "number": "784-1986-0344081-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-10-08",
+    "number": "MED-448810"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-11-18",
+    "number": "LC0553539"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0162",
+  "name": "Arif Hussain",
+  "trade": "Electrician",
+  "level": 3,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 55 729 9623",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-08-12",
+    "number": "784/2025/0247271"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-09-22",
+    "number": "784-1987-0352000-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-01-05",
+    "number": "MED-456729"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-06-26",
+    "number": "LC0561458"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0163",
+  "name": "Thomas Varghese",
+  "trade": "Electrician",
+  "level": 2,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 50 766 8542",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-05-05",
+    "number": "784/2025/0255190"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-06-21",
+    "number": "784-1988-0359919-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-08-01",
+    "number": "MED-464648"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-09-11",
+    "number": "LC0569377"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0180",
+  "name": "Sunil Perera",
+  "trade": "Carpenter",
+  "level": 3,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 51 803 7461",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-04-04",
+    "number": "784/2025/0263109"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-06-07",
+    "number": "784-1989-0367838-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-07-18",
+    "number": "MED-472567"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-08-28",
+    "number": "LC0577296"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0181",
+  "name": "Manoj Tamang",
+  "trade": "Carpenter",
+  "level": 3,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 52 840 6380",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-06-06",
+    "number": "784/2025/0271028"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-08-26",
+    "number": "784-1980-0375757-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-10-06",
+    "number": "MED-480486"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-11-16",
+    "number": "LC0585215"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0210",
+  "name": "Deepak Sharma",
+  "trade": "Mason",
+  "level": 3,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 53 877 5299",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-11-30",
+    "number": "784/2025/0278947"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-03-07",
+    "number": "784-1981-0383676-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-04-17",
+    "number": "MED-488405"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-05-28",
+    "number": "LC0593134"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0211",
+  "name": "Imtiaz Ahmed",
+  "trade": "Mason",
+  "level": 3,
+  "status": "available",
+  "project": null,
+  "reason": null,
+  "phone": "+971 54 914 4218",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-15",
+    "number": "784/2025/0286866"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-01-08",
+    "number": "784-1982-0391595-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-02-18",
+    "number": "MED-496324"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-03-30",
+    "number": "LC0601053"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0201",
+  "name": "Hari Lama",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 55 951 3137",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-08-01",
+    "number": "784/2025/0294785"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-12-11",
+    "number": "784-1983-0399514-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-01-21",
+    "number": "MED-504243"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-09-14",
+    "number": "LC0608972"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0202",
+  "name": "Bilal Khan",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 50 988 2056",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-10-10",
+    "number": "784/2025/0302704"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-03-07",
+    "number": "784-1984-0407433-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-04-17",
+    "number": "MED-512162"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-12-10",
+    "number": "LC0616891"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0220",
+  "name": "Ganesh Rai",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-05",
+  "reason": null,
+  "phone": "+971 51 125 9975",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-12-01",
+    "number": "784/2025/0310623"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-05-15",
+    "number": "784-1985-0415352-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-06-25",
+    "number": "MED-520081"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-02-17",
+    "number": "LC0624810"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0221",
+  "name": "Joseph Fernandes",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-05",
+  "reason": null,
+  "phone": "+971 52 162 8894",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-07-07",
+    "number": "784/2025/0318542"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-01-06",
+    "number": "784-1986-0423271-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-08-30",
+    "number": "MED-528000"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-10-10",
+    "number": "LC0632729"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0230",
+  "name": "Asif Raza",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 53 199 7813",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-12-12",
+    "number": "784/2025/0326461"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-06-29",
+    "number": "784-1987-0431190-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-02-21",
+    "number": "MED-535919"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-04-02",
+    "number": "LC0640648"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0231",
+  "name": "Suman Tamang",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-04",
+  "reason": null,
+  "phone": "+971 54 236 6732",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-03-20",
+    "number": "784/2025/0334380"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-05-06",
+    "number": "784-1988-0439109-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-06-16",
+    "number": "MED-543838"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-07-27",
+    "number": "LC0648567"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0232",
+  "name": "Kiran Bhatt",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-04",
+  "reason": null,
+  "phone": "+971 55 273 5651",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-10-12",
+    "number": "784/2025/0342299"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-06-05",
+    "number": "784-1989-0447028-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-04-02",
+    "number": "MED-551757"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-08-26",
+    "number": "LC0656486"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0233",
+  "name": "Rafiq Islam",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 50 310 4570",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-10-01",
+    "number": "784/2025/0350218"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-12-21",
+    "number": "784-1980-0454947-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-01-31",
+    "number": "MED-559676"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-03-12",
+    "number": "LC0664405"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0234",
+  "name": "Prem Gurung",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 51 347 3489",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-09",
+    "number": "784/2025/0358137"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-12-16",
+    "number": "784-1981-0462866-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-01-26",
+    "number": "MED-567595"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-03-07",
+    "number": "LC0672324"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0301",
+  "name": "Arjun Thapa",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 52 384 2408",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-30",
+    "number": "784/2025/0366056"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-01-23",
+    "number": "784-1982-0470785-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-03-04",
+    "number": "MED-575514"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-04-14",
+    "number": "LC0680243"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0302",
+  "name": "Mohan Das",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 53 421 1327",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-30",
+    "number": "784/2025/0373975"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-02-09",
+    "number": "784-1983-0478704-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-03-21",
+    "number": "MED-583433"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-11-13",
+    "number": "LC0688162"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0303",
+  "name": "Shiva Karki",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 54 458 9246",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-30",
+    "number": "784/2025/0381894"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-02-26",
+    "number": "784-1984-0486623-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-04-07",
+    "number": "MED-591352"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-11-30",
+    "number": "LC0696081"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0304",
+  "name": "Rakesh Paswan",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 55 495 8165",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-30",
+    "number": "784/2025/0389813"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-03-14",
+    "number": "784-1985-0494542-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-04-24",
+    "number": "MED-599271"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-12-17",
+    "number": "LC0704000"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0305",
+  "name": "Naveen Kumar",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 50 532 7084",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-30",
+    "number": "784/2025/0397732"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-03-31",
+    "number": "784-1986-0502461-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-11-23",
+    "number": "MED-607190"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-01-03",
+    "number": "LC0711919"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0306",
+  "name": "Salim Uddin",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 51 569 6003",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-30",
+    "number": "784/2025/0405651"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-04-17",
+    "number": "784-1987-0510380-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-12-10",
+    "number": "MED-615109"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-01-20",
+    "number": "LC0719838"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0307",
+  "name": "Tek Bahadur",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 52 606 4922",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-30",
+    "number": "784/2025/0413570"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-11-16",
+    "number": "784-1988-0518299-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-12-27",
+    "number": "MED-623028"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-02-06",
+    "number": "LC0727757"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0308",
+  "name": "Ajith Menon",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 53 643 3841",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-30",
+    "number": "784/2025/0421489"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-12-03",
+    "number": "784-1989-0526218-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-01-13",
+    "number": "MED-630947"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-02-23",
+    "number": "LC0735676"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0410",
+  "name": "Ramesh Chaudhary",
+  "trade": "General labour",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-04",
+  "reason": null,
+  "phone": "+971 54 680 2760",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-08-08",
+    "number": "784/2025/0429408"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-10-28",
+    "number": "784-1980-0534137-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-12-08",
+    "number": "MED-638866"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-01-18",
+    "number": "LC0743595"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0411",
+  "name": "Abdul Hamid",
+  "trade": "General labour",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-04",
+  "reason": null,
+  "phone": "+971 55 717 1679",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-10-20",
+    "number": "784/2025/0437327"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-01-26",
+    "number": "784-1981-0542056-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-03-07",
+    "number": "MED-646785"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-04-17",
+    "number": "LC0751514"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0412",
+  "name": "Binod Yadav",
+  "trade": "General labour",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 50 754 9598",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-12-02",
+    "number": "784/2025/0445246"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-03-26",
+    "number": "784-1982-0549975-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-05-06",
+    "number": "MED-654704"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-06-16",
+    "number": "LC0759433"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0413",
+  "name": "Sohel Rana",
+  "trade": "General labour",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 51 791 8517",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-07-30",
+    "number": "784/2025/0453165"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-12-09",
+    "number": "784-1983-0557894-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-01-19",
+    "number": "MED-662623"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-09-12",
+    "number": "LC0767352"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0420",
+  "name": "Dev Raj",
+  "trade": "General labour",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 52 828 7436",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-01",
+    "number": "784/2025/0461084"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-01-28",
+    "number": "784-1984-0565813-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-03-09",
+    "number": "MED-670542"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-11-01",
+    "number": "LC0775271"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0421",
+  "name": "Kamal Thapa",
+  "trade": "General labour",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 53 865 6355",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-11-11",
+    "number": "784/2025/0469003"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-04-25",
+    "number": "784-1985-0573732-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-06-05",
+    "number": "MED-678461"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-01-28",
+    "number": "LC0783190"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0422",
+  "name": "Anwar Hossain",
+  "trade": "General labour",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 54 902 5274",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-06-30",
+    "number": "784/2025/0476922"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-12-30",
+    "number": "784-1986-0581651-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-08-23",
+    "number": "MED-686380"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-10-03",
+    "number": "LC0791109"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0088",
+  "name": "Sanjeev Rana",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 55 939 4193",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2026-11-12",
+    "number": "784/2025/0484841"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-07-30",
+    "number": "784-1987-0589570-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-03-23",
+    "number": "MED-694299"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-05-03",
+    "number": "LC0799028"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0094",
+  "name": "Yusuf Demo",
+  "trade": "Equipment operator",
+  "level": 3,
+  "status": "mobilizing",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 50 976 3112",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-02-02",
+    "number": "784/2025/0492760"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-03-20",
+    "number": "784-1988-0597489-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-04-30",
+    "number": "MED-702218"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-06-10",
+    "number": "LC0806947"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0501",
+  "name": "Harish Mondal",
+  "trade": "Equipment operator",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 51 113 2031",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2026-11-08",
+    "number": "784/2025/0500679"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-03-26",
+    "number": "784-1989-0605408-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-07-09",
+    "number": "MED-710137"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-08-19",
+    "number": "LC0814866"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0502",
+  "name": "Omar Ansari",
+  "trade": "Equipment operator",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 52 150 9950",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-06-27",
+    "number": "784/2025/0508598"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-08-07",
+    "number": "784-1980-0613327-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-05-18",
+    "number": "MED-718056"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-10-28",
+    "number": "LC0822785"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0503",
+  "name": "Vijay Gurung",
+  "trade": "Equipment operator",
+  "level": 4,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 53 187 8869",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-09-05",
+    "number": "784/2025/0516517"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2026-11-17",
+    "number": "784-1981-0621246-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-11-26",
+    "number": "MED-725975"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-07-10",
+    "number": "LC0830704"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0504",
+  "name": "Elias Sheikh",
+  "trade": "Equipment operator",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 54 224 7788",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-09-01",
+    "number": "784/2025/0524436"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-12-25",
+    "number": "784-1982-0629165-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2029-02-04",
+    "number": "MED-733894"
+   },
+   {
+    "type": "Labour card",
+    "until": "2029-03-17",
+    "number": "LC0838623"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0505",
+  "name": "Farhan Ali",
+  "trade": "Equipment operator",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 55 261 6707",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-07-13",
+    "number": "784/2025/0532355"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-04-13",
+    "number": "784-1983-0637084-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2026-11-20",
+    "number": "MED-741813"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-05-27",
+    "number": "LC0846542"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0506",
+  "name": "Mahesh Lama",
+  "trade": "Equipment operator",
+  "level": 1,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 50 298 5626",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-21",
+    "number": "784/2025/0540274"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-11-01",
+    "number": "784-1984-0645003-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-06-05",
+    "number": "MED-749732"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-08-05",
+    "number": "LC0854461"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0507",
+  "name": "Tariq Zaman",
+  "trade": "Equipment operator",
+  "level": 4,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 51 335 4545",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-11-30",
+    "number": "784/2025/0548193"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-01-10",
+    "number": "784-1985-0652922-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-02-20",
+    "number": "MED-757651"
+   },
+   {
+    "type": "Labour card",
+    "until": "2026-11-24",
+    "number": "LC0862380"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0508",
+  "name": "Basheer Fernandes",
+  "trade": "General labour",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 52 372 3464",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-19",
+    "number": "784/2025/0556112"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-03-20",
+    "number": "784-1986-0660841-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-11-12",
+    "number": "MED-765570"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-12-23",
+    "number": "LC0870299"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0509",
+  "name": "Dinesh Rai",
+  "trade": "General labour",
+  "level": 5,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 53 409 2383",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2026-11-27",
+    "number": "784/2025/0564031"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-11-11",
+    "number": "784-1987-0668760-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-01-21",
+    "number": "MED-773489"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-03-02",
+    "number": "LC0878218"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0510",
+  "name": "Kiran Mirza",
+  "trade": "General labour",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 54 446 1302",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-06-27",
+    "number": "784/2025/0571950"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-02-19",
+    "number": "784-1988-0676679-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-01-03",
+    "number": "MED-781408"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-05-11",
+    "number": "LC0886137"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0511",
+  "name": "Rohit Khan",
+  "trade": "General labour",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 55 483 9221",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-09-05",
+    "number": "784/2025/0579869"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2026-12-01",
+    "number": "784-1989-0684598-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-06-09",
+    "number": "MED-789327"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-02-25",
+    "number": "LC0894056"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0512",
+  "name": "Zahid Yadav",
+  "trade": "General labour",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 50 520 8140",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-04-18",
+    "number": "784/2025/0587788"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-07-08",
+    "number": "784-1980-0692517-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-08-18",
+    "number": "MED-797246"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-09-28",
+    "number": "LC0901975"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0513",
+  "name": "Bilal Ekka",
+  "trade": "General labour",
+  "level": 4,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 51 557 7059",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-08-06",
+    "number": "784/2025/0595707"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-06-10",
+    "number": "784-1981-0700436-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2026-12-04",
+    "number": "MED-805165"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-12-07",
+    "number": "LC0909894"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0514",
+  "name": "Irfan Pandey",
+  "trade": "General labour",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 52 594 5978",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-10-15",
+    "number": "784/2025/0603626"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-11-25",
+    "number": "784-1982-0708355-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-08-02",
+    "number": "MED-813084"
+   },
+   {
+    "type": "Labour card",
+    "until": "2029-02-15",
+    "number": "LC0917813"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0515",
+  "name": "Pradeep Das",
+  "trade": "General labour",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 53 631 4897",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-12-24",
+    "number": "784/2025/0611545"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2029-02-03",
+    "number": "784-1983-0716274-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2029-03-16",
+    "number": "MED-821003"
+   },
+   {
+    "type": "Labour card",
+    "until": "2026-12-08",
+    "number": "LC0925732"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0516",
+  "name": "Waqar Jha",
+  "trade": "General labour",
+  "level": 1,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 54 668 3816",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-05-06",
+    "number": "784/2025/0619464"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-10-02",
+    "number": "784-1984-0724193-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-11-12",
+    "number": "MED-828922"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-07-06",
+    "number": "LC0933651"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0517",
+  "name": "Firoz Verma",
+  "trade": "General labour",
+  "level": 4,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 55 705 2735",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2026-12-10",
+    "number": "784/2025/0627383"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-06-28",
+    "number": "784-1985-0732112-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-01-21",
+    "number": "MED-836841"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-09-14",
+    "number": "LC0941570"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0518",
+  "name": "Ganesh Dhakal",
+  "trade": "General labour",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 50 742 1654",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-01-09",
+    "number": "784/2025/0635302"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-02-19",
+    "number": "784-1986-0740031-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-08-20",
+    "number": "MED-844760"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-11-23",
+    "number": "LC0949489"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0519",
+  "name": "Naresh Oraon",
+  "trade": "General labour",
+  "level": 5,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 51 779 9573",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-03-19",
+    "number": "784/2025/0643221"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2026-12-13",
+    "number": "784-1987-0747950-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-12-22",
+    "number": "MED-852679"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-10-12",
+    "number": "LC0957408"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0520",
+  "name": "Umesh Chettri",
+  "trade": "General labour",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 52 816 8492",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-12-04",
+    "number": "784/2025/0651140"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-01-20",
+    "number": "784-1988-0755869-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-03-01",
+    "number": "MED-860598"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-04-11",
+    "number": "LC0965327"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0521",
+  "name": "Devendra Iqbal",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 53 853 7411",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-08-06",
+    "number": "784/2025/0659059"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-01-26",
+    "number": "784-1989-0763788-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2026-12-16",
+    "number": "MED-868517"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-06-20",
+    "number": "LC0973246"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0522",
+  "name": "Eshwar Uddin",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 54 890 6330",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-04-28",
+    "number": "784/2025/0666978"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-06-08",
+    "number": "784-1980-0771707-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-03-19",
+    "number": "MED-876436"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-08-29",
+    "number": "LC0981165"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0523",
+  "name": "Lokesh Chaudhry",
+  "trade": "Mason",
+  "level": 4,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 55 927 5249",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-07-07",
+    "number": "784/2025/0674897"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-08-17",
+    "number": "784-1981-0779626-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-09-27",
+    "number": "MED-884355"
+   },
+   {
+    "type": "Labour card",
+    "until": "2026-12-19",
+    "number": "LC0989084"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0524",
+  "name": "Sandeep Nair",
+  "trade": "Mason",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 50 964 4168",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-07-03",
+    "number": "784/2025/0682816"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-10-26",
+    "number": "784-1982-0787545-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-12-06",
+    "number": "MED-892274"
+   },
+   {
+    "type": "Labour card",
+    "until": "2029-01-16",
+    "number": "LC0997003"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0525",
+  "name": "Anwar Biswas",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 51 101 3087",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2026-12-22",
+    "number": "784/2025/0690735"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-08-25",
+    "number": "784-1983-0795464-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2029-02-14",
+    "number": "MED-900193"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-10-08",
+    "number": "LC1004922"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0526",
+  "name": "Chandan Hossain",
+  "trade": "Steel fixer",
+  "level": 1,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 52 138 2006",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-07-23",
+    "number": "784/2025/0698654"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-09-02",
+    "number": "784-1984-0803383-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-04-06",
+    "number": "MED-908112"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-06-06",
+    "number": "LC1012841"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0527",
+  "name": "Jagdish Thakur",
+  "trade": "Steel fixer",
+  "level": 4,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 53 175 9925",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-10-01",
+    "number": "784/2025/0706573"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2026-12-25",
+    "number": "784-1985-0811302-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-12-22",
+    "number": "MED-916031"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-05-29",
+    "number": "LC1020760"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0528",
+  "name": "Qasim Barua",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 54 212 8844",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-07-21",
+    "number": "784/2025/0714492"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-01-20",
+    "number": "784-1986-0819221-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-09-13",
+    "number": "MED-923950"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-10-24",
+    "number": "LC1028679"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0529",
+  "name": "Yasir Mondal",
+  "trade": "Steel fixer",
+  "level": 5,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 55 249 7763",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-02-18",
+    "number": "784/2025/0722411"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-09-12",
+    "number": "784-1987-0827140-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2026-12-28",
+    "number": "MED-931869"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-01-02",
+    "number": "LC1036598"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0530",
+  "name": "Aamir Ansari",
+  "trade": "Steel fixer",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 50 286 6682",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-04-28",
+    "number": "784/2025/0730330"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-12-21",
+    "number": "784-1988-0835059-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-11-04",
+    "number": "MED-939788"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-03-12",
+    "number": "LC1044517"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0531",
+  "name": "Harish Gurung",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 51 323 5601",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-07-07",
+    "number": "784/2025/0738249"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-02-29",
+    "number": "784-1989-0842978-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-04-10",
+    "number": "MED-947707"
+   },
+   {
+    "type": "Labour card",
+    "until": "2026-12-31",
+    "number": "LC1052436"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0532",
+  "name": "Omar Sheikh",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 52 360 4520",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-02-18",
+    "number": "784/2025/0746168"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-05-09",
+    "number": "784-1980-0850897-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-06-19",
+    "number": "MED-955626"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-07-30",
+    "number": "LC1060355"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0533",
+  "name": "Vijay Ali",
+  "trade": "Steel fixer",
+  "level": 4,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 53 397 3439",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-01-03",
+    "number": "784/2025/0754087"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-04-11",
+    "number": "784-1981-0858816-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-08-28",
+    "number": "MED-963545"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-10-08",
+    "number": "LC1068274"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0534",
+  "name": "Elias Lama",
+  "trade": "Carpenter",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 54 434 2358",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-08-16",
+    "number": "784/2025/0762006"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-09-26",
+    "number": "784-1982-0866735-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-06-03",
+    "number": "MED-971464"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-12-17",
+    "number": "LC1076193"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0535",
+  "name": "Farhan Zaman",
+  "trade": "Carpenter",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 55 471 1277",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-10-25",
+    "number": "784/2025/0769925"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-01-07",
+    "number": "784-1983-0874654-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2029-01-15",
+    "number": "MED-979383"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-07-26",
+    "number": "LC1084112"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0536",
+  "name": "Mahesh Fernandes",
+  "trade": "Carpenter",
+  "level": 1,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 50 508 9196",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-09-17",
+    "number": "784/2025/0777844"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2029-02-13",
+    "number": "784-1984-0882573-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2029-03-26",
+    "number": "MED-987302"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-11-17",
+    "number": "LC1092031"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0537",
+  "name": "Tariq Rai",
+  "trade": "Carpenter",
+  "level": 4,
+  "status": "deployed",
+  "project": "RAK-02",
+  "reason": null,
+  "phone": "+971 51 545 8115",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-01",
+    "number": "784/2025/0785763"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-04-29",
+    "number": "784-1985-0890492-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-01-08",
+    "number": "MED-995221"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-07-16",
+    "number": "LC1099950"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0538",
+  "name": "Basheer Mirza",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 52 582 7034",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-11-10",
+    "number": "784/2025/0793682"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-12-21",
+    "number": "784-1986-0898411-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-06-21",
+    "number": "MED-003140"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-09-24",
+    "number": "LC1107869"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0539",
+  "name": "Dinesh Khan",
+  "trade": "Steel fixer",
+  "level": 5,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 53 619 5953",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-01-19",
+    "number": "784/2025/0801601"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-02-29",
+    "number": "784-1987-0906330-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-10-23",
+    "number": "MED-011059"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-01-10",
+    "number": "LC1115788"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0540",
+  "name": "Kiran Yadav",
+  "trade": "Mason",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 54 656 4872",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-10-05",
+    "number": "784/2025/0809520"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-11-21",
+    "number": "784-1988-0914249-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-01-01",
+    "number": "MED-018978"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-02-11",
+    "number": "LC1123707"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0541",
+  "name": "Rohit Ekka",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 55 693 3791",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-01-14",
+    "number": "784/2025/0817439"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-11-27",
+    "number": "784-1989-0922168-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-03-11",
+    "number": "MED-026897"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-04-21",
+    "number": "LC1131626"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0542",
+  "name": "Zahid Pandey",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 50 730 2710",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-02-28",
+    "number": "784/2025/0825358"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-04-09",
+    "number": "784-1980-0930087-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-01-19",
+    "number": "MED-034816"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-06-30",
+    "number": "LC1139545"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0543",
+  "name": "Bilal Das",
+  "trade": "Mason",
+  "level": 4,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 51 767 1629",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-05-08",
+    "number": "784/2025/0833277"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-01-16",
+    "number": "784-1981-0938006-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-07-29",
+    "number": "MED-042735"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-03-12",
+    "number": "LC1147464"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0544",
+  "name": "Irfan Jha",
+  "trade": "Mason",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 52 804 9548",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-05-04",
+    "number": "784/2025/0841196"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-08-27",
+    "number": "784-1982-0945925-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-10-07",
+    "number": "MED-050654"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-11-17",
+    "number": "LC1155383"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0545",
+  "name": "Pradeep Verma",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 53 841 8467",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-09-25",
+    "number": "784/2025/0849115"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-06-26",
+    "number": "784-1983-0953844-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-01-17",
+    "number": "MED-058573"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-08-09",
+    "number": "LC1163302"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0546",
+  "name": "Waqar Dhakal",
+  "trade": "Carpenter",
+  "level": 1,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 54 878 7386",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-12-04",
+    "number": "784/2025/0857034"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2029-01-14",
+    "number": "784-1984-0961763-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-08-18",
+    "number": "MED-066492"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-10-18",
+    "number": "LC1171221"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0547",
+  "name": "Firoz Oraon",
+  "trade": "Carpenter",
+  "level": 4,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 55 915 6305",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2029-02-12",
+    "number": "784/2025/0864953"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2029-03-25",
+    "number": "784-1985-0969682-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2029-05-05",
+    "number": "MED-074411"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-01-19",
+    "number": "LC1179140"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0548",
+  "name": "Ganesh Chettri",
+  "trade": "Carpenter",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 50 952 5224",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-05-22",
+    "number": "784/2025/0872872"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-11-21",
+    "number": "784-1986-0977601-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-07-15",
+    "number": "MED-082330"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-08-25",
+    "number": "LC1187059"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0549",
+  "name": "Naresh Iqbal",
+  "trade": "Carpenter",
+  "level": 5,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 51 989 4143",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-01-22",
+    "number": "784/2025/0880791"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-07-14",
+    "number": "784-1987-0985520-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-09-23",
+    "number": "MED-090249"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-11-03",
+    "number": "LC1194978"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0550",
+  "name": "Umesh Uddin",
+  "trade": "Carpenter",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 52 126 3062",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-02-28",
+    "number": "784/2025/0888710"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-10-22",
+    "number": "784-1988-0993439-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-09-05",
+    "number": "MED-098168"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-01-12",
+    "number": "LC1202897"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0551",
+  "name": "Devendra Chaudhry",
+  "trade": "Carpenter",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 53 163 1981",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-05-08",
+    "number": "784/2025/0896629"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-01-24",
+    "number": "784-1989-1001358-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-02-10",
+    "number": "MED-106087"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-10-28",
+    "number": "LC1210816"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0552",
+  "name": "Eshwar Nair",
+  "trade": "Electrician",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-04",
+  "reason": null,
+  "phone": "+971 54 200 9900",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-12-20",
+    "number": "784/2025/0904548"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-03-10",
+    "number": "784-1980-1009277-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-04-20",
+    "number": "MED-114006"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-05-31",
+    "number": "LC1218735"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0553",
+  "name": "Lokesh Biswas",
+  "trade": "Electrician",
+  "level": 4,
+  "status": "deployed",
+  "project": "RAK-04",
+  "reason": null,
+  "phone": "+971 55 237 8819",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-04-08",
+    "number": "784/2025/0912467"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-02-11",
+    "number": "784-1981-1017196-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-01-26",
+    "number": "MED-121925"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-08-09",
+    "number": "LC1226654"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0554",
+  "name": "Sandeep Hossain",
+  "trade": "Electrician",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-04",
+  "reason": null,
+  "phone": "+971 50 274 7738",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-06-17",
+    "number": "784/2025/0920386"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-07-28",
+    "number": "784-1982-1025115-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-04-04",
+    "number": "MED-129844"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-10-18",
+    "number": "LC1234573"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0555",
+  "name": "Anwar Thakur",
+  "trade": "Electrician",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-04",
+  "reason": null,
+  "phone": "+971 51 311 6657",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-08-26",
+    "number": "784/2025/0928305"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-10-06",
+    "number": "784-1983-1033034-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-11-16",
+    "number": "MED-137763"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-01-28",
+    "number": "LC1242492"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0556",
+  "name": "Chandan Barua",
+  "trade": "Electrician",
+  "level": 1,
+  "status": "deployed",
+  "project": "RAK-04",
+  "reason": null,
+  "phone": "+971 52 348 5576",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-07-19",
+    "number": "784/2025/0936224"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-12-15",
+    "number": "784-1984-1040953-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2029-01-25",
+    "number": "MED-145682"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-09-18",
+    "number": "LC1250411"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0557",
+  "name": "Jagdish Mondal",
+  "trade": "Electrician",
+  "level": 4,
+  "status": "deployed",
+  "project": "RAK-04",
+  "reason": null,
+  "phone": "+971 53 385 4495",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-01-30",
+    "number": "784/2025/0944143"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-09-10",
+    "number": "784-1985-1048872-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2029-04-05",
+    "number": "MED-153601"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-11-27",
+    "number": "LC1258330"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0558",
+  "name": "Qasim Ansari",
+  "trade": "Plumber",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-04",
+  "reason": null,
+  "phone": "+971 54 422 3414",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-11",
+    "number": "784/2025/0952062"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-10-22",
+    "number": "784-1986-1056791-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-04-22",
+    "number": "MED-161520"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-07-26",
+    "number": "LC1266249"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0559",
+  "name": "Yasir Gurung",
+  "trade": "Plumber",
+  "level": 5,
+  "status": "deployed",
+  "project": "RAK-04",
+  "reason": null,
+  "phone": "+971 55 459 2333",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-11-20",
+    "number": "784/2025/0959981"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-02-01",
+    "number": "784-1987-1064710-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-08-24",
+    "number": "MED-169439"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-06-14",
+    "number": "LC1274168"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0560",
+  "name": "Aamir Sheikh",
+  "trade": "Mason",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-05",
+  "reason": null,
+  "phone": "+971 50 496 1252",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-08-06",
+    "number": "784/2025/0967900"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-09-22",
+    "number": "784-1988-1072629-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-11-02",
+    "number": "MED-177358"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-12-13",
+    "number": "LC1282087"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0561",
+  "name": "Harish Ali",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-05",
+  "reason": null,
+  "phone": "+971 51 533 9171",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-04-08",
+    "number": "784/2025/0975819"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-09-28",
+    "number": "784-1989-1080548-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-02-03",
+    "number": "MED-185277"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-02-21",
+    "number": "LC1290006"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0562",
+  "name": "Omar Lama",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-05",
+  "reason": null,
+  "phone": "+971 52 570 8090",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-12-30",
+    "number": "784/2025/0983738"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-02-09",
+    "number": "784-1980-1088467-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-11-20",
+    "number": "MED-193196"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-05-01",
+    "number": "LC1297925"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0563",
+  "name": "Vijay Zaman",
+  "trade": "Mason",
+  "level": 4,
+  "status": "deployed",
+  "project": "RAK-05",
+  "reason": null,
+  "phone": "+971 53 607 7009",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-03-09",
+    "number": "784/2025/0991657"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-04-19",
+    "number": "784-1981-1096386-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-05-30",
+    "number": "MED-201115"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-01-12",
+    "number": "LC1305844"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0564",
+  "name": "Elias Fernandes",
+  "trade": "Mason",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-05",
+  "reason": null,
+  "phone": "+971 54 644 5928",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-03-05",
+    "number": "784/2025/0999576"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-06-28",
+    "number": "784-1982-1104305-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-08-08",
+    "number": "MED-209034"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-09-18",
+    "number": "LC1313763"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0565",
+  "name": "Farhan Rai",
+  "trade": "Mason",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-05",
+  "reason": null,
+  "phone": "+971 55 681 4847",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-07-27",
+    "number": "784/2025/1007495"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-04-27",
+    "number": "784-1983-1112224-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-10-17",
+    "number": "MED-216953"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-06-10",
+    "number": "LC1321682"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0566",
+  "name": "Mahesh Mirza",
+  "trade": "Carpenter",
+  "level": 1,
+  "status": "deployed",
+  "project": "RAK-05",
+  "reason": null,
+  "phone": "+971 50 718 3766",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-10-05",
+    "number": "784/2025/1015414"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-11-15",
+    "number": "784-1984-1120143-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-06-19",
+    "number": "MED-224872"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-08-19",
+    "number": "LC1329601"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0567",
+  "name": "Tariq Khan",
+  "trade": "Carpenter",
+  "level": 4,
+  "status": "deployed",
+  "project": "RAK-05",
+  "reason": null,
+  "phone": "+971 51 755 2685",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-12-14",
+    "number": "784/2025/1023333"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2029-01-24",
+    "number": "784-1985-1128062-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2029-03-06",
+    "number": "MED-232791"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-08-11",
+    "number": "LC1337520"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0568",
+  "name": "Basheer Yadav",
+  "trade": "Carpenter",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-05",
+  "reason": null,
+  "phone": "+971 52 792 1604",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-10-03",
+    "number": "784/2025/1031252"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2029-04-04",
+    "number": "784-1986-1135981-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-11-26",
+    "number": "MED-240710"
+   },
+   {
+    "type": "Labour card",
+    "until": "2029-01-06",
+    "number": "LC1345439"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0569",
+  "name": "Dinesh Ekka",
+  "trade": "Carpenter",
+  "level": 5,
+  "status": "deployed",
+  "project": "RAK-05",
+  "reason": null,
+  "phone": "+971 53 829 9523",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-10-21",
+    "number": "784/2025/1039171"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-05-15",
+    "number": "784-1987-1143900-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-07-25",
+    "number": "MED-248629"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-09-04",
+    "number": "LC1353358"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0570",
+  "name": "Kiran Pandey",
+  "trade": "General labour",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-05",
+  "reason": null,
+  "phone": "+971 54 866 8442",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-12-30",
+    "number": "784/2025/1047090"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-08-23",
+    "number": "784-1988-1151819-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-07-07",
+    "number": "MED-256548"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-11-13",
+    "number": "LC1361277"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0571",
+  "name": "Rohit Das",
+  "trade": "General labour",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-05",
+  "reason": null,
+  "phone": "+971 55 903 7361",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-03-09",
+    "number": "784/2025/1055009"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-11-01",
+    "number": "784-1989-1159738-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-12-12",
+    "number": "MED-264467"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-08-29",
+    "number": "LC1369196"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0572",
+  "name": "Zahid Jha",
+  "trade": "General labour",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-05",
+  "reason": null,
+  "phone": "+971 50 940 6280",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-10-21",
+    "number": "784/2025/1062928"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-01-10",
+    "number": "784-1980-1167657-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-02-20",
+    "number": "MED-272386"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-04-01",
+    "number": "LC1377115"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0573",
+  "name": "Bilal Verma",
+  "trade": "Steel fixer",
+  "level": 4,
+  "status": "deployed",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 51 977 5199",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-02-08",
+    "number": "784/2025/1070847"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-12-13",
+    "number": "784-1981-1175576-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-04-30",
+    "number": "MED-280305"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-06-10",
+    "number": "LC1385034"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0574",
+  "name": "Irfan Dhakal",
+  "trade": "Steel fixer",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 52 114 4118",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-04-18",
+    "number": "784/2025/1078766"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-05-29",
+    "number": "784-1982-1183495-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-02-04",
+    "number": "MED-288224"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-08-19",
+    "number": "LC1392953"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0575",
+  "name": "Pradeep Oraon",
+  "trade": "Steel fixer",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 53 151 3037",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-06-27",
+    "number": "784/2025/1086685"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-08-07",
+    "number": "784-1983-1191414-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-09-17",
+    "number": "MED-296143"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-03-28",
+    "number": "LC1400872"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0576",
+  "name": "Waqar Chettri",
+  "trade": "Steel fixer",
+  "level": 1,
+  "status": "deployed",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 54 188 1956",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-05-20",
+    "number": "784/2025/1094604"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-10-16",
+    "number": "784-1984-1199333-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-11-26",
+    "number": "MED-304062"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-07-20",
+    "number": "LC1408791"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0577",
+  "name": "Firoz Iqbal",
+  "trade": "Steel fixer",
+  "level": 4,
+  "status": "deployed",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 55 225 9875",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-11-14",
+    "number": "784/2025/1102523"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-07-12",
+    "number": "784-1985-1207252-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2029-02-04",
+    "number": "MED-311981"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-09-28",
+    "number": "LC1416710"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0578",
+  "name": "Ganesh Uddin",
+  "trade": "Carpenter",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 50 262 8794",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2029-01-23",
+    "number": "784/2025/1110442"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2029-03-05",
+    "number": "784-1986-1215171-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-09-03",
+    "number": "MED-319900"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-12-07",
+    "number": "LC1424629"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0579",
+  "name": "Naresh Chaudhry",
+  "trade": "Carpenter",
+  "level": 5,
+  "status": "deployed",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 51 299 7713",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-09-21",
+    "number": "784/2025/1118361"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-11-01",
+    "number": "784-1987-1223090-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-06-25",
+    "number": "MED-327819"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-04-15",
+    "number": "LC1432548"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0580",
+  "name": "Umesh Nair",
+  "trade": "Carpenter",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 52 336 6632",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-06-07",
+    "number": "784/2025/1126280"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-07-24",
+    "number": "784-1988-1231009-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-09-03",
+    "number": "MED-335738"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-10-14",
+    "number": "LC1440467"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0581",
+  "name": "Devendra Biswas",
+  "trade": "Carpenter",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 53 373 5551",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-02-08",
+    "number": "784/2025/1134199"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-07-30",
+    "number": "784-1989-1238928-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-11-12",
+    "number": "MED-343657"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-12-23",
+    "number": "LC1448386"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0582",
+  "name": "Eshwar Hossain",
+  "trade": "Carpenter",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 54 410 4470",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-10-31",
+    "number": "784/2025/1142118"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-12-11",
+    "number": "784-1980-1246847-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-09-21",
+    "number": "MED-351576"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-03-02",
+    "number": "LC1456305"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0583",
+  "name": "Lokesh Thakur",
+  "trade": "Carpenter",
+  "level": 4,
+  "status": "deployed",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 55 447 3389",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-01-09",
+    "number": "784/2025/1150037"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-02-19",
+    "number": "784-1981-1254766-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-03-31",
+    "number": "MED-359495"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-11-13",
+    "number": "LC1464224"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0584",
+  "name": "Sandeep Barua",
+  "trade": "General labour",
+  "level": 2,
+  "status": "deployed",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 50 484 2308",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-01-05",
+    "number": "784/2025/1157956"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-04-29",
+    "number": "784-1982-1262685-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-06-09",
+    "number": "MED-367414"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-07-20",
+    "number": "LC1472143"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0585",
+  "name": "Anwar Mondal",
+  "trade": "General labour",
+  "level": 3,
+  "status": "deployed",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 51 521 1227",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-05-28",
+    "number": "784/2025/1165875"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-02-27",
+    "number": "784-1983-1270604-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-08-18",
+    "number": "MED-375333"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-04-11",
+    "number": "LC1480062"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0586",
+  "name": "Chandan Ansari",
+  "trade": "Steel fixer",
+  "level": 1,
+  "status": "mobilizing",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 52 558 9146",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-08-06",
+    "number": "784/2025/1173794"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-09-16",
+    "number": "784-1984-1278523-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-04-20",
+    "number": "MED-383252"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-06-20",
+    "number": "LC1487981"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0587",
+  "name": "Jagdish Gurung",
+  "trade": "Carpenter",
+  "level": 4,
+  "status": "mobilizing",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 53 595 8065",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-10-15",
+    "number": "784/2025/1181713"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-11-25",
+    "number": "784-1985-1286442-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2029-01-05",
+    "number": "MED-391171"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-06-12",
+    "number": "LC1495900"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0588",
+  "name": "Qasim Sheikh",
+  "trade": "General labour",
+  "level": 3,
+  "status": "mobilizing",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 54 632 6984",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-08-04",
+    "number": "784/2025/1189632"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2029-02-03",
+    "number": "784-1986-1294361-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-09-27",
+    "number": "MED-399090"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-11-07",
+    "number": "LC1503819"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0589",
+  "name": "Yasir Ali",
+  "trade": "Mason",
+  "level": 5,
+  "status": "mobilizing",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 55 669 5903",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2029-03-04",
+    "number": "784/2025/1197551"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-09-26",
+    "number": "784-1987-1302280-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-12-06",
+    "number": "MED-407009"
+   },
+   {
+    "type": "Labour card",
+    "until": "2029-01-16",
+    "number": "LC1511738"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0590",
+  "name": "Aamir Lama",
+  "trade": "Steel fixer",
+  "level": 2,
+  "status": "mobilizing",
+  "project": "RAK-06",
+  "reason": null,
+  "phone": "+971 50 706 4822",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-10-31",
+    "number": "784/2025/1205470"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-06-24",
+    "number": "784-1988-1310199-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-05-08",
+    "number": "MED-414928"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-09-14",
+    "number": "LC1519657"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0591",
+  "name": "Harish Zaman",
+  "trade": "Carpenter",
+  "level": 3,
+  "status": "mobilizing",
+  "project": "RAK-05",
+  "reason": null,
+  "phone": "+971 51 743 3741",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-01-09",
+    "number": "784/2025/1213389"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-09-02",
+    "number": "784-1989-1318118-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-10-13",
+    "number": "MED-422847"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-06-30",
+    "number": "LC1527576"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0592",
+  "name": "Omar Fernandes",
+  "trade": "General labour",
+  "level": 3,
+  "status": "mobilizing",
+  "project": "RAK-01",
+  "reason": null,
+  "phone": "+971 52 780 2660",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-08-22",
+    "number": "784/2025/1221308"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-11-11",
+    "number": "784-1980-1326037-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-12-22",
+    "number": "MED-430766"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-02-01",
+    "number": "LC1535495"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0593",
+  "name": "Vijay Rai",
+  "trade": "Mason",
+  "level": 4,
+  "status": "mobilizing",
+  "project": "RAK-03",
+  "reason": null,
+  "phone": "+971 53 817 1579",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-12-10",
+    "number": "784/2025/1229227"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-10-14",
+    "number": "784-1981-1333956-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-03-01",
+    "number": "MED-438685"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-04-11",
+    "number": "LC1543414"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0594",
+  "name": "Elias Mirza",
+  "trade": "General labour",
+  "level": 2,
+  "status": "unavailable",
+  "project": null,
+  "reason": "On leave",
+  "phone": "+971 54 854 9498",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2026-11-01",
+    "number": "784/2025/1237146"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-03-30",
+    "number": "784-1982-1341875-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-12-06",
+    "number": "MED-446604"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-06-20",
+    "number": "LC1551333"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0595",
+  "name": "Farhan Khan",
+  "trade": "Mason",
+  "level": 3,
+  "status": "unavailable",
+  "project": null,
+  "reason": "On leave",
+  "phone": "+971 55 891 8417",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-04-28",
+    "number": "784/2025/1245065"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-06-08",
+    "number": "784-1983-1349794-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2026-10-25",
+    "number": "MED-454523"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-01-28",
+    "number": "LC1559252"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0596",
+  "name": "Mahesh Yadav",
+  "trade": "Carpenter",
+  "level": 1,
+  "status": "unavailable",
+  "project": null,
+  "reason": "On leave",
+  "phone": "+971 50 928 7336",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-03-21",
+    "number": "784/2025/1252984"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-08-17",
+    "number": "784-1984-1357713-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-09-27",
+    "number": "MED-462442"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-05-21",
+    "number": "LC1567171"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0597",
+  "name": "Tariq Ekka",
+  "trade": "Electrician",
+  "level": 4,
+  "status": "unavailable",
+  "project": null,
+  "reason": "On leave",
+  "phone": "+971 51 965 6255",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-09-15",
+    "number": "784/2025/1260903"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2028-05-13",
+    "number": "784-1985-1365632-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-12-06",
+    "number": "MED-470361"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-07-30",
+    "number": "LC1575090"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0598",
+  "name": "Basheer Pandey",
+  "trade": "Painter",
+  "level": 3,
+  "status": "unavailable",
+  "project": null,
+  "reason": "On leave",
+  "phone": "+971 52 102 5174",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2028-11-24",
+    "number": "784/2025/1268822"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2029-01-04",
+    "number": "784-1986-1373551-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-07-05",
+    "number": "MED-478280"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-10-08",
+    "number": "LC1583009"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0599",
+  "name": "Dinesh Das",
+  "trade": "General labour",
+  "level": 5,
+  "status": "unavailable",
+  "project": null,
+  "reason": "Medical",
+  "phone": "+971 53 139 4093",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2029-02-02",
+    "number": "784/2025/1276741"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2029-03-15",
+    "number": "784-1987-1381470-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2028-11-06",
+    "number": "MED-486199"
+   },
+   {
+    "type": "Labour card",
+    "until": "2028-08-27",
+    "number": "LC1590928"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0600",
+  "name": "Kiran Jha",
+  "trade": "Mason",
+  "level": 2,
+  "status": "unavailable",
+  "project": null,
+  "reason": "Medical",
+  "phone": "+971 54 176 3012",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-04-08",
+    "number": "784/2025/1284660"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-05-25",
+    "number": "784-1988-1389389-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-07-05",
+    "number": "MED-494118"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-08-15",
+    "number": "LC1598847"
+   }
+  ]
+ },
+ {
+  "code": "EMP-0601",
+  "name": "Rohit Verma",
+  "trade": "Carpenter",
+  "level": 3,
+  "status": "unavailable",
+  "project": null,
+  "reason": "Medical",
+  "phone": "+971 55 213 1931",
+  "docs": [
+   {
+    "type": "Visa",
+    "until": "2027-12-10",
+    "number": "784/2025/1292579"
+   },
+   {
+    "type": "Emirates ID",
+    "until": "2027-05-31",
+    "number": "784-1989-1397308-1"
+   },
+   {
+    "type": "Medical fitness",
+    "until": "2027-09-13",
+    "number": "MED-502037"
+   },
+   {
+    "type": "Labour card",
+    "until": "2027-10-24",
+    "number": "LC1606766"
+   }
+  ]
+ }
+]

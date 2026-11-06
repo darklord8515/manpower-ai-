@@ -1,0 +1,152 @@
+"""Fixed demo inputs, copied from the prototype so the two cannot drift (a test compares them)."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import date
+
+# The seeded "today" (Thursday 5 Nov 2026). The Clock adapter replaces this in the app later.
+SEED_TODAY = date(2026, 11, 5)
+
+DOC_TYPES = ["Visa", "Emirates ID", "Medical fitness", "Labour card"]
+DOC_TYPE_CODE = {
+    "Visa": "visa",
+    "Emirates ID": "emirates_id",
+    "Medical fitness": "medical_fitness",
+    "Labour card": "labour_card",
+}
+
+TRADES_FOR_GEN = ["General labour", "Mason", "Carpenter", "Electrician", "Painter"]
+
+FIRST_NAMES = [
+    "Aamir", "Bilal", "Chandan", "Dinesh", "Eshwar", "Farhan", "Ganesh", "Harish", "Irfan",
+    "Jagdish", "Kiran", "Lokesh", "Mahesh", "Naresh", "Omar", "Pradeep", "Qasim", "Rohit",
+    "Sandeep", "Tariq", "Umesh", "Vijay", "Waqar", "Yasir", "Zahid", "Anwar", "Basheer",
+    "Devendra", "Elias", "Firoz",
+]  # fmt: skip
+LAST_NAMES = [
+    "Ali", "Barua", "Chaudhry", "Dhakal", "Ekka", "Fernandes", "Gurung", "Hossain", "Iqbal",
+    "Jha", "Khan", "Lama", "Mondal", "Nair", "Oraon", "Pandey", "Rai", "Sheikh", "Thakur",
+    "Uddin", "Verma", "Yadav", "Zaman", "Ansari", "Biswas", "Chettri", "Das", "Mirza",
+]  # fmt: skip
+
+
+@dataclass(frozen=True)
+class ProjectSeed:
+    code: str
+    name: str
+    status: str  # project_status enum value
+    starts: date
+    ends: date
+    deployed: int
+    # (plural trade name, planned, deployed)
+    trades: tuple[tuple[str, int, int], ...]
+    outdoor: bool = True
+    sites: int = 1
+
+
+PROJECTS: tuple[ProjectSeed, ...] = (
+    ProjectSeed("RAK-01", "Jebel Approach Road, Package 2", "active", date(2026, 3, 1),
+                date(2027, 8, 31), 27,
+                (("Equipment operators", 8, 7), ("General labour", 14, 13), ("Masons", 8, 7)),
+                sites=2),
+    ProjectSeed("RAK-02", "Saqr Business Park", "active", date(2026, 5, 1), date(2027, 1, 31), 24,
+                (("Steel fixers", 8, 8), ("Carpenters", 8, 8), ("Masons", 8, 8))),
+    ProjectSeed("RAK-03", "Coral Bay Residences, Block B", "active", date(2026, 7, 1),
+                date(2027, 9, 30), 18,
+                (("Steel fixers", 10, 2), ("Masons", 6, 6), ("Carpenters", 6, 6),
+                 ("General labour", 4, 4))),
+    ProjectSeed("RAK-04", "Khatt Clinic Fit-out", "active", date(2026, 8, 15), date(2027, 3, 31),
+                12, (("Electricians", 6, 6), ("Plumbers", 4, 4), ("Painters", 2, 2)),
+                outdoor=False),
+    ProjectSeed("RAK-05", "Ghalilah School Extension", "active", date(2026, 2, 1),
+                date(2026, 12, 15), 15,
+                (("Masons", 6, 6), ("Carpenters", 5, 4), ("General labour", 5, 5))),
+    ProjectSeed("RAK-06", "Dhayah Warehouse Units", "active", date(2026, 6, 1), date(2027, 5, 31),
+                16, (("Steel fixers", 8, 5), ("Carpenters", 8, 6), ("General labour", 6, 5))),
+    ProjectSeed("RAK-07", "Shamal Logistics Hub", "planning", date(2027, 2, 12),
+                date(2027, 12, 31), 0,
+                (("Masons", 10, 0), ("Steel fixers", 8, 0), ("General labour", 6, 0))),
+)  # fmt: skip
+
+
+@dataclass(frozen=True)
+class NamedWorker:
+    code: str
+    name: str
+    trade: str
+    level: int
+    docs_until: date
+    doc_type: str = "Visa"  # which document `docs_until` belongs to
+    available_from: date = SEED_TODAY  # later than today = still on RAK-02 until then
+    project: str | None = None
+    placed: str | None = None  # a project the worker is deployed on although the source had none
+
+
+def _d(y: int, m: int, d: int) -> date:
+    return date(y, m, d)
+
+
+# The Allocation Board pool (prototype POOL).
+POOL: tuple[NamedWorker, ...] = (
+    NamedWorker("EMP-0142", "Anil Kumar", "Steel fixer", 4, _d(2027, 8, 3)),
+    NamedWorker("EMP-0107", "Bikash Rai", "Steel fixer", 4, _d(2027, 6, 14)),
+    NamedWorker("EMP-0118", "Mohammed Salim", "Steel fixer", 3, _d(2027, 5, 20)),
+    NamedWorker("EMP-0125", "Suresh Nair", "Steel fixer", 3, _d(2027, 3, 30)),
+    NamedWorker("EMP-0131", "Joseph Mathew", "Steel fixer", 3, _d(2027, 9, 11)),
+    NamedWorker("EMP-0133", "Ramesh Yadav", "Steel fixer", 3, _d(2027, 4, 2)),
+    NamedWorker("EMP-0139", "Kamal Hossain", "Steel fixer", 3, _d(2027, 7, 19), available_from=_d(2026, 11, 7)),
+    NamedWorker("EMP-0146", "Dilip Gurung", "Steel fixer", 3, _d(2028, 2, 1)),
+    NamedWorker("EMP-0111", "Faisal Ahmed", "Steel fixer", 4, _d(2027, 1, 12)),
+    NamedWorker("EMP-0120", "Prakash Shrestha", "Steel fixer", 3, _d(2026, 12, 20)),
+    NamedWorker("EMP-0150", "Rajesh Thapa", "Steel fixer", 2, _d(2027, 10, 1), available_from=_d(2026, 11, 10)),
+    NamedWorker("EMP-0152", "Nabin Magar", "Steel fixer", 3, _d(2027, 11, 30)),
+    NamedWorker("EMP-0170", "Ram Bahadur", "General labour", 2, _d(2027, 6, 1)),
+    NamedWorker("EMP-0171", "Abdul Karim", "General labour", 1, _d(2027, 1, 20)),
+    NamedWorker("EMP-0172", "Gopal Das", "General labour", 2, _d(2027, 9, 9)),
+    NamedWorker("EMP-0160", "Vinod Pillai", "Electrician", 4, _d(2027, 12, 1)),
+    NamedWorker("EMP-0161", "Sabin KC", "Electrician", 3, _d(2027, 8, 15)),
+    NamedWorker("EMP-0162", "Arif Hussain", "Electrician", 3, _d(2027, 1, 5), doc_type="Medical fitness"),
+    NamedWorker("EMP-0163", "Thomas Varghese", "Electrician", 2, _d(2027, 5, 5)),
+    NamedWorker("EMP-0180", "Sunil Perera", "Carpenter", 3, _d(2027, 4, 4)),
+    NamedWorker("EMP-0181", "Manoj Tamang", "Carpenter", 3, _d(2027, 6, 6)),
+)  # fmt: skip
+
+STEEL_RAK02 = (
+    ("EMP-0301", "Arjun Thapa"), ("EMP-0302", "Mohan Das"), ("EMP-0303", "Shiva Karki"),
+    ("EMP-0304", "Rakesh Paswan"), ("EMP-0305", "Naveen Kumar"), ("EMP-0306", "Salim Uddin"),
+    ("EMP-0307", "Tek Bahadur"), ("EMP-0308", "Ajith Menon"),
+)  # fmt: skip
+
+# The Forecast workers (prototype FC_WORKERS). Level 3 for everyone; `placed` puts the ones the
+# prototype leaves without a project onto a project so the totals match the project cards.
+FC_WORKERS: tuple[NamedWorker, ...] = (
+    NamedWorker("EMP-0210", "Deepak Sharma", "Mason", 3, _d(2027, 11, 30)),
+    NamedWorker("EMP-0211", "Imtiaz Ahmed", "Mason", 3, _d(2027, 9, 15)),
+    NamedWorker("EMP-0201", "Hari Lama", "Mason", 3, _d(2027, 8, 1), project="RAK-02"),
+    NamedWorker("EMP-0202", "Bilal Khan", "Mason", 3, _d(2027, 10, 10), project="RAK-02"),
+    NamedWorker("EMP-0220", "Ganesh Rai", "Mason", 3, _d(2027, 12, 1), project="RAK-05"),
+    NamedWorker("EMP-0221", "Joseph Fernandes", "Mason", 3, _d(2027, 7, 7), project="RAK-05"),
+    NamedWorker("EMP-0230", "Asif Raza", "Mason", 3, _d(2027, 12, 12), placed="RAK-03"),
+    NamedWorker("EMP-0231", "Suman Tamang", "Mason", 3, _d(2027, 3, 20), placed="RAK-04"),
+    NamedWorker("EMP-0232", "Kiran Bhatt", "Mason", 3, _d(2027, 4, 2), doc_type="Medical fitness", placed="RAK-04"),
+    NamedWorker("EMP-0233", "Rafiq Islam", "Mason", 3, _d(2027, 10, 1), placed="RAK-03"),
+    NamedWorker("EMP-0234", "Prem Gurung", "Mason", 3, _d(2027, 9, 9), project="RAK-01"),
+    *(NamedWorker(code, name, "Steel fixer", 3, _d(2027, 9, 30), project="RAK-02") for code, name in STEEL_RAK02),
+    NamedWorker("EMP-0410", "Ramesh Chaudhary", "General labour", 3, _d(2027, 8, 8), placed="RAK-04"),
+    NamedWorker("EMP-0411", "Abdul Hamid", "General labour", 3, _d(2027, 10, 20), placed="RAK-04"),
+    NamedWorker("EMP-0412", "Binod Yadav", "General labour", 3, _d(2027, 12, 2), placed="RAK-03"),
+    NamedWorker("EMP-0413", "Sohel Rana", "General labour", 3, _d(2027, 7, 30), placed="RAK-03"),
+    NamedWorker("EMP-0420", "Dev Raj", "General labour", 3, _d(2027, 9, 1), project="RAK-06"),
+    NamedWorker("EMP-0421", "Kamal Thapa", "General labour", 3, _d(2027, 11, 11), project="RAK-06"),
+    NamedWorker("EMP-0422", "Anwar Hossain", "General labour", 3, _d(2027, 6, 30), project="RAK-06"),
+)  # fmt: skip
+
+# Documents running out: days from the seeded today. 7 more inside 30 days (Sanjeev Rana's visa is
+# the 8th), 10 in 31-60 and 14 in 61-90; the named workers above supply 1 and 3 more.
+SOON_OFFSETS = [
+    3, 12, 15, 19, 22, 26, 29,
+    33, 35, 38, 41, 44, 47, 50, 53, 56, 59,
+    63, 64, 66, 70, 72, 73, 75, 78, 80, 82, 84, 86, 88, 90,
+]  # fmt: skip
+EXPIRED_OFFSETS = (-4, -11)

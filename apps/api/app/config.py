@@ -69,6 +69,8 @@ class Settings(BaseSettings):
     # Secrets (never committed; read from .env or the host's secret store)
     secret_key: str = ""
     n8n_hmac_secret: str = ""
+    # Password of the seeded demo users. Only the seed script reads it; refused in production.
+    demo_password: str = ""
 
     cors_origins: str = "http://localhost:3000"
 
@@ -121,6 +123,8 @@ def production_problems(s: Settings) -> list[str]:
     for name, value in (("SECRET_KEY", s.secret_key), ("N8N_HMAC_SECRET", s.n8n_hmac_secret)):
         if len(value) < MIN_SECRET_LENGTH:
             problems.append(f"{name} is missing or shorter than {MIN_SECRET_LENGTH} characters")
+    if s.demo_password:
+        problems.append("DEMO_PASSWORD must not be set (it is the seeded demo accounts' password)")
     if "change-me" in s.database_url:
         problems.append("DATABASE_URL still contains the placeholder password")
     return problems

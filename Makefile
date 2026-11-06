@@ -66,11 +66,10 @@ fmt:
 	$(API) run ruff check . --fix
 	npm --prefix apps/web run format
 
-seed:
-	@echo seed arrives with the schema on Day 3
+seed: migrate
+	$(API) run python -m app.seed seed
 
-reset-demo:
-	@echo reset-demo arrives with the schema on Day 3
+reset-demo: seed
 
 eval:
 	@echo eval arrives with the agents
