@@ -14,7 +14,7 @@ from argon2 import PasswordHasher
 from sqlalchemy import Connection, text
 
 from app.config import ConfigError, Settings
-from app.seed.data import DOC_TYPE_CODE, PROJECTS, SEED_TODAY
+from app.seed.data import ALL_TRADES, DOC_TYPE_CODE, PROJECTS, SEED_TODAY
 from app.seed.workers import WorkerSeed, build_workers
 
 _NAMESPACE = uuid.UUID("6d1f3c0a-5b7e-4d0e-9a52-0c1f7a6b9e11")  # fixed, so ids repeat on reseed
@@ -64,6 +64,10 @@ def reset_demo(connection: Connection, settings: Settings) -> None:
         connection.execute(text(f"DELETE FROM {table}"))  # noqa: S608 - fixed list above
 
 
+def singular_trade(plural: str) -> str:
+    return plural[:-1] if plural.endswith("s") else plural
+
+
 def _trade_code(name: str) -> str:
     return name.lower().replace(" ", "_")
 
@@ -87,7 +91,7 @@ def seed_demo(connection: Connection, settings: Settings) -> dict[str, int]:
         [{"id": departments[c], "code": c, "name": n} for c, n in DEPARTMENTS],
     )
 
-    trade_names = sorted({w.trade for w in workers})
+    trade_names = sorted(ALL_TRADES)
     trades = {name: demo_id("trade", name) for name in trade_names}
     _insert(
         connection,
@@ -116,6 +120,18 @@ def seed_demo(connection: Connection, settings: Settings) -> dict[str, int]:
              "name": f"Site {n}", "outdoor": p.outdoor}
             for p in PROJECTS
             for n in range(1, p.sites + 1)
+        ],
+    )  # fmt: skip
+
+    _insert(
+        connection,
+        """INSERT INTO manpower_requirements (project_id, trade_id, headcount, period)
+           VALUES (:project_id, :trade_id, :headcount, daterange(:starts, :ends, '[]'))""",
+        [
+            {"project_id": projects[p.code], "trade_id": trades[singular_trade(name)],
+             "headcount": planned, "starts": p.starts, "ends": p.ends}
+            for p in PROJECTS
+            for name, planned, _deployed in p.trades
         ],
     )  # fmt: skip
 

@@ -16,6 +16,17 @@ DOC_TYPE_CODE = {
     "Labour card": "labour_card",
 }
 
+ALL_TRADES = [
+    "Equipment operator",
+    "Electrician",
+    "Carpenter",
+    "General labour",
+    "Mason",
+    "Painter",
+    "Plumber",
+    "Steel fixer",
+]
+
 TRADES_FOR_GEN = ["General labour", "Mason", "Carpenter", "Electrician", "Painter"]
 
 FIRST_NAMES = [

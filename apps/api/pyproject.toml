@@ -37,6 +37,11 @@ ignore = ["S101"]  # asserts are fine in tests
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S105", "S106"]  # fake secrets in tests
 "app/seed/data.py" = ["E501"]  # one worker per line keeps the demo data easy to compare
+# These build SQL from fixed fragments (the scope condition, a sort whitelist). User input only ever
+# travels as bind parameters, and tests/test_security_queries.py checks hostile input stays inert.
+"app/routes/*.py" = ["S608"]
+"app/auth/scope.py" = ["S608"]
+"app/seed/load.py" = ["S608"]
 
 [tool.pyright]
 include = ["app", "tests"]
