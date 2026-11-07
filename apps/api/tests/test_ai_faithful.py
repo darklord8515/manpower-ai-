@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.ai.faithful import all_faithful, allowed_tokens, tokens, unfaithful
+from app.ai.faithful import all_faithful, allowed_tokens, invented_names, tokens, unfaithful
 
 FACTS = {
     "employee": "EMP-0088",
@@ -86,3 +86,13 @@ def test_thousands_separators_do_not_change_a_number() -> None:
 
 def test_names_and_ordinary_words_are_not_checked(allowed: set[str]) -> None:
     assert unfaithful("Please ask Priya to speak with the worker today.", allowed) == []
+
+
+def test_a_name_the_facts_never_mention_is_caught_by_the_chat_check() -> None:
+    facts = {"people": [{"name": "Anil Kumar", "trade": "Steel fixer"}], "project": "Shamal Hub"}
+    assert invented_names("Anil Kumar is a steel fixer on Shamal Hub.", facts) == []
+    assert invented_names("Mohammed Salim Rahman is free.", facts) == ["Mohammed Salim Rahman"]
+    assert invented_names("Ask Priya Sharma about it.", facts, "ask priya sharma") == []
+    assert (
+        invented_names("There are 12 workers and no one is late.", facts) == []
+    )  # one word is fine

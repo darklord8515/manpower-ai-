@@ -72,6 +72,8 @@ def friendly_error(error: str | None) -> str | None:
         "invalid": "The AI model did not give a usable answer. Try again.",
         "rejected": "The AI’s wording did not match the numbers, so it was not used.",
         "internal": "Something went wrong on the server. Try again.",
+        "busy": "The assistant is busy right now. Try again in a moment.",
+        "unavailable": "That part of the assistant is switched off.",
     }.get(kind, error)
 
 

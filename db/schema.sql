@@ -556,6 +556,32 @@ CREATE TABLE agent_tool_calls (
     created_at    timestamptz NOT NULL DEFAULT now()
 );
 
+-- The Virtual HR chat (migration 0011). A conversation belongs to one user and is private to them.
+-- A user message starts a supervisor run (agent_runs.session_id = the conversation); the answer is
+-- stored as validated JSON so the thread can be shown again without asking a model.
+CREATE TABLE conversations (
+    id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id    uuid NOT NULL REFERENCES users(id),
+    title      text NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX conversations_user_idx ON conversations (user_id, updated_at DESC);
+
+CREATE TABLE conversation_messages (
+    id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    conversation_id uuid NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+    role            text NOT NULL CHECK (role IN ('user', 'assistant')),
+    content         text NOT NULL,
+    answer_json     jsonb,                       -- the assistant's validated answer (blocks, actions)
+    run_id          uuid REFERENCES agent_runs(id),
+    created_at      timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX conversation_messages_idx ON conversation_messages (conversation_id, created_at);
+
+ALTER TABLE agent_runs ADD CONSTRAINT agent_runs_session_fk
+    FOREIGN KEY (session_id) REFERENCES conversations(id) ON DELETE SET NULL;
+
 CREATE TABLE audit_log (
     id          bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     at          timestamptz NOT NULL DEFAULT now(),
@@ -798,10 +824,13 @@ INSERT INTO agents (code, name, description, model_policy, allowed_tools, is_ena
   '{"tier": "light"}', ARRAY['route_to_agent'], true),
  -- allowed_tools is enforced: the runtime refuses any tool not listed here. Each tool also checks
  -- the caller's own permission. The first four are the Allocation Board's recommendation run,
- -- the last explains a forecast (migration 0010).
+ -- the last explains a forecast (migration 0010). The next six only read, for the Virtual HR chat
+ -- (migration 0011).
  ('workforce', 'Workforce Agent', 'Availability, skill matching, staffing recommendations',
   '{"tier": "mid"}', ARRAY['get_request_line','search_candidates','check_candidates',
-                           'recommend_candidates','forecast_availability'], true),
+                           'recommend_candidates','forecast_availability','search_workers',
+                           'worker_profile','documents_expiring','list_alerts','list_projects',
+                           'list_requests'], true),
  ('mobilization', 'Mobilization Agent', 'Checklists, readiness, department tasks',
   '{"tier": "light"}', ARRAY['list_mobilizations','get_mobilization','check_readiness','create_mob_tasks'], true),
  ('demobilization', 'Demobilization Agent', 'Clearance tracking, reassignment suggestions',

@@ -70,8 +70,10 @@ _RESET_ORDER = (
     "staffing_requests",
     "recruitment_requests",
     "alerts",
+    "conversation_messages",  # chat answers point at agent runs
     "agent_tool_calls",  # a narrator or agent run points at alerts and users
     "agent_runs",
+    "conversations",  # a chat belongs to a user (and runs pointed at it)
     "leave_records",
     "user_project_access",
     "project_sites",

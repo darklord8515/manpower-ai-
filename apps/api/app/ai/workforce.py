@@ -387,6 +387,38 @@ def step_for(tool: str, summary: dict[str, Any]) -> tuple[str, str]:
                     else ""
                 ),
             )
+        case "route_question":
+            how = {"AI": "by the AI", "pattern": "by pattern", "keywords": "by keywords"}
+            source = str(summary.get("source", ""))
+            return "Understood the question", f"{summary.get('intent')}, {how.get(source, source)}"
+        case "search_workers":
+            return (
+                "Searched the worker directory",
+                f"{plural(n('found'), 'worker')} found, {n('shown')} shown",
+            )
+        case "worker_profile":
+            found = n("found")
+            return (
+                "Read a worker's profile" if found == 1 else "Searched for the worker",
+                f"{plural(n('risks'), 'risk')} flagged" if found == 1 else f"{found} found",
+            )
+        case "documents_expiring":
+            return (
+                "Read the document expiry list",
+                f"{plural(n('found'), 'document')} found, {n('shown')} shown",
+            )
+        case "list_alerts":
+            return (
+                "Read the open alerts",
+                f"{plural(n('found'), 'alert')} open, {n('shown')} shown",
+            )
+        case "list_projects":
+            return "Read the projects", f"{plural(n('found'), 'project')}"
+        case "list_requests":
+            return (
+                "Read the staffing requests",
+                f"{plural(n('found'), 'request')} found, {n('shown')} shown",
+            )
         case _:
             return tool.replace("_", " ").capitalize(), ""
 

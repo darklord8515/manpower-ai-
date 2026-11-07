@@ -227,6 +227,19 @@ Built as written, with these choices to know about:
 | `WORKFORCE_EXPLAIN` | A forecast explanation is kept only if every number, date and code in it is in the forecast it was given (no names are sent). | `forecast_digest`. |
 | `WORKFORCE_ONE_RUN` | A run is visible only to who asked. A second ask for the same target within 3 minutes while one is still running returns that run. A run still "running" after 5 minutes is reported failed. | |
 
+### Virtual HR chat (Phase 6)
+
+| Code | Rule | Notes |
+|---|---|---|
+| `CHAT_GATE_FIRST` | Before any model: a message over 1000 characters is refused by the schema; one with a phone, passport, Emirates ID or other restricted number is stopped (run `refused`) and the number is never stored (the thread keeps a placeholder); questions about salary, phone numbers or document numbers get a fixed refusal; greetings and "what can you do" are answered by Python. | `app/ai/assistant/gate.py`. There is no salary data in the system. |
+| `CHAT_CLOSED_INTENTS` | A model (or a pattern) only sorts a question into one intent from a closed list, limited to what the caller's role may use, and fills a few fields. Everything it fills is checked against the real data: a trade, project, status, document type or employee code that does not exist is asked about, never guessed or silently dropped. Dates for words like "next month" are worked out by Python (`start_for`). | `app/ai/assistant/intents.py`. The answer's "why" line says how the question was understood. |
+| `CHAT_READ_ONLY_TOOLS` | The chat answers only through fixed read-only tools (`search_workers`, `worker_profile`, `documents_expiring`, `list_alerts`, `list_projects`, `forecast_availability`, `list_requests`). Each must be in the agent's `allowed_tools` and an enabled agent, the caller must hold its permission (a refusal is logged `allowed = false`), and the tool reads through the same scope rules as the screen it mirrors. No tool returns a phone or document number. Actions in an answer are links to existing screens; nothing is written from the chat. | `app/ai/assistant/skills.py`. |
+| `CHAT_NUMBERS_ARE_PYTHONS` | Every number, table, count and date in an answer is built by Python from the tool result. A model may reword the one summary sentence only. | |
+| `CHAT_SENTENCE_FAITHFUL` | The model's sentence is kept only if every number, date, code (`AI_FAITHFUL`) and every capitalised name in it is in the facts, the Python draft or the question; otherwise Python's own sentence is used and the answer is not marked AI-worded. | `invented_names`. |
+| `CHAT_PYTHON_ONLY` | When no model answers (none set up, rate-limited on every provider, or invalid output twice), plain questions are still routed by pattern and keywords and answered from the same tools; the answer says it is Python-only. A question that cannot be sorted gets "unavailable", not a guess. | `gate.keyword_route`. |
+| `CHAT_PRIVATE` | A conversation and its answers are visible only to who started it (others get 404). Deleting it removes its messages; the runs and the audit log stay. | |
+| `CHAT_LIMITS` | One question at a time per conversation (409), 20 questions per person per 10 minutes and at most 8 answers being worked on across everyone (429), at most 4 answered at once (a fifth waits up to 15 s). A run still "running" after 2 minutes is reported failed. | `routes/assistant.py`, `supervisor.py`. |
+
 ### AI runtime (every model call)
 
 | Code | Rule | Notes |

@@ -103,6 +103,19 @@ def unfaithful(text: str, allowed: set[str]) -> list[str]:
     return sorted(t.split(":", 1)[1] for t in tokens(text) - allowed)
 
 
+_PROPER = re.compile(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b")
+
+
+def invented_names(text: str, *sources: Any) -> list[str]:
+    """Capitalised phrases such as a person's or a company's name that the sources never mention.
+
+    Two or more capitalised words in a row are read as a name. The check is deliberately blunt: a
+    chat summary that names someone Python did not return is thrown away and the template is used.
+    """
+    haystack = _flatten(list(sources)).lower()
+    return sorted({m for m in _PROPER.findall(text) if m.lower() not in haystack})
+
+
 def all_faithful(texts: Iterable[str], allowed: set[str]) -> list[str]:
     bad: set[str] = set()
     for text in texts:

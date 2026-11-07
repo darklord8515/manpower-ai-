@@ -13,6 +13,7 @@ from app.config import Settings, get_settings, validate_for_environment
 from app.routes import (
     agent,
     alerts,
+    assistant,
     auth,
     documents,
     forecast,
@@ -99,6 +100,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(mobilizations.router)
     app.include_router(alerts.router)
     app.include_router(agent.router)
+    app.include_router(assistant.router)
     return app
 
 

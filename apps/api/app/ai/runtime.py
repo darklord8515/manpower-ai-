@@ -78,12 +78,16 @@ def open_run(
     user_input: str,
     intent: str,
     model: str,
+    session_id: uuid.UUID | None = None,
 ) -> uuid.UUID:
-    """Write the `running` row before the model is called, so a crash still leaves a trace."""
+    """Write the `running` row before the model is called, so a crash still leaves a trace.
+
+    `session_id` is the chat conversation the run belongs to (agent_runs.session_id)."""
     return session.execute(
         text(
-            """INSERT INTO agent_runs (agent_id, user_id, user_input, intent, status, model)
-               SELECT a.id, :user, :input, :intent, 'running', :model
+            """INSERT INTO agent_runs (agent_id, user_id, user_input, intent, status, model,
+                                      session_id)
+               SELECT a.id, :user, :input, :intent, 'running', :model, :session
                FROM agents a WHERE a.code = :agent RETURNING id"""
         ),
         {
@@ -92,6 +96,7 @@ def open_run(
             "input": user_input,
             "intent": intent,
             "model": model,
+            "session": session_id,
         },
     ).scalar_one()
 

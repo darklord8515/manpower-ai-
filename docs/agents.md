@@ -209,6 +209,30 @@ Board's "Ask Workforce Agent", the Forecast screen's "Explain") skip the Supervi
 knowledge. Route to a disabled agent. Re-phrase a refusal as a partial answer. Run more than one
 sub-agent per request in the MVP.
 
+### As built (Phase 6.2): the Virtual HR
+
+The Supervisor is the **Virtual HR**, a chat (Cmd+K drawer and `/assistant`), with saved private
+conversations (`conversations`, `conversation_messages`; `agent_runs.session_id` is the conversation).
+Rules `CHAT_*` in `docs/rules.md`. Differences from the design above, on purpose:
+
+- **Routing is a closed list, not a free tool call.** One light-tier call (or a pattern, or keywords
+  when no model answers) sorts a question into an intent (`workers`, `worker`, `documents`, `alerts`,
+  `projects`, `forecast`, `requests`, `help`, `out_of_scope`) and fills a few fields; Python validates
+  every field against the data and asks when one is wrong or missing. Later slices add `mobilizations`
+  and `demobilizations`. A free-model tool-calling loop would be slower and less reliable for the same
+  job, so the specialist is a fixed read-only tool per intent, run under the Supervisor's run: it must be
+  in the specialist agent's `allowed_tools`, the agent must be enabled, and the caller's permission is
+  checked and logged first (`call_tool`).
+- **The model never writes numbers.** Blocks (counts, tables, alerts, bars) are Python's. The model may
+  reword the single summary sentence; it is kept only if it states nothing Python did not
+  (`CHAT_SENTENCE_FAITHFUL`).
+- **Pipeline:** gate (Python) → route (pattern / model / keywords) → resolve → permission → tool →
+  blocks and a Python summary → optional model wording. At most two model calls a message.
+- **Workforce** gained six read tools for this (`search_workers`, `worker_profile`, `documents_expiring`,
+  `list_alerts`, `list_projects`, `list_requests`; migration 0011). `get_alert` was not built: alerts
+  open on the To-do screen.
+- `make eval-chat` runs `agents/evals/chat.yaml` (30 questions: routing, follow-ups, traps, refusals).
+
 ---
 
 ## 5. Mobilization Agent — `mobilization` · tier `light` · P6

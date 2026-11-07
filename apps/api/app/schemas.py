@@ -995,6 +995,164 @@ class NarrateQueued(BaseModel):
     pending: int
 
 
+# ------------------------------------------------------------------------------ Virtual HR chat
+# An answer is blocks the screen draws (tables, counts, alerts), never a wall of text. Everything in
+# a block comes from a Python service; a model may only word the one-sentence summary, and that
+# sentence is checked against the same facts (docs/rules.md, CHAT_*).
+
+ChatTone = Literal["neutral", "good", "warn", "bad"]
+CellValue = str | int | None
+
+
+class ChatKpi(BaseModel):
+    label: str
+    value: str
+    tone: ChatTone = "neutral"
+
+
+class ChatColumn(BaseModel):
+    key: str
+    label: str
+    align: Literal["left", "right"] = "left"
+
+
+class KpiBlock(BaseModel):
+    type: Literal["kpis"] = "kpis"
+    items: list[ChatKpi]
+
+
+class TableBlock(BaseModel):
+    type: Literal["table"] = "table"
+    title: str | None = None
+    columns: list[ChatColumn]
+    rows: list[dict[str, CellValue]]
+    total: int  # how many match; `rows` may be the first few
+    href: str | None = None  # the screen that shows all of them
+
+
+class ChatAlert(BaseModel):
+    id: uuid.UUID
+    severity: AlertSeverity
+    title: str
+    project: str | None
+    raised: str
+
+
+class AlertsBlock(BaseModel):
+    type: Literal["alerts"] = "alerts"
+    items: list[ChatAlert]
+    total: int
+
+
+class ChatBar(BaseModel):
+    label: str
+    value: int
+    of: int | None = None  # the bar is value out of `of` when set
+    detail: str | None = None
+
+
+class BarsBlock(BaseModel):
+    type: Literal["bars"] = "bars"
+    title: str | None = None
+    items: list[ChatBar]
+
+
+class NoteBlock(BaseModel):
+    type: Literal["note"] = "note"
+    tone: Literal["info", "warning"] = "info"
+    text: str
+
+
+ChatBlock = Annotated[
+    KpiBlock | TableBlock | AlertsBlock | BarsBlock | NoteBlock, Field(discriminator="type")
+]
+
+
+class ChatAction(BaseModel):
+    """A link to a screen that already exists. Actions that change data stay on those screens."""
+
+    label: str
+    href: str
+
+    @field_validator("href")
+    @classmethod
+    def _inside_the_app(cls, value: str) -> str:
+        if not value.startswith("/") or value.startswith("//"):
+            raise ValueError("An action only links to a screen inside the app")
+        return value
+
+
+class ChatSource(BaseModel):
+    tool: str
+    as_of: str  # the simulated or real date the data was read, e.g. "5 Nov 2026"
+
+
+ChatAnswerKind = Literal["data", "info", "clarify", "refusal", "unavailable", "error"]
+
+
+class ChatAnswer(BaseModel):
+    kind: ChatAnswerKind
+    summary: str
+    blocks: list[ChatBlock] = []
+    why: str | None = None  # how the answer was found, in one line
+    actions: list[ChatAction] = []
+    sources: list[ChatSource] = []
+    agent: str | None = None  # which agent's tools answered
+    ai_worded: bool = False  # the summary was written by a model and checked against the facts
+    python_only: bool = False  # no model answered: the summary is the template one
+
+
+class ChatBody(BaseModel):
+    message: str = Field(min_length=1, max_length=1000)
+    conversation_id: uuid.UUID | None = None
+
+
+class ChatStarted(BaseModel):
+    run_id: uuid.UUID
+    conversation_id: uuid.UUID
+
+
+class ChatStep(BaseModel):
+    title: str
+    detail: str
+
+
+class ChatRunView(BaseModel):
+    id: uuid.UUID
+    conversation_id: uuid.UUID | None
+    status: Literal["running", "succeeded", "failed", "refused"]
+    steps: list[ChatStep]
+    answer: ChatAnswer | None
+    error: str | None
+    model: str | None
+    started_at: datetime
+    finished_at: datetime | None
+
+
+class ChatMessage(BaseModel):
+    id: uuid.UUID
+    role: Literal["user", "assistant"]
+    content: str
+    answer: ChatAnswer | None
+    run_id: uuid.UUID | None
+    created_at: datetime
+
+
+class Conversation(BaseModel):
+    id: uuid.UUID
+    title: str
+    updated_at: datetime
+
+
+class ConversationView(Conversation):
+    messages: list[ChatMessage]
+
+
+class ChatSuggestions(BaseModel):
+    items: list[str]
+    ai_enabled: bool  # false: no model is set up, so questions are answered by Python alone
+
+
 class ProjectDates(BaseModel):
     """Change a project's dates. Either one, or both."""
 
