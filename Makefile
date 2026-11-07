@@ -2,7 +2,7 @@
 COMPOSE = docker compose --env-file .env -f infra/docker-compose.yml
 API = uv --directory apps/api
 
-.PHONY: help env dev db db-down db-logs db-shell migrate api-dev web-dev test test-api test-web lint lint-api lint-web fmt seed reset-demo eval
+.PHONY: help env dev db db-down db-logs db-shell migrate api-dev web-dev test test-api test-web lint lint-api lint-web fmt seed reset-demo ai-smoke eval
 
 help:
 	@echo make env        - create .env with random secrets (first time only)
@@ -70,6 +70,9 @@ seed: migrate
 	$(API) run python -m app.seed seed
 
 reset-demo: seed
+
+ai-smoke:
+	$(API) run python -m app.ai.smoke
 
 eval:
 	@echo eval arrives with the agents

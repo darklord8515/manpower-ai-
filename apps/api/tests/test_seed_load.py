@@ -99,7 +99,9 @@ def test_reset_removes_demo_data_but_keeps_the_reference_data(migrated_db: Engin
     with migrated_db.begin() as connection:
         reset_demo(connection, DEMO)
     assert _scalar(migrated_db, "SELECT count(*) FROM employees") == 0
-    assert _scalar(migrated_db, "SELECT count(*) FROM users") == 0
+    assert _scalar(migrated_db, "SELECT count(*) FROM users WHERE is_demo") == 0
+    # The service account is not demo data: the reset leaves it.
+    assert _scalar(migrated_db, "SELECT count(*) FROM users") == 1
     assert _scalar(migrated_db, "SELECT count(*) FROM role_permissions") == before
     assert _scalar(migrated_db, "SELECT count(*) FROM work_rules") == 1
 

@@ -32,3 +32,8 @@ def get_engine() -> Engine:
 def get_session() -> Iterator[Session]:
     with sessionmaker(bind=get_engine(), expire_on_commit=False)() as session:
         yield session
+
+
+def get_session_factory() -> sessionmaker[Session]:
+    """For work that outlives the request (background batches): each opens its own session."""
+    return sessionmaker(bind=get_engine(), expire_on_commit=False)

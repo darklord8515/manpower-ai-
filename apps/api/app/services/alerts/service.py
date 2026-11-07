@@ -234,6 +234,8 @@ def _history_words(action: str, after: dict[str, Any]) -> str:
             )
         case "alert.dismissed":
             return f"Dismissed: {after.get('reason', '')}"
+        case "alert.narrated":
+            return "Worded by AI from the facts"
         case _:
             return action.removeprefix("alert.").replace("_", " ").capitalize()
 
@@ -282,6 +284,22 @@ def detail(session: Session, user: AuthUser, alert_id: uuid.UUID) -> AlertDetail
             for h in history
         ],
     )  # fmt: skip
+
+
+def python_title(session: Session, alert_id: uuid.UUID) -> str:
+    """The alert's title as Python worded it, even after the narrator has reworded it.
+
+    The Home insight must be written by Python only (INSIGHT_PYTHON_ONLY); the narrator keeps the
+    template it replaced in its run, and this is where the insight finds it.
+    """
+    title = session.execute(
+        text(
+            """SELECT coalesce(r.output_json #>> '{template,title}', a.title)
+               FROM alerts a LEFT JOIN agent_runs r ON r.id = a.narrated_by_run WHERE a.id = :id"""
+        ),
+        {"id": alert_id},
+    ).scalar_one_or_none()
+    return str(title or "")
 
 
 def assignees(session: Session) -> list[Assignee]:

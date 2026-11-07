@@ -299,7 +299,8 @@ logins); the MD/CEO can read everything and change nothing.
   dismiss is not offered: each dismissal needs its own reason, and the bar says so.
 - **Alert sheet** (right side; `?alert=` in the address, so the link can be shared): severity +
   status, title, the explanation (labelled "Written by AI from the facts below" only when a model
-  wrote it; today every explanation is worded in Python), the **facts table** ("Facts behind this
+  wrote it, and the history then says "Worded by AI from the facts"; with no model configured every
+  explanation is worded in Python), the **facts table** ("Facts behind this
   alert"; label left, value left, dates as `5 Nov 2026`, codes in mono, numbers in tabular
   figures), the one accent button that opens the screen where the cause is fixed (Open worker,
   Open Allocation, Open mobilization, Open forecast), then Take it / Assign / Snooze / Dismiss and
@@ -333,7 +334,7 @@ logins); the MD/CEO can read everything and change nothing.
 - **States:** skeleton rows, "No open alerts" with when the detectors last ran, "No alerts match
   these filters" with Clear filters, an error that names what failed with Retry (list, bell and
   sheet separately), light and dark, keyboard throughout.
-- **Not built yet:** AI-written explanations (the label above is ready), sending messages and the
+- **Not built yet:** sending messages and the
   "Send reminder" / "Remind approver" actions, the 07:00 and 18:00 schedule (the detectors run
   after every change and on `POST /alerts/run` until n8n calls it), "Open site shifts" and "Request
   exemption", and editing the 2027 midday-ban dates in the app (it is a provisional rule, labelled

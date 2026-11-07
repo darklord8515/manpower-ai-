@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from alembic import command
 from app.auth.throttle import LoginThrottle
 from app.config import ConfigError, get_settings
-from app.db import get_session
+from app.db import get_session, get_session_factory
 from app.main import create_app
 from app.routes import auth as auth_routes
 from app.seed.load import seed_demo
@@ -87,6 +87,7 @@ def make_client(
                 yield s
 
         app.dependency_overrides[get_session] = session
+        app.dependency_overrides[get_session_factory] = lambda: sessions
         app.dependency_overrides[get_settings] = lambda: settings
         client = TestClient(app)
         clients.append(client)

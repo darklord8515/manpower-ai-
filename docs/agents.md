@@ -128,8 +128,15 @@ and its `facts_json`; the narrator rewrites `title`, `explanation` and the label
   employee code in the text must appear in `facts_json`; every `action` must be in
   `allowed_actions`; no recommendation outside them. Fail → keep the template text; the run is
   logged as `failed`.
-- Runs when an alert is created or its facts change (cached by a hash of `facts_json`), in batches
-  after detector runs.
+- Runs when an alert is created or its facts change (cached by a hash of `facts_json` and severity), in
+  batches after detector runs.
+
+**As built (Phase 5.1).** `app/services/alerts/narrator.py`; the shared model layer is `app/ai/`
+(`llm.py` the two adapters, `runtime.py` structured calls and the run log, `redact.py`, `faithful.py`).
+Only critical and action-needed alerts are narrated. The model also sees the alert's current (template)
+wording, so it rewords rather than invents; its text may reuse numbers, dates and codes from the facts
+**or from that template**. Rules: `NARRATE_*` and `AI_*` in `docs/rules.md`. With the light tier off nothing
+is narrated and the template stays. `make ai-smoke` makes one real call without saving anything.
 
 **Must never.** Change severity, status, assignee or due date. Add facts, estimates or advice not in
 `facts_json`. Invent an action. Address the user as if it took an action.

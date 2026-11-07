@@ -127,7 +127,7 @@ def _reconcile(
             text(
                 """SELECT id, dedupe_key, severity::text AS severity, status::text AS status,
                           snoozed_until, title, explanation, facts_json,
-                          recommended_actions_json, due_at, project_id
+                          recommended_actions_json, due_at, project_id, narrated_by_run
                    FROM alerts WHERE type = CAST(:type AS alert_type)
                      AND status IN ('open', 'in_progress', 'snoozed')"""
             ),
@@ -152,12 +152,21 @@ def _reconcile(
             summary.resolved += 1
             continue
         # Still true: keep the alert up to date in place (ALERT_DEDUPE).
+        # Words the narrator wrote stay while the facts and severity they describe are unchanged;
+        # when either changes the alert goes back to the template and is worded again.
+        facts_same = _plain(alert["facts_json"]) == _plain(f.facts)
+        keep_words = (
+            alert["narrated_by_run"] is not None and facts_same and alert["severity"] == f.severity
+        )
+        words_same = keep_words or (
+            alert["title"] == f.title
+            and alert["explanation"] == f.explanation
+            and _plain(alert["recommended_actions_json"]) == _plain(f.actions)
+        )
         same = (
             alert["severity"] == f.severity
-            and alert["title"] == f.title
-            and alert["explanation"] == f.explanation
-            and _plain(alert["facts_json"]) == _plain(f.facts)
-            and _plain(alert["recommended_actions_json"]) == _plain(f.actions)
+            and words_same
+            and facts_same
             and alert["due_at"] == f.due_at
             and alert["project_id"] == f.project_id
         )
@@ -165,17 +174,20 @@ def _reconcile(
             session.execute(
                 text(
                     """UPDATE alerts SET severity = CAST(:severity AS alert_severity),
-                              title = :title, explanation = :explanation,
+                              title = CASE WHEN :keep THEN title ELSE :title END,
+                              explanation = CASE WHEN :keep THEN explanation ELSE :explanation END,
                               facts_json = CAST(:facts AS jsonb),
-                              recommended_actions_json = CAST(:actions AS jsonb), due_at = :due,
-                              project_id = :project, updated_at = :now
+                              recommended_actions_json = CASE WHEN :keep
+                                  THEN recommended_actions_json ELSE CAST(:actions AS jsonb) END,
+                              narrated_by_run = CASE WHEN :keep THEN narrated_by_run ELSE NULL END,
+                              due_at = :due, project_id = :project, updated_at = :now
                        WHERE id = :id"""
                 ),
                 {
                     "id": alert["id"], "severity": f.severity, "title": f.title,
                     "explanation": f.explanation, "facts": _json(f.facts),
                     "actions": _json(f.actions), "due": f.due_at, "project": f.project_id,
-                    "now": now,
+                    "now": now, "keep": keep_words,
                 },
             )  # fmt: skip
             if alert["severity"] != f.severity:
@@ -289,6 +301,14 @@ def run_after_change(session: Session, settings: Settings, clock: Clock) -> None
     except Exception:  # noqa: BLE001 - a detector problem must not undo or hide the user's change
         session.rollback()
         log.exception("The alert detectors failed after a change")
+        return
+    # Imported here: the narrator uses `audit` from this module.
+    from app.services.alerts.narrator import schedule_narration
+
+    try:
+        schedule_narration(settings)
+    except Exception:  # noqa: BLE001 - wording is a nicety; it must never fail the change
+        log.exception("The narrator could not be scheduled")
 
 
 def last_run(session: Session) -> datetime | None:

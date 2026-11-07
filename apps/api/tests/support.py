@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Callable, Sequence
 from datetime import date, datetime
 
 from argon2 import PasswordHasher
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine, text
 
+from app.ai.llm import LLMError, LLMReply, Message, ToolSpec
 from app.clock import GULF
 from app.config import AppEnv, Settings
 
@@ -29,6 +31,46 @@ class FixedClock:
 
     def now(self) -> datetime:
         return self._now
+
+
+class ScriptedLLM:
+    """A model that answers from a script, and remembers every call it was given.
+
+    `replies` is either a list (used in order; an exception in it is raised, so a provider failure
+    can be scripted) or a function from the messages to the reply text.
+    """
+
+    def __init__(
+        self,
+        replies: Sequence[str | Exception] | Callable[[Sequence[Message]], str],
+        model: str = "fake-light",
+    ) -> None:
+        self.model = model
+        self._replies = replies
+        self._used = 0
+        self.calls: list[list[Message]] = []
+
+    def chat(
+        self,
+        messages: Sequence[Message],
+        *,
+        tools: Sequence[ToolSpec] = (),
+        json_output: bool = False,
+        max_tokens: int = 1024,
+    ) -> LLMReply:
+        self.calls.append(list(messages))
+        if callable(self._replies):
+            return LLMReply(self._replies(messages), input_tokens=10, output_tokens=20)
+        assert self._used < len(self._replies), "the model was called more often than scripted"
+        reply = self._replies[self._used]
+        self._used += 1
+        if isinstance(reply, Exception):
+            raise reply
+        return LLMReply(reply, input_tokens=10, output_tokens=20)
+
+
+def provider_down() -> LLMError:
+    return LLMError("The model provider could not be reached (ConnectError)")
 
 
 def make_settings(**overrides: object) -> Settings:

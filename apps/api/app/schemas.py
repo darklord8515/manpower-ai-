@@ -915,6 +915,13 @@ class RunResult(BaseModel):
     escalated: int
 
 
+class NarrateQueued(BaseModel):
+    """Answer to "word the alerts": how many have template wording, and whether a model will."""
+
+    ai_enabled: bool  # false: the light tier is off, so nothing will be reworded
+    pending: int
+
+
 class ProjectDates(BaseModel):
     """Change a project's dates. Either one, or both."""
 

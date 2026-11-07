@@ -41,6 +41,6 @@ def insight_for(
         if summary.top:
             more = summary.needs_attention - 1
             tail = f" {more} more need{'s' if more == 1 else ''} attention." if more else ""
-            return f"{summary.top[0].title}.{tail}"
+            return f"{alerts.python_title(session, summary.top[0].id)}.{tail}"
         return "Nothing needs attention today."
     return _documents(documents)

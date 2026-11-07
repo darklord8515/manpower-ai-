@@ -8,9 +8,12 @@ from __future__ import annotations
 import sys
 
 from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
+from app.ai.llm import client_for
 from app.config import ConfigError, get_settings
 from app.seed.load import reset_demo, seed_demo
+from app.services.alerts.narrator import narrate_pending
 
 
 def main(argv: list[str]) -> int:
@@ -28,6 +31,15 @@ def main(argv: list[str]) -> int:
                 print("Demo data loaded:", ", ".join(f"{n} {k}" for k, n in counts.items()))  # noqa: T201
             else:
                 print("Demo data removed.")  # noqa: T201
+        client = client_for(settings, "light") if command == "seed" else None
+        if client is not None:  # the demo starts with its alerts already worded
+            print("Wording the demo alerts with the light model ...")  # noqa: T201
+            with Session(engine) as session:
+                r = narrate_pending(session, client)
+            print(  # noqa: T201
+                f"Narrator: {r.narrated} worded, {r.rejected} kept their template "
+                f"(failed the facts check), {r.failed + r.refused} failed."
+            )
     except ConfigError as error:
         print(f"Refused: {error}")  # noqa: T201
         return 1

@@ -162,7 +162,7 @@ Config (env, not code): `TRANSFER_BUFFER_DAYS=7`, `FORECAST_DOC_HORIZON_DAYS=90`
 | `ALERT_SCOPE` | Alerts are filtered like the data they describe: by `project_id` through `user_project_access`. Company-wide alerts (`project_id` null) are visible only with `all` scope. | |
 | `ALERT_ACTIONS` | Action buttons call the normal API routes with their own permissions (e.g. Reserve → `assignment:approve`, Raise recruitment → `recruitment:create`). Buttons the viewer can't use are hidden. Acting from an alert doesn't resolve it; the next detector run does, if the condition cleared. | |
 | `ALERT_AUDIT` | Every status change, assignment, snooze, dismissal, escalation and action taken from an alert is written to `audit_log` with the alert id. | |
-| `ALERT_NARRATION_FAITHFUL` | Narrator text is saved only if every number, date and code in it appears in `facts_json`, and every action is in the detector's allow-list. Otherwise the template text stays. | See `docs/agents.md`, Alert Narrator. |
+| `ALERT_NARRATION_FAITHFUL` | Narrator text is saved only if every number, date and code in it appears in `facts_json`, and every action is in the detector's allow-list. Otherwise the template text stays. | See `docs/agents.md`, Alert Narrator, and "Alert narration" below. |
 | `ALERT_NO_SENSITIVE` | `facts_json` never holds `doc_number`, phone numbers or contract values. | |
 | `ALERT_ESCALATION` | Config `ALERT_ESCALATION`: level 0 = HR team (HR Executives), level 1 = HR Manager, level 2 = Operations Manager. Default delays: critical 4 h → 8 h, action needed 24 h → 48 h, info never. Escalation stops when someone takes the alert (`in_progress`) or snoozes it. The API decides when to escalate; n8n delivers the messages. | On free hosting, escalation is checked at detector runs, so a 4 h step can fire late (see plan). Settings `ALERT_ESCALATION_CRITICAL_HOURS` ("4,8") and `ALERT_ESCALATION_ACTION_HOURS` ("24,48"). The wait is counted from when the alert was raised, or from when its last snooze ended. The level is set and audited; delivering the message is Phase 5. |
 | `ALERT_RUN` | A detector run compares each detector's findings with the live alerts of its type: new findings are raised, changed ones updated in place (facts, title, severity), gone ones resolved with "Condition cleared: ...", ended snoozes reopened, and untaken alerts escalated. It runs after any change that can alter a condition (requests raised, approved, rejected or cancelled; people reserved or released; recruitment raised or advanced; mobilization tasks ticked and arrivals; projects added or their dates changed), at seed time, and on `POST /alerts/run` (`alert:detect`, the service account: n8n and the cron). A detector error is logged and never fails the change that triggered the run. | `app/services/alerts/engine.py`. Running twice with nothing changed changes nothing. |
@@ -193,10 +193,37 @@ Built as written, with these choices to know about:
 - `midday_ban_conflict` finds an assignment's effective shift as the assignment's own shift, else the site's
   default; an assignment with no site counts toward every outdoor site of its project, so the people count
   reads "up to n". Its alert has no action buttons yet (no site-shift screen or exemption flow).
-- Alert titles and explanations are Python templates. `narrated_by_run` stays empty until the narrator
-  (Phase 5) exists, and the screen then labels the text "Written by AI".
+- Alert titles and explanations start as Python templates. When a model is configured the narrator rewords
+  the critical and action-needed ones (see "Alert narration"), `narrated_by_run` is set, and the alert
+  sheet labels the text "Written by AI from the facts below". With no model the templates are what HR sees.
 - Not offered because not built: Send renewal reminder and Remind approver (Phase 5, n8n), Open site shifts,
   Request exemption.
+
+### Alert narration (Phase 5)
+
+| Code | Rule | Notes |
+|---|---|---|
+| `NARRATE_SCOPE` | Only open or in-progress alerts of severity `critical` or `action_needed` are narrated. Information alerts keep their template. | Keeps free-tier calls low; these are the alerts in the bell. |
+| `NARRATE_INPUT` | The model receives the alert type, severity, the facts (restricted keys stripped), the current wording and the allowed action keys and labels, inside an `<alert_data>` block. Never action params, never anything else. | `narrator.prompt_for`. |
+| `NARRATE_OUTPUT` | One JSON object: `title` (8 to 90 characters), `explanation` (20 to 400), `actions` [{`action`, `label` ≤ 40}]. | Pydantic schema `Narration`. |
+| `NARRATE_ACTIONS` | The model may reorder and relabel the detector's actions, never add one: an unknown action rejects the whole wording. An action it leaves out is kept with its original label, so a button never disappears. | `_merged_actions`. |
+| `NARRATE_UNTOUCHED` | The narrator changes `title`, `explanation`, the order and labels of `recommended_actions_json`, and `narrated_by_run`. Never severity, status, assignee, due time or `facts_json`. A save is refused if the alert's facts or severity changed while the model was working ("stale"). | |
+| `NARRATE_CACHE` | Results are keyed by a hash of the facts and severity (`agent_runs.user_input` = `alert:<id>:<hash>`). A saved answer is reused with no call; a wording the model got wrong (rejected or invalid output) is not asked for again on the same facts; a provider failure is retried at the next batch. | |
+| `NARRATE_KEEP` | A detector run keeps narrated wording while the alert's facts and severity are unchanged. When either changes the alert goes back to the template, `narrated_by_run` is cleared, and it is narrated again. | `_reconcile` in `app/services/alerts/engine.py`. |
+| `NARRATE_WHEN` | After a saved change and after a scheduled run (in a background worker, one batch waiting at a time), on `POST /alerts/narrate` (`alert:detect`, the service account), and at `make seed` when the light tier is on. Never inside a request the user is waiting on. | `schedule_narration`, `run_batch`. |
+| `NARRATE_INSIGHT` | The Home insight is worded by Python only (`INSIGHT_PYTHON_ONLY`). After an alert is narrated the insight still reads the template title, which the narrator keeps in its run (`output_json.template`). | `alerts.python_title`. |
+
+### AI runtime (every model call)
+
+| Code | Rule | Notes |
+|---|---|---|
+| `AI_TIER_OFF` | A tier with no model, no address (OpenAI-compatible) or no key (Anthropic) is off. Each AI feature then falls back to Python wording or is disabled with the reason; nothing fails. In production a tier that has a model must have a key. | `Settings.llm_tier`, `LLM_TIER_*`. |
+| `AI_REDACT` | Before every call, all outgoing messages and tool arguments are scanned for restricted fields: `doc_number`, passport and Emirates ID numbers, phone and WhatsApp numbers, contract value. A hit refuses the whole call (run status `refused`, "LLM_REDACT") and names the kind of field, never the value. | `app/ai/redact.py`. The first defence is structural: prompts are built from the candidate projection. |
+| `AI_STRICT_OUTPUT` | A reply must be one JSON object that fits the agent's schema. On invalid output the model is told what was wrong and asked once more; a second failure ends the run `failed`. | `app/ai/runtime.py`. |
+| `AI_FAITHFUL` | Text a model writes may state only numbers, dates, times and codes (project, employee, request, mobilization) that appear in the facts it was given, or in the Python wording built from them. Names and ordinary words are not checked. A thousands separator or a year left off a date is not a new fact. | `app/ai/faithful.py`. |
+| `AI_LOGGED` | Every call opens an `agent_runs` row before the model is called and closes it with status (`succeeded`, `failed`, `refused`), model, tokens and latency. Provider errors are stored without keys. | |
+| `AI_DATA_NOT_INSTRUCTIONS` | Free text (names, notes, spreadsheet cells) reaches a model only inside a delimited data block, and the system prompt says it is data. A model without tools can do nothing with an instruction; a model with tools can only call tools that check the caller's permission. | |
+| `AI_SERVICE_USER` | Runs the system starts (the narrator) belong to the service account `service.n8n@constructiq.internal`. A migration creates it (it has no password, so it cannot sign in) and the demo reset keeps it. | Migration `0009`. |
 
 ## Policy rules (agents read these)
 

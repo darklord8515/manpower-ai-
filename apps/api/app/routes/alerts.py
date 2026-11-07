@@ -9,14 +9,16 @@ from __future__ import annotations
 import uuid
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
+from sqlalchemy.orm import Session, sessionmaker
 
+from app.ai.deps import light_client
+from app.ai.llm import LLMClient
 from app.audit import write_audit
 from app.auth.deps import AuthUser, get_clock, require
 from app.clock import Clock
 from app.config import Settings, get_settings
-from app.db import get_session
+from app.db import get_session, get_session_factory
 from app.schemas import (
     AlertDetail,
     AlertList,
@@ -28,10 +30,11 @@ from app.schemas import (
     BulkBody,
     BulkResult,
     DismissBody,
+    NarrateQueued,
     RunResult,
     SnoozeBody,
 )
-from app.services.alerts import service
+from app.services.alerts import narrator, service
 from app.services.alerts.engine import run_detectors
 from app.services.alerts.service import AlertError
 
@@ -100,10 +103,31 @@ def run_now(
     """The scheduled run (n8n, 07:00 and 18:00): bring every alert up to date with the data."""
     summary = run_detectors(session, settings, clock, reason="schedule")
     session.commit()
+    narrator.schedule_narration(settings)  # new alerts get their wording in the background
     return RunResult(
         raised=summary.raised, updated=summary.updated, resolved=summary.resolved,
         reopened=summary.reopened, escalated=summary.escalated,
     )  # fmt: skip
+
+
+@router.post("/narrate")
+def narrate_now(
+    background: BackgroundTasks,
+    session: SessionDep,
+    client: Annotated[LLMClient | None, Depends(light_client)],
+    factory: Annotated[sessionmaker[Session], Depends(get_session_factory)],
+    user: Detector,
+) -> NarrateQueued:
+    """Word the alerts that still carry template wording (ALERT_NARRATION_FAITHFUL).
+
+    Answers at once and works in the background: a model call takes seconds per alert. With the
+    light tier off nothing is queued and the template wording stays.
+    """
+    pending = len(narrator.pending(session))
+    if client is None:
+        return NarrateQueued(ai_enabled=False, pending=pending)
+    background.add_task(narrator.run_batch, client, factory)
+    return NarrateQueued(ai_enabled=True, pending=pending)
 
 
 @router.post("/bulk")

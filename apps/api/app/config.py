@@ -7,6 +7,7 @@ with APP_ENV=production the API refuses to start on any demo-only setting.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from enum import StrEnum
 from functools import lru_cache
 from pathlib import Path
@@ -25,6 +26,18 @@ class AppEnv(StrEnum):
     TEST = "test"
     DEMO = "demo"
     PRODUCTION = "production"
+
+
+@dataclass(frozen=True)
+class LLMTier:
+    """A model tier that is switched on: where to reach it and which model to ask for."""
+
+    name: str
+    provider: Literal["openai_compatible", "anthropic"]
+    model: str
+    base_url: str
+    api_key: str
+    free: bool
 
 
 class Settings(BaseSettings):
@@ -51,13 +64,21 @@ class Settings(BaseSettings):
     storage_backend: Literal["local", "s3"] = "local"
 
     # LLM tiers (provider + model come from config, never from code). *_free is true for
-    # Groq / OpenRouter :free / Ollama and is refused in production.
+    # Groq / OpenRouter :free / Ollama and is refused in production. A tier with no model is off:
+    # every AI feature then falls back (the narrator keeps the template wording).
+    # base_url is the OpenAI-compatible root, e.g. https://api.groq.com/openai/v1,
+    # https://openrouter.ai/api/v1 or http://localhost:11434/v1 (Ollama needs no key).
     llm_tier_light_provider: Literal["openai_compatible", "anthropic"] = "openai_compatible"
     llm_tier_light_model: str = ""
     llm_tier_light_free: bool = True
+    llm_tier_light_base_url: str = ""
+    llm_tier_light_api_key: str = ""
     llm_tier_mid_provider: Literal["openai_compatible", "anthropic"] = "openai_compatible"
     llm_tier_mid_model: str = ""
     llm_tier_mid_free: bool = True
+    llm_tier_mid_base_url: str = ""
+    llm_tier_mid_api_key: str = ""
+    llm_timeout_seconds: float = Field(default=30, ge=1, le=300)
 
     # Business config
     doc_check_default_horizon_days: int = Field(default=90, ge=1, le=365)
@@ -111,6 +132,27 @@ class Settings(BaseSettings):
             database="constructiq",
         ).render_as_string(hide_password=False)
 
+    def llm_tier(self, name: Literal["light", "mid"]) -> LLMTier | None:
+        """The tier if it can be reached, else None (AI is off for it)."""
+        provider = self.llm_tier_light_provider if name == "light" else self.llm_tier_mid_provider
+        model = (self.llm_tier_light_model if name == "light" else self.llm_tier_mid_model).strip()
+        base_url = (
+            self.llm_tier_light_base_url if name == "light" else self.llm_tier_mid_base_url
+        ).strip()
+        key = (
+            self.llm_tier_light_api_key if name == "light" else self.llm_tier_mid_api_key
+        ).strip()
+        free = self.llm_tier_light_free if name == "light" else self.llm_tier_mid_free
+        if not model:
+            return None
+        if provider == "anthropic":
+            if not key:
+                return None
+            base_url = base_url or "https://api.anthropic.com"
+        elif not base_url:
+            return None  # an OpenAI-compatible provider has no default address to guess
+        return LLMTier(name, provider, model, base_url.rstrip("/"), key, free)
+
     @property
     def required_document_types(self) -> list[str]:
         return [d.strip() for d in self.forecast_required_docs.split(",") if d.strip()]
@@ -137,6 +179,12 @@ def production_problems(s: Settings) -> list[str]:
         problems.append("LLM tier 'light' points at a free-tier provider (LLM_TIER_LIGHT_FREE)")
     if s.llm_tier_mid_free:
         problems.append("LLM tier 'mid' points at a free-tier provider (LLM_TIER_MID_FREE)")
+    for tier, model, key in (
+        ("light", s.llm_tier_light_model, s.llm_tier_light_api_key),
+        ("mid", s.llm_tier_mid_model, s.llm_tier_mid_api_key),
+    ):
+        if model.strip() and not key.strip():
+            problems.append(f"LLM tier '{tier}' has a model but no API key (LLM_TIER_*_API_KEY)")
     for name, value in (("SECRET_KEY", s.secret_key), ("N8N_HMAC_SECRET", s.n8n_hmac_secret)):
         if len(value) < MIN_SECRET_LENGTH:
             problems.append(f"{name} is missing or shorter than {MIN_SECRET_LENGTH} characters")
