@@ -107,6 +107,20 @@ phone or camp. Full profiles stay scoped.
 `recommend_candidates` re-runs every hard rule in Python and drops anyone who fails, with the rule.
 It writes nothing except the recommendation.
 
+**As built (Phase 5.2).** `app/ai/workforce.py`, `app/ai/tools.py` (the loop), `app/routes/agent.py`. The
+tool list above is the design; the agent has five tools, enforced by `agents.allowed_tools` (migration
+`0010`) and each checking the caller's permission first: `get_request_line` (`staffing:read`),
+`search_candidates` and `check_candidates` (`staffing:create`; the second runs every hard rule through
+`allocation.verdict`, which is what `check_availability`, `check_documents` and `check_work_rules` were
+for until the BAN_* board rules exist), `recommend_candidates` (`staffing:create`) and
+`forecast_availability` (`forecast:read`). Two uses: **recommend people for a request line** (the board's
+"Ask Workforce agent"; a tool loop, at most 6 rounds and the agent's token budget) and **explain a forecast**
+(the forecast's "Explain": the forecast service's numbers, one structured call). `draft_staffing_request`,
+`workforce_summary`, `get_employee_documents` and `list_expiring_documents` are not built: they belong to
+the Command Centre. The agent writes nothing about people; HR applies a recommendation with
+"Use these n", which calls the board's own choose route with `agent_run`, so the picks are recorded as the
+agent's and every hard rule runs again. Rules: `WORKFORCE_*` in `docs/rules.md`.
+
 **Must never.** Create, approve, reserve or change assignments, or raise recruitment requests.
 Compute or "adjust" a forecast number. Recommend a candidate that a hard rule excludes, or hide an
 exclusion. Rank on nationality, age or any field other than trade, level, availability, documents,

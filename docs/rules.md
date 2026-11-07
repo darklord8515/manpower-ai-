@@ -213,6 +213,20 @@ Built as written, with these choices to know about:
 | `NARRATE_WHEN` | After a saved change and after a scheduled run (in a background worker, one batch waiting at a time), on `POST /alerts/narrate` (`alert:detect`, the service account), and at `make seed` when the light tier is on. Never inside a request the user is waiting on. | `schedule_narration`, `run_batch`. |
 | `NARRATE_INSIGHT` | The Home insight is worded by Python only (`INSIGHT_PYTHON_ONLY`). After an alert is narrated the insight still reads the template title, which the narrator keeps in its run (`output_json.template`). | `alerts.python_title`. |
 
+### Workforce agent (Phase 5)
+
+| Code | Rule | Notes |
+|---|---|---|
+| `WORKFORCE_READ_ONLY` | The agent only reads. Its recommendation is stored on its run (`agent_runs.output_json`); nothing is chosen until a person presses "Use these n". | `app/ai/workforce.py`. |
+| `WORKFORCE_RULES_DECIDE` | `recommend_candidates` runs every hard rule on each pick (`allocation.verdict`) and drops whoever fails, with the rule code and the fact. A person who would start late is dropped too (`POLICY_LATE`: HR decides who starts late), as is anyone beyond the open places (`ASSIGN_HEADCOUNT`) or already chosen on the line. | The same checks run again when the picks are added. |
+| `WORKFORCE_NO_PADDING` | If fewer people are cleared than there are open places the agent recommends who there is and the answer states the shortfall. | |
+| `WORKFORCE_REASONS` | A person's reason line is the model's only if every number, date and code in it is in that person's facts (level, group, project, dates, documents) or the line's; otherwise it is replaced by the rules' own wording and marked "worded by the rules". The overview note is dropped under the same test. | `AI_FAITHFUL`. |
+| `WORKFORCE_TOOLS` | A tool the agent is not allowed (`agents.allowed_tools`) does not exist for it. The caller's permission is checked before the tool runs; a refusal is logged with `allowed = false` and ends the run `refused`. At most 6 rounds and the agent's token budget. | `app/ai/tools.py`. |
+| `WORKFORCE_STEPS` | The steps a screen shows are worded by Python from the counts each tool logged (`agent_tool_calls.result_summary`), never by the model, and appear as the run goes. | `step_for`. |
+| `WORKFORCE_APPLY` | `POST .../picks` with `agent_run` records the picks as source `agent` with the run's reasons, only for the person who asked, only for the line the run was about, only once it succeeded, and only for people the run recommended. | `recommended_reasons`. |
+| `WORKFORCE_EXPLAIN` | A forecast explanation is kept only if every number, date and code in it is in the forecast it was given (no names are sent). | `forecast_digest`. |
+| `WORKFORCE_ONE_RUN` | A run is visible only to who asked. A second ask for the same target within 3 minutes while one is still running returns that run. A run still "running" after 5 minutes is reported failed. | |
+
 ### AI runtime (every model call)
 
 | Code | Rule | Notes |

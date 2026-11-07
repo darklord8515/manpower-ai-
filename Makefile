@@ -75,4 +75,4 @@ ai-smoke:
 	$(API) run python -m app.ai.smoke
 
 eval:
-	@echo eval arrives with the agents
+	$(API) run python -m app.ai.evals

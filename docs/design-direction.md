@@ -200,9 +200,18 @@ One screen for HR to turn open staffing requests into approved workers.
     one line per person with the plain reason ("visa expires 12 Jan 2027, before 3 Feb 2027")
     and the rule code. (Built: the list comes from the Python rules service. When the Workforce
     agent exists in Phase 5 it explains this list; it does not make it.)
-  - **Agent trace** (Phase 5, not built): while recommendations are requested, the steps appear
-    one by one (understood request → workers checked → exclusions with reasons → ranking criteria →
-    result), then the rows animate in. Afterwards it stays as a collapsed "Agent trace" row.
+  - **Agent trace** (built): "Ask Workforce agent" (bot icon, beside Suggest people) opens the
+    agent's card under the line's buttons. Its steps appear one by one as the agent really does them
+    ("Read the request line", "Searched the people who could be chosen", "Checked 3 people against
+    the hard rules", "Chose 7"), each worded by the server from the tool's own counts, never by
+    the model. Then the summary ("Recommends 7 workers, 1 place stays open."), an amber **Dropped
+    by the rules** callout for anyone the model proposed and the rules refused (with the rule code),
+    and one row per person with a bot icon and a one-line reason. A reason the model worded that
+    states something the tools never said is replaced by the rules' wording and marked "reason
+    worded by the rules". **Use these n** chooses them as the agent's (every hard rule runs again);
+    afterwards the card keeps only the summary, the callout and the collapsed Trace. Failure shows
+    "The agent could not finish." with the reason and Try again. With no model set up the button is
+    shown switched off with "The AI model is not set up on this server." Esc closes the card.
   - **Workers are compact table rows (40px)**: checkbox, name + code, level, availability, docs
     valid until, one-line reason (full text in a tooltip; bot icon = AI, person icon = HR), Swap
     and an icon-only Remove (labelled for screen readers). All 8 rows of the demo line fit on one
@@ -212,7 +221,7 @@ One screen for HR to turn open staffing requests into approved workers.
     (one reason for all). **Swap** takes the old person off with the reason "Swapped for X", then
     adds X; if the rules refuse X, the old person is put straight back and the reason shows on X.
     Esc cancels a swap. "Suggest people" (built) fills the open slots from the rules service and
-    marks each row with the list icon; "Ask Workforce Agent" (bot icon) arrives with Phase 5.
+    marks each row with the list icon; "Ask Workforce agent" (bot icon) marks its rows with the bot.
   - **Approve opens a consequence preview** (a dialog, not a toast): each person with their
     start date and "after finishing on RAK-05 (20 Nov 2026)" where it applies, then "n assignments
     planned, n mobilizations started", "n depend on another job finishing on time" and
@@ -244,7 +253,7 @@ One screen for HR to turn open staffing requests into approved workers.
   kept in the address (`/requests?request=SR-2026-0001`).
 - **After approval, on the board:** the success banner links to the pipeline ("Open the pipeline")
   and each MOB number in the locked line opens that person's checklist.
-- **Not built yet:** the Workforce agent and its trace, and the midday-ban rules (BAN_*).
+- **Not built yet:** the midday-ban rules (BAN_*) on the board.
 
 ### Mobilization (the pipeline and the checklist)
 Where an approved person becomes a person on site. HR is the user: the HR Manager and the HR
@@ -370,6 +379,12 @@ logins); the MD/CEO can read everything and change nothing.
   <project> (with a "depends on <project> finishing by ..." chip), **Could join late** (finishing just inside
   the handover buffer or up to 21 days after the start, shown with the days; never counted), and Not counted
   (on leave, documents, planned elsewhere, not available) with the reason.
+- **Explain** (built; needs `ai:use`): a button beside the what-if date opens the same agent card
+  above the trades with the agent's plain-words summary of the numbers on screen, labelled "Written
+  by AI from the numbers below. The numbers themselves come from the forecast service." The summary
+  is kept only if every number, date and code in it is in the forecast; otherwise the card says the
+  wording did not match and shows nothing. The card belongs to the date it was asked for: changing
+  the date closes it. Switched off, with the reason, when no model is set up.
 - **What if:** a start-date field re-runs the forecast; "Back to project start" returns. The date is in the
   address bar. Reserve transfers and Raise recruitment request are the next slice and are not shown yet.
 

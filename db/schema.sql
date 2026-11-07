@@ -796,11 +796,12 @@ VALUES ('midday_ban', 2026, '2026-06-15', '2026-09-15', '12:30', '15:00', 8,
 INSERT INTO agents (code, name, description, model_policy, allowed_tools, is_enabled) VALUES
  ('supervisor', 'Supervisor Agent', 'Classifies intent and routes to one domain agent',
   '{"tier": "light"}', ARRAY['route_to_agent'], true),
+ -- allowed_tools is enforced: the runtime refuses any tool not listed here. Each tool also checks
+ -- the caller's own permission. The first four are the Allocation Board's recommendation run,
+ -- the last explains a forecast (migration 0010).
  ('workforce', 'Workforce Agent', 'Availability, skill matching, staffing recommendations',
-  '{"tier": "mid"}', ARRAY['workforce_summary','forecast_availability','draft_staffing_request',
-                           'search_employees','check_availability','check_documents',
-                           'check_work_rules','recommend_candidates',
-                           'get_employee_documents','list_expiring_documents'], true),
+  '{"tier": "mid"}', ARRAY['get_request_line','search_candidates','check_candidates',
+                           'recommend_candidates','forecast_availability'], true),
  ('mobilization', 'Mobilization Agent', 'Checklists, readiness, department tasks',
   '{"tier": "light"}', ARRAY['list_mobilizations','get_mobilization','check_readiness','create_mob_tasks'], true),
  ('demobilization', 'Demobilization Agent', 'Clearance tracking, reassignment suggestions',

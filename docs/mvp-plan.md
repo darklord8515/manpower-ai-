@@ -304,7 +304,8 @@ the bar; that screen is cut instead.
 - **Cut if short:** the Import Agent (keep manual mapping); WhatsApp (keep email).
 - **Order and status:** 5.1 AI runtime + Alert Narrator (**built**: model adapters, redaction, facts check,
   run log, narrator; runs only when a model is configured, `make ai-smoke` tries one), 5.2 Workforce agent with
-  visible steps, 5.3 n8n messages and schedules, 5.4 Excel import. Each is verified against a scripted model
+  visible steps (**built**: "Ask Workforce agent" on a request line, "Explain" on a forecast, `make eval` with
+  8 cases; the 35-case full-product suite is kept as `post-mvp.yaml`), 5.3 n8n messages and schedules, 5.4 Excel import. Each is verified against a scripted model
   and a local mail catcher until real keys and accounts exist.
 
 ### Phase 6: Hardening and handover

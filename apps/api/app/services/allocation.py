@@ -297,7 +297,7 @@ def verdict(pool: Pool, code: str) -> Verdict:
     )  # fmt: skip
 
 
-def _why(v: Verdict) -> str:
+def why(v: Verdict) -> str:
     level = f"level {v.level}" if v.level else "no level on file"
     until = f", documents valid to {day(v.documents_until)}" if v.documents_until else ""
     if v.group == "free":
@@ -349,8 +349,10 @@ def candidates(
     q: str = "",
     min_level: int | None = None,
     documents_valid_only: bool = False,
+    pool: Pool | None = None,
 ) -> LineCandidates:
-    pool = build_pool(session, settings, line, today)
+    """Who may be chosen for the line. Pass `pool` to reuse one already built (the agent does)."""
+    pool = pool or build_pool(session, settings, line, today)
     chosen = set(active_picks(session, line.line_id))
     found: list[BoardCandidate] = []
     blocked: list[BoardExcluded] = []
@@ -438,7 +440,7 @@ def add_picks(
             ),
             {
                 "line": line.line_id, "source": source, "user": user.id, "code": code,
-                "reason": (reasons or {}).get(code) or _why(v),
+                "reason": (reasons or {}).get(code) or why(v),
             },
         )  # fmt: skip
         chosen.append(code)
@@ -499,7 +501,7 @@ def suggest(
         return PicksResponse(results=[], chosen=0)
     return add_picks(
         session, settings, user, line, [v.code for v in picked], today, source="rules",
-        reasons={v.code: _why(v) for v in picked},
+        reasons={v.code: why(v) for v in picked},
     )  # fmt: skip
 
 

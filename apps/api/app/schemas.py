@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, datetime
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -652,6 +652,9 @@ class LineCandidates(BaseModel):
 
 class PicksRequest(BaseModel):
     employee_codes: list[str] = Field(min_length=1, max_length=50)
+    # Set when HR is applying a Workforce agent recommendation: the picks are then recorded as the
+    # agent's, with its reasons. Every hard rule still runs on each person.
+    agent_run: uuid.UUID | None = None
 
     @field_validator("employee_codes")
     @classmethod
@@ -913,6 +916,76 @@ class RunResult(BaseModel):
     resolved: int
     reopened: int
     escalated: int
+
+
+class AiStatus(BaseModel):
+    """Which model tiers are switched on, so a screen can disable its AI buttons with a reason."""
+
+    light: bool
+    mid: bool
+
+
+class RecommendRun(BaseModel):
+    kind: Literal["recommend_line"]
+    request_no: str = Field(min_length=1, max_length=40)
+    line_id: uuid.UUID
+
+
+class ExplainRun(BaseModel):
+    kind: Literal["explain_forecast"]
+    project: str = Field(min_length=1, max_length=20)
+    start: date | None = None
+
+
+AgentRunBody = Annotated[RecommendRun | ExplainRun, Field(discriminator="kind")]
+
+
+class AgentRunStarted(BaseModel):
+    id: uuid.UUID
+
+
+class AgentStep(BaseModel):
+    title: str
+    detail: str
+
+
+class AgentSelection(BaseModel):
+    code: str
+    name: str
+    level: int | None
+    group: str
+    reason: str
+    reason_by: Literal["ai", "rules"]  # who wrote the reason line: the model, or the rules service
+
+
+class AgentDropped(BaseModel):
+    code: str
+    name: str
+    rule: str
+    message: str
+
+
+class AgentRecommendation(BaseModel):
+    trade: str
+    open_places: int
+    shortfall: int
+    note: str | None
+    selections: list[AgentSelection]
+    rejected: list[AgentDropped]
+
+
+class AgentRunView(BaseModel):
+    id: uuid.UUID
+    kind: Literal["recommend_line", "explain_forecast"]
+    status: Literal["running", "succeeded", "failed", "refused"]
+    steps: list[AgentStep]  # what the agent has done so far, worded by Python from its real calls
+    recommendation: AgentRecommendation | None
+    answer: str | None  # the explanation of a forecast
+    error: str | None
+    model: str | None
+    tier: str
+    started_at: datetime
+    finished_at: datetime | None
 
 
 class NarrateQueued(BaseModel):

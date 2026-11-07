@@ -42,7 +42,8 @@ class ScriptedLLM:
 
     def __init__(
         self,
-        replies: Sequence[str | Exception] | Callable[[Sequence[Message]], str],
+        replies: Sequence[str | LLMReply | Exception]
+        | Callable[[Sequence[Message]], str | LLMReply],
         model: str = "fake-light",
     ) -> None:
         self.model = model
@@ -60,12 +61,15 @@ class ScriptedLLM:
     ) -> LLMReply:
         self.calls.append(list(messages))
         if callable(self._replies):
-            return LLMReply(self._replies(messages), input_tokens=10, output_tokens=20)
-        assert self._used < len(self._replies), "the model was called more often than scripted"
-        reply = self._replies[self._used]
-        self._used += 1
+            reply = self._replies(messages)
+        else:
+            assert self._used < len(self._replies), "the model was called more often than scripted"
+            reply = self._replies[self._used]
+            self._used += 1
         if isinstance(reply, Exception):
             raise reply
+        if isinstance(reply, LLMReply):
+            return reply
         return LLMReply(reply, input_tokens=10, output_tokens=20)
 
 

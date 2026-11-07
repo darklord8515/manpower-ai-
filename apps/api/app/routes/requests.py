@@ -14,6 +14,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.ai.workforce import recommended_reasons
 from app.audit import write_audit
 from app.auth.deps import AuthUser, get_clock, require
 from app.clock import Clock
@@ -261,16 +262,25 @@ def add_picks(
     user: Creator,
 ) -> PicksResponse:
     line = _line(session, user, request_no, line_id)
+    source, reasons = "hr", None
     try:
+        if body.agent_run is not None:  # applying what the Workforce agent recommended
+            offered = recommended_reasons(session, user, body.agent_run, request_no, line_id)
+            outside = [c for c in body.employee_codes if c not in offered]
+            if outside:
+                raise AllocationError(409, f"{outside[0]} was not part of that recommendation.")
+            source, reasons = "agent", offered
         result = allocation.add_picks(
-            session, settings, user, line, body.employee_codes, clock.today()
+            session, settings, user, line, body.employee_codes, clock.today(), source, reasons
         )
     except AllocationError as error:
         raise _fail(error) from error
+    after: dict[str, Any] = {"line": line.trade, "chosen": _chosen(result)}
+    if body.agent_run is not None:
+        after["agent_run"] = str(body.agent_run)
     write_audit(
         session, request, "request.people_chosen", "staffing_request", user,
-        entity_id=line.request_id,
-        after={"line": line.trade, "chosen": _chosen(result)},
+        entity_id=line.request_id, after=after,
     )  # fmt: skip
     return result
 
