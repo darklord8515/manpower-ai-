@@ -5,6 +5,8 @@ import type {
   AdvanceResult,
   ApproveResponse,
   LineCandidates,
+  MobilizationDetail,
+  MobilizationList,
   NewRequestBody,
   PicksResponse,
   RequestDetail,
@@ -162,6 +164,28 @@ export const api = {
     request<RequestDetail>(`/requests/${encodeURIComponent(no)}/cancel`, {
       method: "POST",
       body: JSON.stringify({ reason }),
+    }),
+  mobilizations: (filters: { q?: string; project?: string; overdue?: boolean } = {}) => {
+    const params = new URLSearchParams();
+    if (filters.q?.trim()) params.set("q", filters.q.trim());
+    if (filters.project) params.set("project", filters.project);
+    if (filters.overdue) params.set("overdue", "true");
+    const query = params.toString();
+    return request<MobilizationList>(`/mobilizations${query ? `?${query}` : ""}`);
+  },
+  mobilization: (no: string) =>
+    request<MobilizationDetail>(`/mobilizations/${encodeURIComponent(no)}`),
+  markTaskDone: (no: string, taskId: string) =>
+    request<MobilizationDetail>(`/mobilizations/${encodeURIComponent(no)}/tasks/${taskId}/done`, {
+      method: "POST",
+    }),
+  reopenTask: (no: string, taskId: string) =>
+    request<MobilizationDetail>(`/mobilizations/${encodeURIComponent(no)}/tasks/${taskId}/reopen`, {
+      method: "POST",
+    }),
+  confirmArrival: (no: string) =>
+    request<MobilizationDetail>(`/mobilizations/${encodeURIComponent(no)}/arrival`, {
+      method: "POST",
     }),
   summaryByTrade: () => request<TradeStrength[]>("/summary/trades"),
   preferences: () => request<Preferences>("/auth/me/preferences"),

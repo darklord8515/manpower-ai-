@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRightLeft, CalendarClock, CircleAlert, Phone, UserX } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { SlidingTabs } from "@/components/motion/SlidingTabs";
 import { DetailSheet } from "@/components/ui/DetailSheet";
@@ -185,6 +186,20 @@ function Assignments({ worker }: { worker: WorkerDetail }) {
               <ArrowRightLeft className="size-3.5" aria-hidden="true" />
               Moving from {a.moving_from}
               {a.moving_from_ends ? `, last day there ${formatDate(a.moving_from_ends)}` : ""}
+            </p>
+          )}
+          {a.mobilization && (
+            <p className="mt-1 mb-0 flex flex-wrap items-center gap-x-2 text-xs text-muted">
+              <Link
+                href={`/mobilization?mob=${encodeURIComponent(a.mobilization.mob_no)}`}
+                className="font-mono underline-offset-2 hover:underline"
+              >
+                {a.mobilization.mob_no}
+              </Link>
+              <span>
+                {a.mobilization.tasks_done} of {a.mobilization.tasks_total} tasks done
+                {a.mobilization.stage === "on_site" ? ", arrived" : ""}
+              </span>
             </p>
           )}
         </li>

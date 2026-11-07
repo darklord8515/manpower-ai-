@@ -96,6 +96,8 @@ export type WorkerAssignment = {
   /** A planned transfer: the project they leave first, and their last day there. */
   moving_from?: string | null;
   moving_from_ends?: string | null;
+  /** Their mobilization, when HR may see it. */
+  mobilization?: MobilizationBrief | null;
 };
 
 export type WorkerRisk = {
@@ -469,4 +471,57 @@ export type NewRequestBody = {
   priority: number;
   source_text?: string | null;
   lines: { trade: string; headcount: number; min_level?: number | null }[];
+};
+
+// --------------------------------------------------------------------------- mobilization
+
+export type MobStage = "pending_checklist" | "in_progress" | "ready" | "on_site";
+
+export type MobilizationBrief = {
+  mob_no: string;
+  status: string;
+  stage: MobStage;
+  tasks_done: number;
+  tasks_total: number;
+};
+
+export type MobilizationRow = {
+  mob_no: string;
+  stage: MobStage;
+  status: string;
+  worker_code: string;
+  worker_name: string;
+  trade: string | null;
+  project_code: string;
+  project_name: string;
+  report_on: string;
+  tasks_done: number;
+  tasks_total: number;
+  /** Tasks not done whose due date has passed. */
+  overdue: number;
+  arrived_on: string | null;
+};
+
+export type MobilizationList = { today: string; items: MobilizationRow[] };
+
+export type MobilizationTask = {
+  id: string;
+  department: string;
+  department_name: string;
+  title: string;
+  due_on: string | null;
+  status: "open" | "in_progress" | "done" | "blocked";
+  overdue: boolean;
+  done_by: string | null;
+  done_at: string | null;
+};
+
+export type MobilizationDetail = MobilizationRow & {
+  tasks: MobilizationTask[];
+  can_update: boolean;
+  /** Why this person cannot tick tasks, shown instead of dead buttons. */
+  update_note: string | null;
+  can_confirm_arrival: boolean;
+  /** Why arrival cannot be confirmed (by this person, or right now). */
+  arrival_note: string | null;
 };

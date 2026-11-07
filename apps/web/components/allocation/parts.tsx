@@ -110,9 +110,7 @@ export function Violations({ items }: { items: Violation[] }) {
 
 export const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
-/** The small button used inside dense rows (Swap, Add, Restore). */
-export const SMALL_BUTTON =
-  "press inline-flex h-7 items-center justify-center gap-1 rounded-control border border-border-strong bg-surface px-2 text-xs font-medium whitespace-nowrap transition-[transform,background-color] duration-120 hover:bg-hover disabled:cursor-not-allowed disabled:opacity-60";
+export { SMALL_BUTTON } from "@/components/ui/button-styles";
 
 /** "L3" on screen, "Level 3" to a screen reader. */
 export function Level({ level }: { level: number | null }) {

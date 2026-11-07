@@ -7,3 +7,7 @@ export const PRIMARY_BUTTON =
 
 export const FIELD =
   "h-9 w-full min-w-0 rounded-control border border-border-strong bg-surface px-3 text-sm placeholder:text-subtle disabled:opacity-60";
+
+/** The small button used inside dense rows (Swap, Add, Restore, Mark done). */
+export const SMALL_BUTTON =
+  "press inline-flex h-7 items-center justify-center gap-1 rounded-control border border-border-strong bg-surface px-2 text-xs font-medium whitespace-nowrap transition-[transform,background-color] duration-120 hover:bg-hover disabled:cursor-not-allowed disabled:opacity-60";

@@ -3,6 +3,7 @@ import {
   ClipboardList,
   FileText,
   LayoutDashboard,
+  Truck,
   UserPlus,
   Users,
   type LucideIcon,
@@ -21,7 +22,7 @@ export type NavItem = {
 
 /**
  * Only screens that exist are listed: the sidebar never links to something unbuilt.
- * The Mobilization screen joins this list when it is built.
+ * Each new screen joins this list when it is built.
  */
 export const NAV: NavItem[] = [
   { id: "home", label: "Home", href: "/", icon: LayoutDashboard, group: "" },
@@ -56,6 +57,14 @@ export const NAV: NavItem[] = [
     icon: ClipboardList,
     group: "Work",
     requires: "staffing:read",
+  },
+  {
+    id: "mobilization",
+    label: "Mobilization",
+    href: "/mobilization",
+    icon: Truck,
+    group: "Work",
+    requires: "mobilization:read",
   },
   {
     id: "recruitment",

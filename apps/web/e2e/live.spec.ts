@@ -355,6 +355,107 @@ test("Allocation: the HR Executive cannot approve and the MD/CEO cannot choose p
   expect(suggest.status()).toBe(403);
 });
 
+const pipelineCard = (page: Page, no: string) => page.locator(`button[data-mob="${no}"]`);
+const stageColumn = (page: Page, name: string) => page.getByRole("region", { name, exact: true });
+
+test("Mobilization: the seeded pipeline sits in its stages, and a profile shows the same progress", async ({
+  page,
+}) => {
+  await signInAs(page, /HR Manager/);
+  await page.getByRole("link", { name: "Mobilization" }).first().click();
+  await expect(page.getByText("9 people being mobilized, 2 with an overdue task")).toBeVisible();
+  await expect(stageColumn(page, "Pending checklist").locator("button[data-mob]")).toHaveCount(1);
+  await expect(stageColumn(page, "In progress").locator("button[data-mob]")).toHaveCount(6);
+  await expect(stageColumn(page, "Ready to report").locator("button[data-mob]")).toHaveCount(2);
+  await expect(stageColumn(page, "On site").locator("button[data-mob]")).toHaveCount(0);
+
+  const stuck = pipelineCard(page, "MOB-2026-0107");
+  await expect(stuck).toContainText("1 overdue");
+  await expect(stuck).toContainText("3 of 5 tasks done");
+  const code = /EMP-\d{4}/.exec(await stuck.innerText())?.[0] ?? "";
+  await stuck.click();
+  const sheet = page.getByRole("dialog");
+  const docs = sheet.locator('li[data-task="Verify residency visa and medical fitness"]');
+  await expect(docs).toContainText("Overdue");
+  await expect(docs).toContainText("Due 1 Nov 2026");
+  await expect(sheet.locator('li[data-task="Assign a camp bed"]')).toContainText(
+    "Done by Noura Demo",
+  );
+  await expect(sheet.getByRole("button", { name: "Confirm arrival" })).toBeDisabled();
+  await page.keyboard.press("Escape");
+
+  await page.goto(`/workers?worker=${code}`);
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: /^Projects/ })
+    .click();
+  await expect(page.getByRole("link", { name: "MOB-2026-0107" })).toBeVisible();
+  await expect(page.getByRole("dialog").getByText("3 of 5 tasks done")).toBeVisible();
+});
+
+test("Mobilization: the MD/CEO reads every checklist but cannot change one, even by asking the API", async ({
+  page,
+}) => {
+  const origin = { Origin: "http://localhost:3100" };
+  await signInAs(page, /MD \/ CEO/);
+  await page.goto("/mobilization");
+  await expect(pipelineCard(page, "MOB-2026-0107")).toBeVisible();
+  await pipelineCard(page, "MOB-2026-0107").click();
+  const sheet = page.getByRole("dialog");
+  await expect(sheet.getByText("Only HR ticks tasks off.")).toBeVisible();
+  await expect(sheet.getByRole("button", { name: /Mark done|Reopen|Confirm arrival/ })).toHaveCount(
+    0,
+  );
+  const detail = await (await page.request.get("/api/mobilizations/MOB-2026-0107")).json();
+  const task = detail.tasks[0].id as string;
+  const tick = await page.request.post(`/api/mobilizations/MOB-2026-0107/tasks/${task}/done`, {
+    headers: origin,
+  });
+  expect(tick.status()).toBe(403);
+  const arrival = await page.request.post("/api/mobilizations/MOB-2026-0101/arrival", {
+    headers: origin,
+  });
+  expect(arrival.status()).toBe(403);
+});
+
+test("Mobilization: HR ticks a task and the card moves, while arrival waits for the report day", async ({
+  page,
+}) => {
+  const origin = { Origin: "http://localhost:3100" };
+  await signInAs(page, /HR Manager/);
+  await page.goto("/mobilization");
+  const docs = "Verify residency visa and medical fitness";
+  await expect(
+    stageColumn(page, "Pending checklist").locator('button[data-mob="MOB-2026-0109"]'),
+  ).toBeVisible();
+  await pipelineCard(page, "MOB-2026-0109").click();
+  const sheet = page.getByRole("dialog");
+  await sheet.getByRole("button", { name: `Mark done: ${docs}` }).click();
+  await expect(sheet.getByText(`${docs} is done.`)).toBeVisible();
+  await expect(sheet.locator(`li[data-task="${docs}"]`)).toContainText("Done by Noura Demo");
+  await page.keyboard.press("Escape");
+  await expect(
+    stageColumn(page, "In progress").locator('button[data-mob="MOB-2026-0109"]'),
+  ).toBeVisible();
+
+  // The report day is 8 Nov and today (simulated) is 5 Nov: arrival is refused, in the screen and by the API.
+  await pipelineCard(page, "MOB-2026-0101").click();
+  await expect(
+    sheet.getByText("Reports on 8 Nov 2026. Arrival can be confirmed from that day."),
+  ).toBeVisible();
+  await expect(sheet.getByRole("button", { name: "Confirm arrival" })).toBeDisabled();
+  const refused = await page.request.post("/api/mobilizations/MOB-2026-0101/arrival", {
+    headers: origin,
+  });
+  expect(refused.status()).toBe(409);
+  expect(await refused.text()).toContain("Arrival can be confirmed from that day");
+  await page.keyboard.press("Escape");
+
+  // Put the task back, so the demo is as we found it.
+  await pipelineCard(page, "MOB-2026-0109").click();
+  await sheet.getByRole("button", { name: `Reopen ${docs}` }).click();
+  await expect(sheet.getByText(`${docs} is open again.`)).toBeVisible();
+});
 // Last on purpose: approving starts real mobilizations. Run `make reset-demo` afterwards.
 test("Allocation: the Executive prepares SR-2026-0001, the Manager approves it, and Mobilizing moves", async ({
   page,
@@ -391,6 +492,13 @@ test("Allocation: the Executive prepares SR-2026-0001, the Manager approves it, 
   ).toBeVisible();
   await expect(steel).toContainText("Approved by Noura Demo");
   await expect(steel.getByRole("list", { name: "Approved workers" }).locator("li")).toHaveCount(7);
+
+  // The seven new mobilizations are waiting in the pipeline, next to the one that was already there.
+  await page.getByRole("link", { name: "Open the pipeline" }).click();
+  await expect(page).toHaveURL(/\/mobilization/);
+  const pending = page.getByRole("region", { name: "Pending checklist", exact: true });
+  await expect(pending.locator("button[data-mob]")).toHaveCount(8);
+  await expect(pending.locator('button[data-mob="MOB-2026-0110"]')).toBeVisible();
 
   await page.goto("/");
   await expect(kpi(page, "Mobilizing")).not.toHaveText("9"); // the free people are now mobilizing

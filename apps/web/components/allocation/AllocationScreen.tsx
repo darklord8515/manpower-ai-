@@ -1,6 +1,7 @@
 "use client";
 
 import { Ban, Plus } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useUser } from "@/components/auth/AuthProvider";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -19,7 +20,12 @@ import { RequestStatusChip, plural } from "./parts";
 const CLOSED = ["filled", "rejected", "cancelled"];
 const NO_PROBLEMS: Record<string, Violation[]> = {};
 
-type Banner = { tone: "success" | "error"; text: string } | null;
+type Banner = {
+  tone: "success" | "error";
+  text: string;
+  /** Where to go next, e.g. to the mobilizations an approval just started. */
+  link?: { href: string; label: string };
+} | null;
 
 /** "MOB-2026-0001 to MOB-2026-0007", or the one number, or nothing. */
 function mobilizationNumbers(result: ApproveResponse): string {
@@ -40,6 +46,7 @@ function readRequestFromAddress(): string | null {
 export function AllocationScreen() {
   const user = useUser();
   const canPrepare = user.permissions.includes("staffing:create");
+  const canOpenMobilization = user.permissions.includes("mobilization:read");
 
   const [filters, setFilters] = useState<RequestFilters>({ q: "", status: "", project: "" });
   const [search, setSearch] = useState("");
@@ -138,8 +145,8 @@ export function AllocationScreen() {
     setPoolFilters({ q: "", minLevel: 0, documentsValid: false });
   }
 
-  const changed = useCallback((text: string) => {
-    setBanner({ tone: "success", text });
+  const changed = useCallback((text: string, link?: { href: string; label: string }) => {
+    setBanner({ tone: "success", text, link });
     setProblems(NO_PROBLEMS);
     setVersion((v) => v + 1);
   }, []);
@@ -192,6 +199,7 @@ export function AllocationScreen() {
     changed(
       `Approved ${plural(result.people.length, "worker")} as ${result.trade.toLowerCase()}. ` +
         `${plural(result.mobilizations, "mobilization")} started${mobilizationNumbers(result)}.`,
+      canOpenMobilization ? { href: "/mobilization", label: "Open the pipeline" } : undefined,
     );
   }
 
@@ -240,6 +248,14 @@ export function AllocationScreen() {
           }`}
         >
           {banner.text}
+          {banner.link && (
+            <>
+              {" "}
+              <Link href={banner.link.href} className="font-medium underline underline-offset-2">
+                {banner.link.label}
+              </Link>
+            </>
+          )}
         </p>
       )}
 
@@ -355,6 +371,7 @@ export function AllocationScreen() {
                     line={l}
                     requestOpen={requestOpen}
                     canPrepare={canPrepare}
+                    canOpenMobilization={canOpenMobilization}
                     canApprove={request.can_approve}
                     approveNote={request.approve_note}
                     active={l.id === line?.id}

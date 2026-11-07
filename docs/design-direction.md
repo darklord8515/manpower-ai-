@@ -242,9 +242,45 @@ One screen for HR to turn open staffing requests into approved workers.
 - **Keyboard:** ←/→ (and ↑/↓) move focus through the request cards, Enter opens one, Esc cancels a
   swap or closes a form, the approval preview and the New request sheet. The selected request is
   kept in the address (`/requests?request=SR-2026-0001`).
-- **Not built yet:** the Mobilization screen (the checklist the approval starts), the "n of 5
-  tasks done" line on the worker profile, the Workforce agent and its trace, and the midday-ban
-  rules (BAN_*). Approving already creates the mobilizations and their tasks.
+- **After approval, on the board:** the success banner links to the pipeline ("Open the pipeline")
+  and each MOB number in the locked line opens that person's checklist.
+- **Not built yet:** the Workforce agent and its trace, and the midday-ban rules (BAN_*).
+
+### Mobilization (the pipeline and the checklist)
+Where an approved person becomes a person on site. HR is the user: the HR Manager and the HR
+Executive tick tasks off and confirm arrival for every department (the MVP has no Operations or Site
+logins); the MD/CEO can read everything and change nothing.
+- **Pipeline** (`KanbanBoard`, `/mobilization`): four columns, left to right: *Pending checklist*
+  (no task done), *In progress*, *Ready to report* (every task done, waiting for the day) and
+  *On site* (arrived in the last 14 days). Four columns from 1024px, stacked sections below, so at 390px
+  there is no sideways scroll. **Cards cannot be dragged**: the stage is computed from the tasks by
+  the Python service (`MOB_STAGE`), never set by hand. A card shows the MOB number (mono), the person
+  and code, trade and project, the report day (or the arrival day), a progress bar with "3 of 5
+  tasks done", and an amber "n overdue" chip when a task is past its due date.
+- **Header:** the title, then one line from the data: "9 people being mobilized, 2 with an overdue
+  task". Search (name, code, MOB number, project), project filter, "Overdue only".
+- **Checklist** (right-side `DetailSheet`, opened by a card or `?mob=MOB-2026-0107`): who, trade,
+  project, report day, progress, then the five tasks grouped by department (Human Resources,
+  Operations, Site workforce). Each task shows its due date and an "Overdue" chip, or "Done by
+  Noura Demo, 4 Nov 2026". **Mark done** and **Reopen** are small buttons, server-confirmed with a
+  pending state (never optimistic: the server can refuse); the answer is the whole checklist, so
+  the progress bar, the stage chip in the header and the card behind the sheet move together.
+- **Confirm arrival** is the one accent button, at the foot of the sheet. It is enabled only when the
+  report day has come and every task is done; otherwise it is disabled and the sentence above it says
+  why ("Reports on 8 Nov 2026. Arrival can be confirmed from that day." / "Finish the checklist
+  first: 2 tasks are still open."). Confirming makes the person Deployed, closes the checklist
+  (no buttons any more) and puts them in *On site*; the board shows "Aamir Siddiqui arrived and is
+  now Deployed."
+- **Read-only** (MD/CEO): no task buttons and no arrival button; the sheet says "Only HR ticks tasks
+  off." and "Only HR confirms arrival."
+- **Worker profile:** the Projects tab shows the MOB number (a link to the checklist) and "n of 5
+  tasks done" for anyone being mobilized.
+- **States:** skeleton columns, an empty board that points to Allocation, "No one matches these
+  filters", error with Retry (board and sheet), light and dark, keyboard (cards are buttons, Esc
+  closes the sheet and returns focus to the card).
+- **Not built yet:** `blocked` tasks and notes, approving a mobilization that waits for approval
+  (nothing creates one with the HR Manager or MD/CEO approving), beds and vehicles, demobilization,
+  and the `mobilization_stuck` alert (Phase 4; the seed already contains its case, MOB-2026-0107).
 
 ### Action Center (top of the HR Console, and the bell)
 - **Severity** is always icon + label + colour, never colour alone: Critical (octagon-x, danger),

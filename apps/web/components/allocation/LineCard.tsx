@@ -1,6 +1,7 @@
 "use client";
 
 import { CircleCheck, CircleX, Sparkles, TriangleAlert, UserMinus } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { BUTTON, FIELD, PRIMARY_BUTTON } from "@/components/ui/button-styles";
 import { api, ApiError } from "@/lib/api";
@@ -16,6 +17,8 @@ type Props = {
   /** False once the whole request is closed (filled, rejected, cancelled). */
   requestOpen: boolean;
   canPrepare: boolean;
+  /** Whether the MOB numbers of approved workers link to their checklists. */
+  canOpenMobilization?: boolean;
   canApprove: boolean;
   /** Why this person cannot approve, when they cannot. */
   approveNote: string | null;
@@ -59,6 +62,7 @@ export function LineCard({
   line,
   requestOpen,
   canPrepare,
+  canOpenMobilization = false,
   canApprove,
   approveNote,
   active,
@@ -268,7 +272,17 @@ export function LineCard({
                   Starts {formatDate(a.starts_on)}
                   {a.moving_from ? `, after ${a.moving_from}` : ""}
                 </span>
-                {a.mob_no && <span className="ml-auto font-mono text-xs">{a.mob_no}</span>}
+                {a.mob_no &&
+                  (canOpenMobilization ? (
+                    <Link
+                      href={`/mobilization?mob=${encodeURIComponent(a.mob_no)}`}
+                      className="ml-auto font-mono text-xs underline-offset-2 hover:underline"
+                    >
+                      {a.mob_no}
+                    </Link>
+                  ) : (
+                    <span className="ml-auto font-mono text-xs">{a.mob_no}</span>
+                  ))}
               </li>
             ))}
           </ul>
