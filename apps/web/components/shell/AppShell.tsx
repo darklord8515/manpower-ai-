@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Menu as MenuIcon, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { BellMenu } from "@/components/alerts/BellMenu";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { PageTransition } from "@/components/motion/PageTransition";
 import { SkeletonLoader } from "@/components/ui/SkeletonLoader";
@@ -150,6 +151,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             )}
           </p>
           <div className="ml-auto flex items-center gap-1">
+            <BellMenu />
             <ThemeToggle />
             <UserMenu />
           </div>

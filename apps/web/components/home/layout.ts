@@ -6,6 +6,8 @@
  * layout without disturbing what they arranged. The KPI tiles above the widgets are fixed.
  */
 export type WidgetId =
+  | "action_center"
+  | "alert_counts"
   | "expiry"
   | "workforce"
   | "due"
@@ -28,6 +30,18 @@ export type WidgetInfo = {
 };
 
 export const WIDGETS: Record<WidgetId, WidgetInfo> = {
+  action_center: {
+    title: "Action Center",
+    about: "The alerts that need attention first, by severity",
+    span: 3,
+    kinds: ["hr"],
+  },
+  alert_counts: {
+    title: "Open alerts",
+    about: "How many alerts are open, by severity",
+    span: 1,
+    kinds: ["executive"],
+  },
   expiry: {
     title: "Documents running out",
     about: "How many documents expire each week",
@@ -86,6 +100,7 @@ export const WIDGETS: Record<WidgetId, WidgetInfo> = {
 
 export const DEFAULT_ORDER: Record<HomeKind, WidgetId[]> = {
   hr: [
+    "action_center",
     "expiry",
     "workforce",
     "due",
@@ -95,7 +110,15 @@ export const DEFAULT_ORDER: Record<HomeKind, WidgetId[]> = {
     "leaving",
     "pipeline",
   ],
-  executive: ["projects_chart", "workforce", "projects_table", "pipeline", "leaving", "by_trade"],
+  executive: [
+    "alert_counts",
+    "projects_chart",
+    "workforce",
+    "projects_table",
+    "pipeline",
+    "leaving",
+    "by_trade",
+  ],
 };
 
 /** Hidden until someone asks for them, so the first Home is not crowded. */

@@ -1,6 +1,14 @@
 "use client";
 
-import { Building2, CalendarClock, CircleCheck, Clock, Plus, TrendingUp } from "lucide-react";
+import {
+  Building2,
+  CalendarClock,
+  CalendarRange,
+  CircleCheck,
+  Clock,
+  Plus,
+  TrendingUp,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -14,6 +22,7 @@ import type { ProjectRow } from "@/lib/api-types";
 import { formatDate } from "@/lib/format";
 import { useLoad } from "@/lib/use-load";
 import { AddProjectSheet } from "./AddProjectSheet";
+import { EditDatesSheet } from "./EditDatesSheet";
 import { rememberAdded } from "./just-added";
 
 const STATUS: Record<string, { tone: Tone; icon: typeof Clock; label: string }> = {
@@ -49,6 +58,7 @@ export function ProjectsScreen() {
   const canAdd = user.permissions.includes("project:write");
   const canForecast = user.permissions.includes("forecast:read");
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<ProjectRow | null>(null);
   const projects = useLoad(() => api.projects(), "projects");
   const trades = useLoad(() => api.trades(), "trades");
   const [added, setAdded] = useState("");
@@ -81,6 +91,27 @@ export function ProjectsScreen() {
                 Forecast
               </Link>
             ),
+          },
+        ]
+      : []),
+    ...(canAdd
+      ? [
+          {
+            key: "dates",
+            header: "",
+            align: "right" as const,
+            cell: (p: ProjectRow) =>
+              p.status === "completed" || p.status === "cancelled" ? null : (
+                <button
+                  type="button"
+                  className={BUTTON}
+                  aria-label={`Change dates of ${p.code}`}
+                  onClick={() => setEditing(p)}
+                >
+                  <CalendarRange className="size-4" aria-hidden="true" />
+                  Change dates
+                </button>
+              ),
           },
         ]
       : []),
@@ -161,10 +192,35 @@ export function ProjectsScreen() {
                   Forecast
                 </Link>
               )}
+              {canAdd && p.status !== "completed" && p.status !== "cancelled" && (
+                <button
+                  type="button"
+                  className={`${BUTTON} self-start`}
+                  aria-label={`Change dates of ${p.code}`}
+                  onClick={() => setEditing(p)}
+                >
+                  <CalendarRange className="size-4" aria-hidden="true" />
+                  Change dates
+                </button>
+              )}
             </div>
           )}
         />
       </section>
+
+      {canAdd && (
+        <EditDatesSheet
+          project={editing}
+          onClose={() => setEditing(null)}
+          onSaved={(project) => {
+            setEditing(null);
+            setAdded(
+              `${project.code} now runs from ${formatDate(project.starts ?? "")} to ${formatDate(project.ends ?? "")}.`,
+            );
+            projects.retry();
+          }}
+        />
+      )}
 
       {canAdd && trades.data && (
         <AddProjectSheet

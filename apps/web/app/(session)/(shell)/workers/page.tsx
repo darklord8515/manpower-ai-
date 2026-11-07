@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { WorkersScreen } from "@/components/workers/WorkersScreen";
 
 export const metadata: Metadata = { title: "Workers · CONSTRUCTIQ" };
@@ -7,5 +8,10 @@ export const metadata: Metadata = { title: "Workers · CONSTRUCTIQ" };
 export const instant = false;
 
 export default function WorkersPage() {
-  return <WorkersScreen />;
+  // useAddress (the filters and worker a link carried) needs a Suspense boundary.
+  return (
+    <Suspense>
+      <WorkersScreen />
+    </Suspense>
+  );
 }

@@ -31,6 +31,16 @@ def test_a_saved_layout_is_returned_next_time_and_survives_a_new_session(
     assert second.get("/auth/me/preferences").json() == {"home": LAYOUT}
 
 
+def test_the_alert_widgets_can_be_placed_in_a_layout(client: TestClient) -> None:
+    # The Action Center (HR) and the alert counts (MD/CEO) are Home widgets like the others, so a
+    # person who rearranges their Home can save it with them in.
+    sign_in(client, HR_MANAGER)
+    layout = {"order": ["action_center", "alert_counts", "expiry"], "hidden": []}
+    saved = client.put("/auth/me/preferences", json={"home": layout})
+    assert saved.status_code == 200, saved.text
+    assert client.get("/auth/me/preferences").json() == {"home": layout}
+
+
 def test_layouts_belong_to_one_person_only(make_client: Any) -> None:
     manager, executive = make_client(), make_client()
     sign_in(manager, HR_MANAGER)

@@ -9,15 +9,11 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { KanbanBoard } from "@/components/ui/KanbanBoard";
 import { BUTTON, FIELD } from "@/components/ui/button-styles";
 import { api } from "@/lib/api";
+import { useAddress } from "@/lib/use-address";
 import { useLoad } from "@/lib/use-load";
 import { MobilizationCard } from "./MobilizationCard";
 import { MobilizationSheet } from "./MobilizationSheet";
 import { byStage, summaryLine } from "./stages";
-
-function readMobilization(): string | null {
-  if (typeof window === "undefined") return null;
-  return new URLSearchParams(window.location.search).get("mob");
-}
 
 function BoardSkeleton() {
   return (
@@ -49,7 +45,8 @@ export function MobilizationScreen() {
   const [q, setQ] = useState("");
   const [project, setProject] = useState("");
   const [overdue, setOverdue] = useState(false);
-  const [open, setOpen] = useState<string | null>(readMobilization);
+  const address = useAddress();
+  const [open, setOpen] = useState<string | null>(() => new URLSearchParams(address).get("mob"));
   const [version, setVersion] = useState(0); // goes up after every change made on the server
   const [banner, setBanner] = useState("");
 

@@ -46,8 +46,24 @@ describe("resolveLayout", () => {
 
   it("adds widgets the person has never seen at the end", () => {
     const layout = resolveLayout("hr", { order: ["expiry", "workforce"], hidden: [] });
-    expect(layout.order).toEqual(["expiry", "workforce", ...DEFAULT_ORDER.hr.slice(2)]);
+    const unseen = DEFAULT_ORDER.hr.filter((id) => id !== "expiry" && id !== "workforce");
+    expect(layout.order).toEqual(["expiry", "workforce", ...unseen]);
     expect(layout.hidden).toEqual([]);
+  });
+
+  it("puts the Action Center at the end for someone who arranged their Home before it existed", () => {
+    const layout = resolveLayout("hr", { order: ["workforce", "expiry"], hidden: ["due"] });
+    expect(layout.order.at(0)).toBe("workforce");
+    expect(layout.order).toContain("action_center");
+    expect(layout.order.indexOf("action_center")).toBeGreaterThan(layout.order.indexOf("expiry"));
+    expect(layout.hidden).toEqual(["due"]); // what they hid stays hidden
+  });
+
+  it("starts the HR Home with the Action Center and the MD/CEO Home with the alert counts", () => {
+    expect(DEFAULT_ORDER.hr[0]).toBe("action_center");
+    expect(DEFAULT_ORDER.executive[0]).toBe("alert_counts");
+    expect(WIDGETS.action_center.kinds).toEqual(["hr"]);
+    expect(WIDGETS.alert_counts.kinds).toEqual(["executive"]);
   });
 
   it("hides a new widget that is hidden by default", () => {
@@ -77,9 +93,9 @@ describe("changing a layout", () => {
   const start = defaultLayout("hr");
 
   it("moves a widget to where another one is", () => {
-    const next = move(start, "leaving", "expiry");
+    const next = move(start, "leaving", "action_center");
     expect(next.order[0]).toBe("leaving");
-    expect(next.order[1]).toBe("expiry");
+    expect(next.order[1]).toBe("action_center");
     expect(next.order).toHaveLength(start.order.length);
     expect(move(start, "expiry", "expiry")).toBe(start);
   });

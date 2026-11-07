@@ -465,6 +465,8 @@ class AdvanceResult(BaseModel):
 
 # The widgets a Home can hold. The browser may only ever store ids from this list.
 HOME_WIDGETS = (
+    "action_center",
+    "alert_counts",
     "expiry",
     "workforce",
     "due",

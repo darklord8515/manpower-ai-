@@ -9,6 +9,7 @@ import { BUTTON, FIELD, PRIMARY_BUTTON } from "@/components/ui/button-styles";
 import { api, ApiError } from "@/lib/api";
 import type { ApproveResponse, RequestDetail, Violation } from "@/lib/api-types";
 import { formatDate } from "@/lib/format";
+import { useAddress } from "@/lib/use-address";
 import { useLoad } from "@/lib/use-load";
 import { ApprovalDialog } from "./ApprovalDialog";
 import { CandidatePool, type PoolFilters } from "./CandidatePool";
@@ -37,11 +38,6 @@ function mobilizationNumbers(result: ApproveResponse): string {
     : ` (${sorted[0]} to ${sorted[sorted.length - 1]})`;
 }
 
-function readRequestFromAddress(): string | null {
-  if (typeof window === "undefined") return null;
-  return new URLSearchParams(window.location.search).get("request");
-}
-
 /** Requests waiting for people, and the board where HR fills them line by line. */
 export function AllocationScreen() {
   const user = useUser();
@@ -50,7 +46,10 @@ export function AllocationScreen() {
 
   const [filters, setFilters] = useState<RequestFilters>({ q: "", status: "", project: "" });
   const [search, setSearch] = useState("");
-  const [picked, setPicked] = useState<string | null>(readRequestFromAddress);
+  const address = useAddress();
+  const [picked, setPicked] = useState<string | null>(() =>
+    new URLSearchParams(address).get("request"),
+  );
   const [activeLine, setActiveLine] = useState<string | null>(null);
   const [version, setVersion] = useState(0); // goes up after every change made on the server
   const [banner, setBanner] = useState<Banner>(null);

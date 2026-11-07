@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { MobilizationScreen } from "@/components/mobilization/MobilizationScreen";
 
 export const metadata: Metadata = { title: "Mobilization · CONSTRUCTIQ" };
@@ -7,5 +8,10 @@ export const metadata: Metadata = { title: "Mobilization · CONSTRUCTIQ" };
 export const instant = false;
 
 export default function MobilizationPage() {
-  return <MobilizationScreen />;
+  // useAddress (the person a link carried) needs a Suspense boundary.
+  return (
+    <Suspense>
+      <MobilizationScreen />
+    </Suspense>
+  );
 }

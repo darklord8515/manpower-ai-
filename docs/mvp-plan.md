@@ -286,6 +286,12 @@ the bar; that screen is cut instead.
 - **Gate:** each detector raises, updates and resolves under a fake clock; moving a project end date
   raises the transfer-dependency alert; CEO numbers match HR numbers.
 - **Cut if short:** Sankey and heatmap polish.
+- **Status:** built: the seven detectors (midday ban on a provisional 2027 rule), To-do with escalation,
+  the bell, the Action Center on HR's Home, the MD/CEO alert tile, the forecast table, and "Change dates"
+  on projects (which is how the transfer alert is shown live). Each gate item has a test: the detector
+  tests under a fixed clock, `tests/test_alerts_api.py` and the live spec. Cut: heatmap and Sankey.
+  Left for Phase 5 (n8n): sending messages, the 07:00 / 18:00 schedule (`POST /alerts/run` is ready),
+  and the AI-written explanations (every alert is worded in Python for now).
 
 ### Phase 5: Automation and AI
 - **Goal:** remove manual chasing.

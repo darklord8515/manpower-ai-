@@ -123,6 +123,7 @@ test.describe("the app", () => {
     // Only screens that exist are in the sidebar.
     await expect(page.getByRole("navigation", { name: "Main" }).getByRole("link")).toHaveText([
       "Home",
+      "To-do",
       "Workers",
       "Documents",
       "Projects",

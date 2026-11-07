@@ -38,6 +38,8 @@ export type Summary = {
   expiry_by_week: { week_start: string; count: number }[];
   short_total: number;
   projects: ProjectRow[];
+  /** The one sentence at the top of Home, chosen and worded by the API. */
+  insight: string;
 };
 
 export type ExpiringDocument = {
@@ -525,3 +527,90 @@ export type MobilizationDetail = MobilizationRow & {
   /** Why arrival cannot be confirmed (by this person, or right now). */
   arrival_note: string | null;
 };
+
+// --------------------------------------------------------------------------- alerts
+
+export type AlertSeverity = "critical" | "action_needed" | "info";
+export type AlertStatus = "open" | "in_progress" | "snoozed" | "resolved" | "dismissed";
+export type AlertType =
+  | "upcoming_shortfall"
+  | "ending_without_next"
+  | "document_expiry"
+  | "mobilization_stuck"
+  | "transfer_dependency_broken"
+  | "approval_waiting"
+  | "midday_ban_conflict";
+
+export type AlertRow = {
+  id: string;
+  type: AlertType;
+  severity: AlertSeverity;
+  status: AlertStatus;
+  title: string;
+  /** Project code; null = company-wide. */
+  project: string | null;
+  raised_at: string;
+  due_at: string | null;
+  assignee: string | null;
+  assignee_id: string | null;
+  escalation_level: number;
+  /** "HR Manager" or "Operations Manager" once it has moved up. */
+  escalated_to: string | null;
+  snoozed_until: string | null;
+  resolved_at: string | null;
+  resolution_note: string | null;
+};
+
+export type AlertCounts = { critical: number; action_needed: number; info: number };
+
+export type AlertList = {
+  items: AlertRow[];
+  counts: AlertCounts;
+  snoozed: number;
+  last_run: string | null;
+  /** The server's clock, which can be the simulated one. */
+  now: string;
+  can_act: boolean;
+};
+
+export type AlertSummary = {
+  counts: AlertCounts;
+  needs_attention: number;
+  top: AlertRow[];
+  mine: number;
+  last_run: string | null;
+  now: string;
+  can_act: boolean;
+};
+
+export type AlertAction = {
+  action: string;
+  label: string;
+  params: Record<string, string | number | null>;
+};
+
+export type AlertHistory = { at: string; by: string; what: string };
+
+export type AlertDetail = AlertRow & {
+  explanation: string | null;
+  /** True once the narrator has rewritten the text (Phase 5); false = template wording. */
+  narrated: boolean;
+  facts: Record<string, unknown>;
+  actions: AlertAction[];
+  can_act: boolean;
+  can_dismiss: boolean;
+  history: AlertHistory[];
+};
+
+export type Assignee = { id: string; name: string; role: string };
+
+export type AlertFilters = {
+  view?: "open" | "snoozed" | "cleared";
+  severity?: AlertSeverity | "";
+  type?: AlertType | "";
+  project?: string;
+  mine?: boolean;
+  q?: string;
+};
+
+export type ProjectDatesBody = { starts_on?: string; ends_on?: string };

@@ -17,6 +17,11 @@ test.skip(!process.env.LIVE_API_URL, "Set LIVE_API_URL to run the live checks");
 const heading = (page: Page) => page.getByRole("heading", { level: 1 });
 const kpi = (page: Page, label: string) =>
   page.locator(`section[aria-label="${label}"] b[aria-hidden="true"]`).first();
+const alertRows = (page: Page) => page.locator("li[data-alert]");
+const alertBell = (page: Page) => page.getByRole("button", { name: /^Alerts: / });
+/** The number on the bell: how many alerts need attention right now. */
+const attention = async (page: Page) =>
+  Number(/\d+/.exec((await alertBell(page).getAttribute("aria-label")) ?? "")?.[0]);
 
 async function signInAs(page: Page, name: RegExp) {
   await page.goto("/login");
@@ -158,6 +163,54 @@ test("Projects: the real list and the seeded RAK-07 forecast", async ({ page }) 
   await expect(page.getByText(/Who could work here from 1 Mar 2027/)).toBeVisible();
 });
 
+// Read-only, so it runs while the seeded alerts are all still there: later tests raise a recruitment
+// request, reserve people and approve a request, and each of those clears an alert by itself.
+test("To-do: HR sees the seeded alerts, most urgent first, and Home and the bell count the same ones", async ({
+  page,
+}) => {
+  await signInAs(page, /HR Manager/);
+  const center = page.locator('[data-widget="action_center"]');
+  await expect(center.getByRole("link", { name: "Critical: 2" })).toBeVisible();
+  await expect(center.getByRole("link", { name: "Action needed: 16" })).toBeVisible();
+  await expect(center.getByRole("link", { name: "Info: 29" })).toBeVisible();
+  await expect(alertBell(page)).toHaveAttribute("aria-label", "Alerts: 18 need attention");
+
+  await page.getByRole("link", { name: "To-do" }).first().click();
+  await expect(page.getByText("18 need attention, 29 for information")).toBeVisible();
+  await expect(page.getByText(/Detectors last ran at 09:00 on 5 Nov 2026\./)).toBeVisible();
+  await expect(alertRows(page)).toHaveCount(47);
+  await expect(alertRows(page).nth(0)).toContainText(
+    "Harish Mondal: residency visa ends in 3 days",
+  );
+  await expect(alertRows(page).nth(1)).toContainText("Sanjeev Rana: residency visa ends in 7 days");
+
+  // Each of the detectors with a seeded case shows up, worded by Python from the real numbers.
+  const search = page.getByLabel("Search alerts");
+  await search.fill("SR-2026-0001");
+  await expect(alertRows(page)).toHaveCount(1);
+  await expect(alertRows(page).first()).toContainText("has waited 41 hours for approval");
+  await search.fill("RAK-07");
+  await expect(alertRows(page).first()).toContainText("1 general labour short");
+  await search.fill("");
+  await page.getByLabel("Filter by type").selectOption("midday_ban_conflict");
+  await expect(alertRows(page)).toHaveCount(1);
+  await expect(alertRows(page).first()).toContainText("(provisional)");
+  await page.getByLabel("Filter by type").selectOption("mobilization_stuck");
+  await expect(alertRows(page)).toHaveCount(7);
+
+  // An alert opens with the facts behind it and the screen where the cause is fixed.
+  await alertRows(page).filter({ hasText: "MOB-2026-0107" }).getByRole("button").first().click();
+  const sheet = page.getByRole("dialog");
+  await expect(sheet.getByRole("table", { name: "Facts behind this alert" })).toBeVisible();
+  await expect(sheet.getByRole("link", { name: "Open mobilization" })).toHaveAttribute(
+    "href",
+    "/mobilization?mob=MOB-2026-0107",
+  );
+  await sheet.getByRole("link", { name: "Open mobilization" }).click();
+  await expect(page).toHaveURL(/\/mobilization\?mob=MOB-2026-0107/);
+  await expect(page.getByRole("dialog").getByText("MOB-2026-0107").first()).toBeVisible();
+});
+
 test("Projects: the MD/CEO cannot add a project, even by asking the API directly", async ({
   page,
 }) => {
@@ -292,6 +345,47 @@ test("Reserve: HR holds the masons for RAK-07, and the forecast moves them to Al
     .first()
     .click();
   await expect(mason.getByRole("heading", { name: "Reserved (9)" })).toBeVisible();
+});
+
+test("Transfer: moving the end of RAK-05 past the handover raises a critical alert, and moving it back clears it", async ({
+  page,
+}) => {
+  // Relies on the masons the test above leaves reserved for RAK-07: they come from RAK-05.
+  await signInAs(page, /HR Manager/);
+  await page.goto("/projects");
+  const changeEnd = async (ends: string) => {
+    await page.getByRole("button", { name: "Change dates of RAK-05" }).click();
+    const sheet = page.getByRole("dialog");
+    await sheet.getByLabel("Ends").fill(ends);
+    await sheet.getByRole("button", { name: "Save dates" }).click();
+  };
+  const risk = alertRows(page).filter({ hasText: "Transfer from RAK-05 to RAK-07 is at risk" });
+
+  await changeEnd("2027-03-01");
+  await expect(page.getByText(/RAK-05 now runs from .* to 1 Mar 2027\./)).toBeVisible();
+  await expect.poll(() => attention(page)).toBeGreaterThan(0);
+  await page.goto("/todo");
+  await expect(risk).toHaveCount(1);
+  await expect(risk).toContainText("Critical");
+  await risk.getByRole("button").first().click();
+  const sheet = page.getByRole("dialog");
+  await expect(sheet.getByText(/must finish by .* to start on 12 Feb 2027/)).toBeVisible();
+  await expect(sheet.getByText(/Release the reservation, or change the dates\./)).toBeVisible();
+  await expect(sheet.getByRole("link", { name: "Open forecast" })).toHaveAttribute(
+    "href",
+    "/projects/RAK-07/forecast",
+  );
+  await page.keyboard.press("Escape");
+
+  // Put the date back: the cause is gone, so the alert clears itself.
+  await page.goto("/projects");
+  await changeEnd("2026-12-15");
+  await expect(page.getByText(/RAK-05 now runs from .* to 15 Dec 2026\./)).toBeVisible();
+  await page.goto("/todo");
+  await expect(alertRows(page).first()).toBeVisible();
+  await expect(risk).toHaveCount(0);
+  await page.getByRole("button", { name: "Cleared" }).click();
+  await expect(risk).toHaveCount(1);
 });
 
 test("Home: the real widgets show real numbers, and a person's layout is saved for them only", async ({
@@ -456,6 +550,38 @@ test("Mobilization: HR ticks a task and the card moves, while arrival waits for 
   await sheet.getByRole("button", { name: `Reopen ${docs}` }).click();
   await expect(sheet.getByText(`${docs} is open again.`)).toBeVisible();
 });
+
+test("To-do: the MD/CEO sees every alert but cannot change one, even by asking the API", async ({
+  page,
+}) => {
+  const origin = { Origin: "http://localhost:3100" };
+  await signInAs(page, /MD \/ CEO/);
+  const tile = page.locator('[data-widget="alert_counts"]');
+  await expect(tile.getByRole("link", { name: "Critical: 2" })).toBeVisible();
+  await tile.getByRole("link", { name: "Critical: 2" }).click();
+  await expect(page).toHaveURL(/\/todo\?severity=critical/);
+  await expect(alertRows(page)).toHaveCount(2);
+  await expect(page.getByLabel("Select every alert in the list")).toHaveCount(0);
+  await alertRows(page).first().getByRole("button").first().click();
+  const sheet = page.getByRole("dialog");
+  await expect(sheet.getByText("Only HR works on alerts.")).toBeVisible();
+  await expect(sheet.getByRole("button", { name: /Take it|Assign|Snooze|Dismiss/ })).toHaveCount(0);
+
+  const { items } = await (await page.request.get("/api/alerts")).json();
+  const id = items[0].id as string;
+  const inAnHour = new Date(Date.now() + 3_600_000).toISOString();
+  for (const [path, data] of [
+    [`/api/alerts/${id}/take`, undefined],
+    [`/api/alerts/${id}/snooze`, { until: inAnHour }],
+    [`/api/alerts/${id}/dismiss`, { reason: "It is not for the MD to decide" }],
+    ["/api/alerts/bulk", { ids: [id], action: "snooze", until: inAnHour }],
+    ["/api/alerts/run", undefined],
+  ] as const) {
+    const refused = await page.request.post(path, { data, headers: origin });
+    expect(refused.status(), path).toBe(403);
+  }
+});
+
 // Last on purpose: approving starts real mobilizations. Run `make reset-demo` afterwards.
 test("Allocation: the Executive prepares SR-2026-0001, the Manager approves it, and Mobilizing moves", async ({
   page,
@@ -502,4 +628,71 @@ test("Allocation: the Executive prepares SR-2026-0001, the Manager approves it, 
 
   await page.goto("/");
   await expect(kpi(page, "Mobilizing")).not.toHaveText("9"); // the free people are now mobilizing
+
+  // The approval alert was waiting on this very request: it cleared itself, nobody pressed anything.
+  await page.goto("/todo");
+  await page.getByLabel("Search alerts").fill("SR-2026-0001");
+  await expect(page.getByText("No alerts match these filters")).toBeVisible();
+});
+
+// After the approval, and also changes data for good (snoozed and dismissed alerts stay that way
+// until `make reset-demo`), so it compares counts before and after rather than fixed numbers.
+test("To-do: HR takes an alert, snoozes it, dismisses another with a reason, and the counters follow", async ({
+  page,
+}) => {
+  const origin = { Origin: "http://localhost:3100" };
+  await signInAs(page, /HR Manager/);
+  await page.goto("/todo");
+  await expect(alertRows(page).first()).toBeVisible();
+  const before = await attention(page);
+
+  // Take, then snooze: it leaves the open list, the bell drops by one, the Snoozed tab has it.
+  const tariq = alertRows(page).filter({ hasText: "Tariq Zaman: residency visa" });
+  await tariq.getByRole("button").first().click();
+  const sheet = page.getByRole("dialog");
+  await sheet.getByRole("button", { name: "Take it" }).click();
+  await expect(sheet.getByText("You took this alert.")).toBeVisible();
+  await sheet.getByRole("button", { name: "Snooze", exact: true }).click();
+  await sheet
+    .getByRole("group", { name: "Snooze until" })
+    .getByRole("button", { name: "4 hours" })
+    .click();
+  await expect(sheet.getByText(/Snoozed until 5 Nov 2026\./)).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(tariq).toHaveCount(0);
+  await expect.poll(() => attention(page)).toBe(before - 1);
+  await page.getByRole("button", { name: /^Snoozed/ }).click();
+  await expect(tariq).toHaveCount(1);
+  await page.getByRole("button", { name: /^Open/ }).click();
+
+  // Dismiss needs a reason; the alert moves to Cleared with the reason in its history.
+  const yasir = alertRows(page).filter({ hasText: "Yasir Mondal: labour card" });
+  await yasir.getByRole("button").first().click();
+  await sheet.getByRole("button", { name: "Dismiss", exact: true }).click();
+  const form = sheet.getByRole("form", { name: "Dismiss this alert" });
+  await form.getByLabel("Why is this being dismissed?").fill("too short");
+  await expect(form.getByRole("button", { name: "Dismiss alert" })).toBeDisabled();
+  await form
+    .getByLabel("Why is this being dismissed?")
+    .fill("Renewal already started with the worker");
+  await form.getByRole("button", { name: "Dismiss alert" }).click();
+  await expect(sheet.getByText("Dismissed.")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(yasir).toHaveCount(0);
+  await page.getByRole("button", { name: "Cleared" }).click();
+  await expect(yasir).toHaveCount(1);
+  await page.getByRole("button", { name: /^Open/ }).click();
+
+  // An alert that clears itself can only be snoozed, in the screen and by the API.
+  const mobilization = alertRows(page).filter({ hasText: "MOB-2026-0107" });
+  await mobilization.getByRole("button").first().click();
+  await expect(sheet.getByRole("button", { name: "Snooze", exact: true })).toBeVisible();
+  await expect(sheet.getByRole("button", { name: "Dismiss", exact: true })).toHaveCount(0);
+  const { items } = await (await page.request.get("/api/alerts?type=mobilization_stuck")).json();
+  const refused = await page.request.post(`/api/alerts/${items[0].id}/dismiss`, {
+    data: { reason: "I would rather not see this one" },
+    headers: origin,
+  });
+  expect(refused.status()).toBe(409);
+  expect(await refused.text()).toContain("can only be snoozed");
 });

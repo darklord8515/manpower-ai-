@@ -3,6 +3,7 @@ import {
   ClipboardList,
   FileText,
   LayoutDashboard,
+  ListTodo,
   Truck,
   UserPlus,
   Users,
@@ -26,6 +27,14 @@ export type NavItem = {
  */
 export const NAV: NavItem[] = [
   { id: "home", label: "Home", href: "/", icon: LayoutDashboard, group: "" },
+  {
+    id: "todo",
+    label: "To-do",
+    href: "/todo",
+    icon: ListTodo,
+    group: "",
+    requires: "alert:read",
+  },
   {
     id: "workers",
     label: "Workers",

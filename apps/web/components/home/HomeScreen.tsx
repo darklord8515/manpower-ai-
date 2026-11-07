@@ -88,20 +88,6 @@ function CeoKpis({ summary }: { summary: Summary }) {
   );
 }
 
-function insightFor(isCeo: boolean, summary: Summary): string {
-  const { documents } = summary;
-  const docs = documents.d30 + documents.expired;
-  const docText = docs
-    ? `${plural(documents.d30, "document")} run out in the next 30 days${documents.expired ? `, and ${documents.expired} already have` : ""}.`
-    : "No documents are running out in the next 30 days.";
-  if (isCeo) {
-    return summary.short_total
-      ? `${plural(summary.short_total, "person", "people")} short across active projects. ${docText}`
-      : `Every active project is fully staffed. ${docText}`;
-  }
-  return docText;
-}
-
 function HomeSkeleton() {
   return (
     <div className="flex flex-col gap-4" aria-busy="true">
@@ -152,7 +138,7 @@ export function HomeScreen() {
   const { summary, due } = state.data;
   return (
     <div className="flex flex-col gap-4">
-      <Hero fullName={user.full_name} roleLabel={roleLabel} insight={insightFor(isCeo, summary)} />
+      <Hero fullName={user.full_name} roleLabel={roleLabel} insight={summary.insight} />
       {isCeo ? <CeoKpis summary={summary} /> : <HrKpis summary={summary} />}
       <HomeGrid kind={isCeo ? "executive" : "hr"} summary={summary} due={due} />
     </div>

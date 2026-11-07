@@ -19,6 +19,7 @@ import { api } from "@/lib/api";
 import type { WorkerRow, WorkerStatus } from "@/lib/api-types";
 import { DOCUMENT_NAME, timeLeft } from "@/lib/documents";
 import { formatInt } from "@/lib/format";
+import { useAddress } from "@/lib/use-address";
 import {
   DEFAULT_QUERY,
   PAGE_SIZE,
@@ -37,11 +38,6 @@ const BUTTON =
 
 const STATUS_ORDER: WorkerStatus[] = ["available", "deployed", "mobilizing", "unavailable"];
 
-function readAddress() {
-  if (typeof window === "undefined") return { query: DEFAULT_QUERY, open: null };
-  return fromSearch(window.location.search);
-}
-
 function DocumentChip({ doc }: { doc: WorkerRow["next_document"] }) {
   if (!doc) return <span className="text-subtle">None</span>;
   const { tone, label } = timeLeft(doc.days_left);
@@ -58,7 +54,8 @@ function DocumentChip({ doc }: { doc: WorkerRow["next_document"] }) {
 }
 
 export function WorkersScreen() {
-  const [initial] = useState(readAddress); // read once, from the address bar
+  const address = useAddress();
+  const [initial] = useState(() => fromSearch(address)); // read once, from the address bar
   const [query, setQuery] = useState<WorkersQuery>(initial.query);
   const [open, setOpen] = useState<string | null>(initial.open);
   const [search, setSearch] = useState(initial.query.q);

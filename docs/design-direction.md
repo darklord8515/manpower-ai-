@@ -279,31 +279,65 @@ logins); the MD/CEO can read everything and change nothing.
   filters", error with Retry (board and sheet), light and dark, keyboard (cards are buttons, Esc
   closes the sheet and returns focus to the card).
 - **Not built yet:** `blocked` tasks and notes, approving a mobilization that waits for approval
-  (nothing creates one with the HR Manager or MD/CEO approving), beds and vehicles, demobilization,
-  and the `mobilization_stuck` alert (Phase 4; the seed already contains its case, MOB-2026-0107).
+  (nothing creates one with the HR Manager or MD/CEO approving), beds and vehicles, and
+  demobilization. A mobilization that is late or about to be raises a `mobilization_stuck` alert
+  (see To-do below).
 
-### Action Center (top of the HR Console, and the bell)
+### Action Center: To-do, the bell, and Home (as built)
 - **Severity** is always icon + label + colour, never colour alone: Critical (octagon-x, danger),
   Action needed (triangle-alert, warning), Info (info, info blue). Status chips use the same rule:
-  Open, In progress, Snoozed until <date>, Resolved, Dismissed.
-- **List:** sorted by severity, then due time. Each row: severity chip, title, project code (mono),
-  age ("2 h ago"), assignee (avatar or "HR team"), due, escalation level ("Escalated to HR Manager").
-  Filters: severity, type, project, status (default: open + in progress), "assigned to me";
-  search; counts per severity as filter chips. Bulk: select → Snooze (pick an end time) or Assign.
-  Bulk dismiss is not offered: each dismissal needs its own reason.
-- **DetailSheet** (right side): severity + status, title, explanation (labelled "Written by AI
-  from the facts below" when narrated), the **facts table** from `facts_json` (numbers
-  right-aligned, dates as `5 Nov 2026`, codes in mono), recommended actions as buttons (only those
-  the viewer may use; the first is the one accent), then Take / Assign / Snooze / Dismiss and the
-  alert's history from the audit log.
-- Dismiss opens an inline form: reason required (≥ 10 characters), with the count shown.
-  Snooze offers 4 h / tomorrow 07:00 / 3 days / pick a date, capped by the rules.
-- **Bell:** count of open critical + action-needed alerts in the viewer's scope; the popover lists
-  the 5 most urgent, with "Open Action Center".
-- **CEO:** a counts-by-severity tile (three numbers with icons and labels), linking to a read-only
-  list.
-- Empty state: "No open alerts. Detectors last ran at 07:00." Error state names the API and offers
-  Retry.
+  In progress, Snoozed until <date>, Dismissed; an alert that moved up shows "Escalated to HR
+  Manager" in the row.
+- **To-do** (`/todo`, in the sidebar beside Home; needs `alert:read`): the heading says "9 need
+  attention, 3 for information, 2 snoozed · Detectors last ran at 09:00 on 5 Nov 2026."
+  View tabs **Open · Snoozed · Cleared**, severity tabs with counts (All, Critical, Action needed,
+  Info), type and project selects, search, "Assigned to me". Rows are sorted by severity, then due
+  time: checkbox, severity chip, title, type, project code (mono), assignee ("HR team" when nobody
+  took it), age. Snoozing, dismissing or clearing a row collapses it (height + fade) and every
+  counter follows. At 390px each row wraps to two lines.
+- **Bulk:** tick rows (or "Select all") → Snooze (same choices as one alert) or Assign. Bulk
+  dismiss is not offered: each dismissal needs its own reason, and the bar says so.
+- **Alert sheet** (right side; `?alert=` in the address, so the link can be shared): severity +
+  status, title, the explanation (labelled "Written by AI from the facts below" only when a model
+  wrote it; today every explanation is worded in Python), the **facts table** ("Facts behind this
+  alert"; label left, value left, dates as `5 Nov 2026`, codes in mono, numbers in tabular
+  figures), the one accent button that opens the screen where the cause is fixed (Open worker,
+  Open Allocation, Open mobilization, Open forecast), then Take it / Assign / Snooze / Dismiss and
+  the history. Esc closes it and focus goes back to the row.
+- **Take / Assign:** Take makes the alert yours ("You are working on this."); Assign picks from
+  the people who work on alerts.
+- **Snooze** offers 4 hours, Tomorrow 07:00, 3 days and "Or pick a day"; a critical alert can only
+  be snoozed for up to a day (so only the first two), any other for up to 7 days. It comes back at
+  07:00 if the cause is still there.
+- **Dismiss** only exists for alerts a person can rightly decide are not a problem (shortfall,
+  ending soon, document, midday ban). It opens an inline form: reason required (≥ 10
+  characters), with the count shown ("9 of 10 characters"). A dismissed alert stays down unless
+  the condition gets worse. Mobilization, approval and transfer alerts clear themselves when the
+  cause is fixed and can only be snoozed.
+- **Bell** (top bar, every signed-in role that can read alerts): the number of critical +
+  action-needed alerts in the viewer's scope; the menu lists the 5 most urgent, "Open To-do", and
+  when the detectors last ran. It refreshes every 30 s while the tab is visible and straight away
+  after any change made in the app (taking, snoozing, approving, ticking a task).
+- **Home:** HR's first widget is the Action Center (counts by severity, the 5 most urgent, "Open
+  To-do"); the MD/CEO's is an "Open alerts" tile (three counts with icons and labels, each linking
+  to the read-only list filtered by severity). The one-line insight under the greeting is chosen
+  and worded by the API.
+- **MD/CEO:** sees every alert and the facts; the sheet says "Only HR works on alerts." and has
+  no Take / Assign / Snooze / Dismiss and no checkboxes. The links to other screens still work.
+- **Projects → Change dates:** each project row has a Change dates button (needs `project:write`)
+  that opens a sheet with Starts and Ends. It explains at once when the end is before the start,
+  keeps Save off until something changed, and sends only what changed. People already placed keep
+  the dates they were given; the forecast and the alerts follow the new dates immediately (this is
+  how a transfer's source job ending later raises the transfer alert). The page confirms "RAK-07
+  now runs from 12 Feb 2027 to 31 Jan 2028."
+- **States:** skeleton rows, "No open alerts" with when the detectors last ran, "No alerts match
+  these filters" with Clear filters, an error that names what failed with Retry (list, bell and
+  sheet separately), light and dark, keyboard throughout.
+- **Not built yet:** AI-written explanations (the label above is ready), sending messages and the
+  "Send reminder" / "Remind approver" actions, the 07:00 and 18:00 schedule (the detectors run
+  after every change and on `POST /alerts/run` until n8n calls it), "Open site shifts" and "Request
+  exemption", and editing the 2027 midday-ban dates in the app (it is a provisional rule, labelled
+  as such in the alert, until HR confirms the dates).
 
 ### Manpower Forecast (HR, Operations, CEO)
 - **Header:** project picker (upcoming and active projects in scope) and start date (defaults to

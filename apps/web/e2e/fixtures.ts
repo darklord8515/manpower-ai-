@@ -20,6 +20,8 @@ export const HR_USER = {
     "assignment:confirm_arrival",
     "recruitment:read",
     "recruitment:create",
+    "alert:read",
+    "alert:act",
   ],
   demo_mode: true,
   landing: "hr",
@@ -43,6 +45,8 @@ export const EXEC_USER = {
     "mobilization:update",
     "assignment:confirm_arrival",
     "recruitment:read",
+    "alert:read",
+    "alert:act",
   ],
 };
 
@@ -61,6 +65,7 @@ export const CEO_USER = {
     "mobilization:read",
     "assignment:approve",
     "recruitment:read",
+    "alert:read",
   ],
   landing: "executive",
 };
@@ -69,6 +74,12 @@ const weeks = Array.from({ length: 13 }, (_, i) => ({
   week_start: new Date(Date.UTC(2026, 10, 5 + i * 7)).toISOString().slice(0, 10),
   count: [2, 1, 2, 2, 3, 2, 3, 3, 3, 4, 4, 4, 3][i],
 }));
+
+/** What the API says at the top of Home: the most urgent alert for HR, shortages for the MD/CEO. */
+export const INSIGHTS = {
+  hr: "Harish Mondal: residency visa ends in 3 days (8 Nov 2026). 17 more need attention.",
+  ceo: "18 people short across active projects. 8 documents run out in the next 30 days, and 2 already have.",
+};
 
 export const SUMMARY = {
   today: "2026-11-05",
@@ -196,7 +207,30 @@ export async function mockApi(
     }
     return json(r, { home: layout });
   });
-  await page.route("**/api/summary", (r) => json(r, SUMMARY));
+  await page.route("**/api/summary", (r) =>
+    json(r, { ...SUMMARY, insight: user?.roles.includes("ceo") ? INSIGHTS.ceo : INSIGHTS.hr }),
+  );
+  // Quiet by default, so the bell has something to read on every screen. alerts.spec.ts fills it.
+  const quiet = {
+    counts: { critical: 0, action_needed: 0, info: 0 },
+    needs_attention: 0,
+    top: [],
+    mine: 0,
+    last_run: "2026-11-05T09:00:00+04:00",
+    now: "2026-11-05T09:00:00+04:00",
+    can_act: Boolean(user?.permissions.includes("alert:act")),
+  };
+  await page.route("**/api/alerts/summary", (r) => json(r, quiet));
+  await page.route(/\/api\/alerts(\?.*)?$/, (r) =>
+    json(r, {
+      items: [],
+      counts: quiet.counts,
+      snoozed: 0,
+      last_run: quiet.last_run,
+      now: quiet.now,
+      can_act: quiet.can_act,
+    }),
+  );
   await page.route("**/api/summary/trades", (r) => {
     seen.trades += 1;
     return json(r, TRADE_STRENGTH);
@@ -556,6 +590,18 @@ export async function mockProjects(page: Page) {
     return json(r, PROJECT_LIST);
   });
   await page.route("**/api/trades", (r) => json(r, TRADES));
+  // Change a project's dates (PATCH): the project comes back with the new dates.
+  await page.route(/\/api\/projects\/[A-Z0-9-]+$/, (r) => {
+    const code = new URL(r.request().url()).pathname.split("/").pop();
+    const project = PROJECT_LIST.find((p) => p.code === code);
+    if (!project) return json(r, { detail: "Project not found" }, 404);
+    const sent = r.request().postDataJSON() as { starts_on?: string; ends_on?: string };
+    return json(r, {
+      ...project,
+      starts: sent.starts_on ?? project.starts,
+      ends: sent.ends_on ?? project.ends,
+    });
+  });
   await page.route(/\/api\/projects\/[A-Z0-9-]+\/forecast/, (r) => {
     const url = new URL(r.request().url());
     const code = url.pathname.split("/")[3];

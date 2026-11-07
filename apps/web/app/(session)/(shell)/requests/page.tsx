@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { AllocationScreen } from "@/components/allocation/AllocationScreen";
 
 export const metadata: Metadata = { title: "Allocation · CONSTRUCTIQ" };
@@ -7,5 +8,10 @@ export const metadata: Metadata = { title: "Allocation · CONSTRUCTIQ" };
 export const instant = false;
 
 export default function RequestsPage() {
-  return <AllocationScreen />;
+  // useAddress (the request a link carried) needs a Suspense boundary.
+  return (
+    <Suspense>
+      <AllocationScreen />
+    </Suspense>
+  );
 }

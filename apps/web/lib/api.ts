@@ -1,4 +1,9 @@
 import type {
+  AlertDetail,
+  AlertFilters,
+  AlertList,
+  AlertSummary,
+  Assignee,
   DemoRole,
   ExpiringList,
   Me,
@@ -13,6 +18,7 @@ import type {
   RequestRow,
   NewProject,
   NewRecruitment,
+  ProjectDatesBody,
   ProjectForecast,
   RecruitmentList,
   RecruitmentRow,
@@ -29,6 +35,7 @@ import type {
   WorkerFacets,
   WorkerList,
 } from "./api-types";
+import { announceAlertsChanged } from "./alert-events";
 import { toApiParams, type WorkersQuery } from "./workers-query";
 
 /** An error from the API, with what the screen needs to explain it. */
@@ -52,6 +59,12 @@ export function setSessionEndedHandler(handler: (() => void) | null) {
 
 const SIGN_IN_PATHS = ["/auth/login", "/auth/demo-login", "/auth/config", "/auth/me"];
 
+/** A saved change may have changed an alert, so whatever shows alerts should look again. */
+function announceIfWrite(path: string, init?: RequestInit) {
+  const method = (init?.method ?? "GET").toUpperCase();
+  if (method !== "GET" && !path.startsWith("/auth")) announceAlertsChanged();
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
   try {
@@ -68,6 +81,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     // The server did not answer at all (offline, or the free host is waking up).
     throw new ApiError(0, "We couldn’t reach the server. Check your connection and try again.");
   }
+  if (response.ok) announceIfWrite(path, init);
   if (response.status === 204) return undefined as T;
   if (!response.ok) {
     if (response.status === 401 && !SIGN_IN_PATHS.includes(path)) onSessionEnded?.();
@@ -186,6 +200,48 @@ export const api = {
   confirmArrival: (no: string) =>
     request<MobilizationDetail>(`/mobilizations/${encodeURIComponent(no)}/arrival`, {
       method: "POST",
+    }),
+  alerts: (filters: AlertFilters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.view && filters.view !== "open") params.set("view", filters.view);
+    if (filters.severity) params.set("severity", filters.severity);
+    if (filters.type) params.set("type", filters.type);
+    if (filters.project) params.set("project", filters.project);
+    if (filters.mine) params.set("mine", "true");
+    if (filters.q?.trim()) params.set("q", filters.q.trim());
+    const query = params.toString();
+    return request<AlertList>(`/alerts${query ? `?${query}` : ""}`);
+  },
+  alertSummary: () => request<AlertSummary>("/alerts/summary"),
+  alertAssignees: () => request<Assignee[]>("/alerts/assignees"),
+  alert: (id: string) => request<AlertDetail>(`/alerts/${id}`),
+  takeAlert: (id: string) => request<AlertDetail>(`/alerts/${id}/take`, { method: "POST" }),
+  assignAlert: (id: string, userId: string) =>
+    request<AlertDetail>(`/alerts/${id}/assign`, {
+      method: "POST",
+      body: JSON.stringify({ user_id: userId }),
+    }),
+  snoozeAlert: (id: string, until: string) =>
+    request<AlertDetail>(`/alerts/${id}/snooze`, {
+      method: "POST",
+      body: JSON.stringify({ until }),
+    }),
+  dismissAlert: (id: string, reason: string) =>
+    request<AlertDetail>(`/alerts/${id}/dismiss`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }),
+  bulkAlerts: (body: {
+    ids: string[];
+    action: "snooze" | "assign";
+    until?: string;
+    user_id?: string;
+  }) =>
+    request<{ changed: number }>("/alerts/bulk", { method: "POST", body: JSON.stringify(body) }),
+  changeProjectDates: (code: string, body: ProjectDatesBody) =>
+    request<ProjectRow>(`/projects/${encodeURIComponent(code)}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
     }),
   summaryByTrade: () => request<TradeStrength[]>("/summary/trades"),
   preferences: () => request<Preferences>("/auth/me/preferences"),

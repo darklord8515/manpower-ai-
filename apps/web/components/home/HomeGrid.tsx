@@ -26,6 +26,7 @@ import type { ExpiringDocument, Summary } from "@/lib/api-types";
 import { usePrefersReducedMotion } from "@/lib/use-prefers-reduced-motion";
 import { DEFAULT_QUERY } from "@/lib/workers-query";
 import { useLoad } from "@/lib/use-load";
+import { ActionCenter, AlertCounts } from "@/components/alerts/ActionCenter";
 import { ExpiryChart, ProjectsChart, WorkforceDonut } from "./charts";
 import {
   LeavingSoon,
@@ -136,6 +137,7 @@ function SortableWidget({
 export function HomeGrid({ kind, summary, due }: Props) {
   const user = useUser();
   const canOpenRecruitment = user.permissions.includes("recruitment:read");
+  const canOpenAlerts = user.permissions.includes("alert:read");
   const { status, layout, save } = useHomeLayout(kind);
   const [draft, setDraft] = useState<Layout | null>(null);
   const [saving, setSaving] = useState(false);
@@ -151,6 +153,11 @@ export function HomeGrid({ kind, summary, due }: Props) {
   // What each widget needs is loaded only while that widget is on screen.
   const recruitment = useLoad(() => api.recruitment(), "recruitment", wants("leaving", "pipeline"));
   const trades = useLoad(() => api.summaryByTrade(), "trades", wants("by_trade"));
+  const alerts = useLoad(
+    () => api.alertSummary(),
+    "alerts",
+    wants("action_center", "alert_counts"),
+  );
   const unavailable = useLoad(
     () => api.workers({ ...DEFAULT_QUERY, status: "unavailable" }),
     "unavailable",
@@ -207,6 +214,10 @@ export function HomeGrid({ kind, summary, due }: Props) {
       retry: l.retry,
     });
     switch (id) {
+      case "action_center":
+        return <ActionCenter load={asLoad(alerts)} canOpen={canOpenAlerts} />;
+      case "alert_counts":
+        return <AlertCounts load={asLoad(alerts)} canOpen={canOpenAlerts} />;
       case "expiry":
         return <ExpiryChart weeks={summary.expiry_by_week} />;
       case "workforce":

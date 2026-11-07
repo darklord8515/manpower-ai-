@@ -10,6 +10,7 @@ async function noSidewaysScroll(page: Page) {
 }
 
 const HR_DEFAULT = [
+  "action_center",
   "expiry",
   "workforce",
   "due",
@@ -106,10 +107,11 @@ test.describe("rearranging", () => {
     await expect(page.getByText("Your layout was saved.")).toBeVisible();
     await expect(page.getByRole("button", { name: /^Move / })).toHaveCount(0);
     expect(seen.saved).toHaveLength(1);
-    expect(seen.saved[0]?.order[0]).toBe("leaving");
+    // It took the place of "Documents running out", which comes right after the Action Center.
+    expect(seen.saved[0]?.order.slice(0, 2)).toEqual(["action_center", "leaving"]);
     await page.reload();
     await expect(page.locator("[data-widget]").first()).toBeVisible();
-    expect((await order(page))[0]).toBe("leaving");
+    expect((await order(page)).slice(0, 2)).toEqual(["action_center", "leaving"]);
   });
 
   test("the keyboard can move a widget: Space, arrows, Space", async ({ page }) => {
@@ -193,6 +195,7 @@ test("the MD/CEO has their own default, with the by-trade widget off until asked
 }) => {
   await open(page, { user: CEO_USER });
   expect(await order(page)).toEqual([
+    "alert_counts",
     "projects_chart",
     "workforce",
     "projects_table",
