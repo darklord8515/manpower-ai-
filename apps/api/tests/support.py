@@ -8,6 +8,7 @@ from datetime import date, datetime
 
 from argon2 import PasswordHasher
 from fastapi.testclient import TestClient
+from pydantic_settings import SettingsConfigDict
 from sqlalchemy import Engine, text
 
 from app.ai.llm import LLMError, LLMReply, Message, ToolSpec
@@ -77,6 +78,13 @@ def provider_down() -> LLMError:
     return LLMError("The model provider could not be reached (ConnectError)")
 
 
+class IsolatedSettings(Settings):
+    """Settings that ignore the developer's .env, so a test never reaches a real model provider
+    with the keys saved there and sees only what the test passes in."""
+
+    model_config = SettingsConfigDict(env_file=None, extra="ignore", case_sensitive=False)
+
+
 def make_settings(**overrides: object) -> Settings:
     values: dict[str, object] = {
         "app_env": AppEnv.TEST,
@@ -87,7 +95,7 @@ def make_settings(**overrides: object) -> Settings:
         "cors_origins": "http://localhost:3000",
     }
     values.update(overrides)
-    return Settings(**values)  # type: ignore[arg-type]
+    return IsolatedSettings(**values)  # type: ignore[arg-type]
 
 
 def sign_in(client: TestClient, email: str, password: str = PASSWORD) -> None:

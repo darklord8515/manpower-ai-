@@ -184,6 +184,7 @@ def _narrate_one(
         close_run(
             session, run_id, status=status, error=error, output=output, input_tokens=tokens[0],
             output_tokens=tokens[1], latency_ms=int((time.monotonic() - started) * 1000),
+            client=client,
         )  # fmt: skip
         session.commit()
 

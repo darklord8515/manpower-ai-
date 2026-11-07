@@ -42,8 +42,19 @@ One tool-calling loop, one `LLMClient` interface. Rules the agents must respect 
   | `light` | intent, routing, alert wording, column mapping, checklists | small fast model on Groq / OpenRouter free / Ollama | Claude Haiku 5.5 |
   | `mid` | staffing reasoning over candidate lists and forecasts | strongest free model with reliable tool calling | Claude Sonnet 5.5 |
 
-  Exact model names live in `.env` (`LLM_TIER_LIGHT_PROVIDER`, `LLM_TIER_LIGHT_MODEL`,
-  `LLM_TIER_MID_PROVIDER`, `LLM_TIER_MID_MODEL`) so they can change without a code change.
+  Exact model names live in `.env` so they can change without a code change: per tier a primary and
+  a fallback as `provider:model` (`LLM_TIER_MID_PRIMARY=groq:…`, `LLM_TIER_MID_FALLBACK=openrouter:…`),
+  with one key per provider (`GROQ_API_KEY`, `OPENROUTER_API_KEY`, `HF_TOKEN`, `ANTHROPIC_API_KEY`).
+  The older single-provider lines (`LLM_TIER_*_MODEL` / `_BASE_URL` / `_API_KEY`) still work until a
+  tier's primary is set.
+- **Providers fail; agents carry on.** A busy provider (429, 5xx, unreachable) is retried briefly
+  (at most 3 tries, 8 s of waiting; a `Retry-After` longer than that is not waited for), then the
+  fallback answers. A model that fails 3 times in a minute is skipped for a minute. The run records
+  the model that actually answered (`agent_runs.model`, `provider:model` after a fallback). With no
+  model answering, AI features fall back to Python wording and say so.
+- **Choosing models.** `make ai-check` (run it yourself; it prints no keys) scores each candidate in
+  `apps/api/agents/evals/models.yaml` on strict JSON, routing and tool calls, with latency, and
+  suggests the `.env` lines.
 
 Permission notation: `employee:read [scoped]` means the tool also filters rows by the caller's scope
 (own / site / project / all) from `user_project_access`.

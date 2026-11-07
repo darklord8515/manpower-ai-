@@ -1,0 +1,9 @@
+# Models `make ai-check` tries. Add or remove lines freely: it only asks providers whose key is in
+# .env (GROQ_API_KEY, OPENROUTER_API_KEY, HF_TOKEN, ANTHROPIC_API_KEY). Ollama needs none.
+# Names change often on free tiers; if one is gone the check says so and carries on.
+candidates:
+  - groq:llama-3.1-8b-instant
+  - groq:llama-3.3-70b-versatile
+  - groq:openai/gpt-oss-120b
+  - openrouter:openai/gpt-oss-120b:free
+  - openrouter:nvidia/nemotron-3.5-super-vl:free

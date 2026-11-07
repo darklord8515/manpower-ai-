@@ -106,19 +106,25 @@ def close_run(
     error: str | None = None,
     input_tokens: int = 0,
     output_tokens: int = 0,
+    client: object | None = None,
 ) -> None:
-    """Finish the run: `succeeded`, `failed` (provider or output problem) or `refused` (a guard)."""
+    """Finish the run: `succeeded`, `failed` (provider or output problem) or `refused` (a guard).
+
+    When the client fell back to another provider, `agent_runs.model` is updated to the one that
+    actually answered (`provider:model`)."""
+    answered = getattr(client, "answered_by", None)
     session.execute(
         text(
             """UPDATE agent_runs SET status = CAST(:status AS run_status),
                       output_json = CAST(:output AS jsonb), error = :error,
                       input_tokens = :tin, output_tokens = :tout, latency_ms = :ms,
-                      finished_at = now()
+                      model = COALESCE(:model, model), finished_at = now()
                WHERE id = :id"""
         ),
         {
             "id": run_id, "status": status, "error": error, "tin": input_tokens,
             "tout": output_tokens, "ms": latency_ms,
             "output": json.dumps(output, default=str) if output is not None else None,
+            "model": answered if isinstance(answered, str) else None,
         },
     )  # fmt: skip

@@ -38,6 +38,32 @@ class LLMTier:
     base_url: str
     api_key: str
     free: bool
+    vendor: str = ""  # "groq", "openrouter"... when chosen through a named provider
+
+
+@dataclass(frozen=True)
+class LLMSpec:
+    """One entry of a tier line (`groq:llama-3.3-70b-versatile`), usable or not."""
+
+    tier: str
+    role: Literal["primary", "fallback"]
+    vendor: str
+    model: str
+    known: bool
+    has_key: bool
+    free: bool
+
+
+# Named providers: how to reach them. Keys come from GROQ_API_KEY, OPENROUTER_API_KEY, HF_TOKEN,
+# ANTHROPIC_API_KEY; Ollama needs none. Models stay in .env (LLM_TIER_*_PRIMARY / _FALLBACK).
+PROVIDERS: dict[str, tuple[Literal["openai_compatible", "anthropic"], str]] = {
+    "groq": ("openai_compatible", "https://api.groq.com/openai/v1"),
+    "openrouter": ("openai_compatible", "https://openrouter.ai/api/v1"),
+    "huggingface": ("openai_compatible", "https://router.huggingface.co/v1"),
+    "ollama": ("openai_compatible", "http://localhost:11434/v1"),
+    "anthropic": ("anthropic", "https://api.anthropic.com"),
+}
+NO_KEY_NEEDED = {"ollama"}
 
 
 class Settings(BaseSettings):
@@ -79,6 +105,22 @@ class Settings(BaseSettings):
     llm_tier_mid_base_url: str = ""
     llm_tier_mid_api_key: str = ""
     llm_timeout_seconds: float = Field(default=30, ge=1, le=300)
+    # Named providers (preferred): "provider:model", e.g. groq:llama-3.3-70b-versatile. The
+    # fallback answers when the primary is rate-limited, down or refuses the key. When a tier's
+    # primary is set the flat llm_tier_*_{model,base_url,api_key,free} lines above are ignored.
+    llm_tier_light_primary: str = ""
+    llm_tier_light_fallback: str = ""
+    llm_tier_mid_primary: str = ""
+    llm_tier_mid_fallback: str = ""
+    groq_api_key: str = ""
+    openrouter_api_key: str = ""
+    hf_token: str = ""
+    anthropic_api_key: str = ""
+    # Providers on a paid plan, comma-separated (e.g. "groq"). Groq and Hugging Face count as
+    # free tier unless listed here; OpenRouter is free only for ":free" models.
+    llm_paid_providers: str = ""
+    # Sent to OpenRouter so it can label the app in its dashboard.
+    web_base_url: str = "http://localhost:3000"
 
     # Business config
     doc_check_default_horizon_days: int = Field(default=90, ge=1, le=365)
@@ -132,8 +174,72 @@ class Settings(BaseSettings):
             database="constructiq",
         ).render_as_string(hide_password=False)
 
+    def _vendor_key(self, vendor: str) -> str:
+        keys = {
+            "groq": self.groq_api_key,
+            "openrouter": self.openrouter_api_key,
+            "huggingface": self.hf_token,
+            "anthropic": self.anthropic_api_key,
+        }
+        return keys.get(vendor, "").strip()
+
+    def _vendor_is_free(self, vendor: str, model: str) -> bool:
+        if vendor == "anthropic":
+            return False
+        if vendor == "openrouter":
+            return model.endswith(":free")
+        paid = {p.strip().lower() for p in self.llm_paid_providers.split(",") if p.strip()}
+        return vendor not in paid  # Groq, Hugging Face and Ollama are free unless declared paid
+
+    def llm_specs(self, name: Literal["light", "mid"]) -> list[LLMSpec]:
+        """The tier's `provider:model` lines (primary, then fallback), usable or not."""
+        lines: tuple[tuple[Literal["primary", "fallback"], str], ...] = (
+            (
+                "primary",
+                self.llm_tier_light_primary if name == "light" else self.llm_tier_mid_primary,
+            ),
+            (
+                "fallback",
+                self.llm_tier_light_fallback if name == "light" else self.llm_tier_mid_fallback,
+            ),
+        )
+        specs: list[LLMSpec] = []
+        for role, text in lines:
+            if not text.strip():
+                continue
+            vendor, _, model = text.partition(":")
+            vendor, model = vendor.strip().lower(), model.strip()
+            known = vendor in PROVIDERS and bool(model)
+            has_key = known and (vendor in NO_KEY_NEEDED or bool(self._vendor_key(vendor)))
+            free = self._vendor_is_free(vendor, model) if known else False
+            specs.append(LLMSpec(name, role, vendor, model, known, has_key, free))
+        return specs
+
+    def llm_tiers(self, name: Literal["light", "mid"]) -> list[LLMTier]:
+        """Every model that can answer for a tier, in the order to try them. Empty = AI is off."""
+        specs = self.llm_specs(name)
+        if not specs:
+            flat = self._flat_tier(name)
+            return [flat] if flat else []
+        tiers: list[LLMTier] = []
+        for s in specs:
+            if not (s.known and s.has_key):
+                continue
+            provider, base_url = PROVIDERS[s.vendor]
+            tiers.append(
+                LLMTier(
+                    name, provider, s.model, base_url, self._vendor_key(s.vendor), s.free, s.vendor
+                )
+            )
+        return tiers
+
     def llm_tier(self, name: Literal["light", "mid"]) -> LLMTier | None:
-        """The tier if it can be reached, else None (AI is off for it)."""
+        """The tier's first model if one can be reached, else None (AI is off for it)."""
+        tiers = self.llm_tiers(name)
+        return tiers[0] if tiers else None
+
+    def _flat_tier(self, name: Literal["light", "mid"]) -> LLMTier | None:
+        """The older single-provider lines (LLM_TIER_*_MODEL / _BASE_URL / _API_KEY)."""
         provider = self.llm_tier_light_provider if name == "light" else self.llm_tier_mid_provider
         model = (self.llm_tier_light_model if name == "light" else self.llm_tier_mid_model).strip()
         base_url = (
@@ -175,15 +281,28 @@ def production_problems(s: Settings) -> list[str]:
         problems.append("SIMULATED_CLOCK must be off (rule checks must use the real date)")
     if s.storage_backend == "local":
         problems.append("STORAGE_BACKEND=local is development-only; use s3")
-    if s.llm_tier_light_free:
+    tiers: tuple[Literal["light", "mid"], ...] = ("light", "mid")
+    for tier in tiers:
+        for spec in s.llm_specs(tier):
+            where = f"LLM tier '{tier}' {spec.role} ({spec.vendor}:{spec.model})"
+            if not spec.known:
+                problems.append(f"{where} is not a known provider:model")
+            elif spec.free:
+                problems.append(
+                    f"{where} is a free-tier model (set LLM_PAID_PROVIDERS or change it)"
+                )
+            if spec.known and not spec.has_key:
+                problems.append(f"{where} has no API key")
+    if not s.llm_specs("light") and s.llm_tier_light_free:
         problems.append("LLM tier 'light' points at a free-tier provider (LLM_TIER_LIGHT_FREE)")
-    if s.llm_tier_mid_free:
+    if not s.llm_specs("mid") and s.llm_tier_mid_free:
         problems.append("LLM tier 'mid' points at a free-tier provider (LLM_TIER_MID_FREE)")
-    for tier, model, key in (
+    flat: tuple[tuple[Literal["light", "mid"], str, str], ...] = (
         ("light", s.llm_tier_light_model, s.llm_tier_light_api_key),
         ("mid", s.llm_tier_mid_model, s.llm_tier_mid_api_key),
-    ):
-        if model.strip() and not key.strip():
+    )
+    for tier, model, key in flat:
+        if not s.llm_specs(tier) and model.strip() and not key.strip():
             problems.append(f"LLM tier '{tier}' has a model but no API key (LLM_TIER_*_API_KEY)")
     for name, value in (("SECRET_KEY", s.secret_key), ("N8N_HMAC_SECRET", s.n8n_hmac_secret)):
         if len(value) < MIN_SECRET_LENGTH:

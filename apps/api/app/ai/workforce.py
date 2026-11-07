@@ -401,11 +401,13 @@ def _tool_list(session: Session) -> tuple[list[str], int]:
     return list(row.allowed_tools), int(row.token_budget)
 
 
-def _finish(session: Session, run_id: uuid.UUID, started: float, result: AgentResult) -> None:
+def _finish(
+    session: Session, run_id: uuid.UUID, started: float, result: AgentResult, client: LLMClient
+) -> None:
     close_run(
         session, run_id, status=result.status, error=result.error, output=result.output,
         input_tokens=result.input_tokens, output_tokens=result.output_tokens,
-        latency_ms=int((time.monotonic() - started) * 1000),
+        latency_ms=int((time.monotonic() - started) * 1000), client=client,
     )  # fmt: skip
     session.commit()
 
@@ -505,7 +507,7 @@ def execute_run(
             session.rollback()
             log.exception("The Workforce agent run %s failed", run_id)
             result = AgentResult("failed", f"internal: {type(error).__name__}", None, 0, 0)
-        _finish(session, run_id, started, result)
+        _finish(session, run_id, started, result, client)
 
 
 def steps_of(session: Session, run_id: uuid.UUID) -> list[dict[str, str]]:
