@@ -800,7 +800,6 @@ def approve_line(
                 report_on=person.starts_on,
                 today=today,
                 approved=mobilizing,
-                documents_ok=v.documents_valid,
             )
             if person.becomes_mobilizing:
                 session.execute(

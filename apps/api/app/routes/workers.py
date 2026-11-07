@@ -22,6 +22,7 @@ from app.schemas import (
     DocumentBrief,
     DocumentDetail,
     Facet,
+    MobilizationBrief,
     Risk,
     WorkerDetail,
     WorkerFacets,
@@ -29,6 +30,7 @@ from app.schemas import (
     WorkerNumber,
     WorkerRow,
 )
+from app.services.mobilization import stage_of
 
 router = APIRouter(prefix="/workers", tags=["workers"])
 
@@ -433,11 +435,17 @@ def get_worker(code: str, session: SessionDep, clock: ClockDep, user: Reader) ->
                           (upper(a.period) - 1) AS ends,
                           coalesce(upper(a.period) - 1, pr.ends_on) AS "end",
                           a.status::text AS status,
-                          dp.code AS moving_from, (upper(d.period) - 1) AS moving_from_ends
+                          dp.code AS moving_from, (upper(d.period) - 1) AS moving_from_ends,
+                          m.mob_no, m.status::text AS mob_status,
+                          coalesce(k.total, 0) AS tasks_total, coalesce(k.done, 0) AS tasks_done
                    FROM employee_assignments a JOIN projects pr ON pr.id = a.project_id
                    JOIN employees e ON e.id = a.employee_id
                    LEFT JOIN employee_assignments d ON d.id = a.depends_on_assignment_id
                    LEFT JOIN projects dp ON dp.id = d.project_id
+                   LEFT JOIN mobilizations m ON m.assignment_id = a.id
+                   LEFT JOIN LATERAL (
+                       SELECT count(*) AS total, count(*) FILTER (WHERE status = 'done') AS done
+                       FROM mobilization_tasks WHERE mobilization_id = m.id) k ON TRUE
                    WHERE e.employee_code = :code ORDER BY lower(a.period) DESC"""
             ),
             {"code": code},
@@ -448,6 +456,13 @@ def get_worker(code: str, session: SessionDep, clock: ClockDep, user: Reader) ->
             project_code=a["code"], project_name=a["name"], starts=a["starts"], ends=a["ends"],
             status=a["status"], moving_from=a["moving_from"],
             moving_from_ends=a["moving_from_ends"],
+            mobilization=MobilizationBrief(
+                mob_no=a["mob_no"], status=a["mob_status"],
+                stage=stage_of(a["mob_status"], int(a["tasks_done"]), int(a["tasks_total"])),
+                tasks_done=int(a["tasks_done"]), tasks_total=int(a["tasks_total"]),
+            )
+            if a["mob_no"] and user.can("mobilization:read")
+            else None,
         )
         for a in raw_assignments
     ]  # fmt: skip

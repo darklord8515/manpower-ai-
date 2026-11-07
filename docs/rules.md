@@ -61,7 +61,11 @@ the demo changes the date the validators use, nothing else.
 | `BED_ONE_PER_PERSON` | One bed per employee at a time. | DB: `camp_beds.current_employee_id UNIQUE`. |
 | `VEHICLE_SEATS` | Workers assigned to a vehicle for the same pickup date can't exceed `seats`. | |
 | `DEMOB_CLEARANCE` | A demobilization can't be `completed` until every clearance item is done. | |
-| `ARRIVAL_CONFIRM` | Only `assignment:confirm_arrival` in site scope can set `arrived_at`; only on or after the assignment start date; only once. | |
+| `ARRIVAL_CONFIRM` | Only `assignment:confirm_arrival` can set `arrived_at`; only on or after the mobilization's report date (by the Clock); only once. | The Site Supervisor holds it in site scope. In the MVP there are no Site or Operations logins, so the HR Manager and the HR Executive hold it (all scope) and confirm on behalf of Site. |
+| `MOB_STAGE` | A mobilization's stage is computed from its tasks, never set by hand: *Pending checklist* (none done), *In progress* (some done), *Ready to report* (all done, not arrived), *On site* (arrived, shown for 14 days). | `stage_of()` in `app/services/mobilization.py`; the screen's cards cannot be dragged. |
+| `MOB_TASK_UPDATE` | A task is marked done or opened again by `mobilization:update` (HR Manager and HR Executive, for every department), and only while the mobilization is `approved` or `in_progress`. The tick records who and when; the first tick moves the mobilization to `in_progress`, reopening the last one moves it back to `approved`; the `readiness` snapshot follows the tasks. Doing the same thing twice changes nothing and is audited once. | Operations and Site take over their own tasks when they get logins. `blocked` and `in_progress` task states and notes are not built. |
+| `MOB_ARRIVAL_CHECKLIST` | Arrival is refused until every task is done, and the answer says how many are still open. | A product choice on top of `ARRIVAL_CONFIRM`: a person is not Deployed with PPE or induction unrecorded. |
+| `MOB_ARRIVAL_EFFECTS` | Confirming arrival is one transaction: `arrived_at` is set, the assignment goes `planned` → `active`, the mobilization becomes `completed`, the worker's availability becomes `deployed`, and the audit log records it. | Ending a finished assignment is not built. |
 
 ### Approvals
 

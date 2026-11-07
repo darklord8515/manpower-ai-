@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from datetime import date, datetime
 from typing import Literal
 
@@ -58,6 +59,16 @@ class DocumentDetail(BaseModel):
     status: str
 
 
+class MobilizationBrief(BaseModel):
+    """Where a person's mobilization stands, for the worker profile."""
+
+    mob_no: str
+    status: str
+    stage: Literal["pending_checklist", "in_progress", "ready", "on_site"]
+    tasks_done: int
+    tasks_total: int
+
+
 class AssignmentDetail(BaseModel):
     project_code: str
     project_name: str
@@ -66,6 +77,7 @@ class AssignmentDetail(BaseModel):
     status: str
     moving_from: str | None = None  # a planned transfer: the project they leave first
     moving_from_ends: date | None = None  # their last day there
+    mobilization: MobilizationBrief | None = None
 
 
 class Risk(BaseModel):
@@ -725,3 +737,49 @@ class CancelBody(BaseModel):
         if len(value) < 3:
             raise ValueError("Give a reason of at least 3 characters.")
         return value
+
+
+# ------------------------------------------------------------------------------- mobilization
+
+MobStage = Literal["pending_checklist", "in_progress", "ready", "on_site"]
+
+
+class MobilizationRow(BaseModel):
+    mob_no: str
+    stage: MobStage
+    status: str
+    worker_code: str
+    worker_name: str
+    trade: str | None
+    project_code: str
+    project_name: str
+    report_on: date
+    tasks_done: int
+    tasks_total: int
+    overdue: int  # tasks not done whose due date has passed
+    arrived_on: date | None
+
+
+class MobilizationList(BaseModel):
+    today: date
+    items: list[MobilizationRow]
+
+
+class MobilizationTask(BaseModel):
+    id: uuid.UUID
+    department: str  # code: hr, operations, site
+    department_name: str
+    title: str
+    due_on: date | None
+    status: Literal["open", "in_progress", "done", "blocked"]
+    overdue: bool
+    done_by: str | None
+    done_at: datetime | None
+
+
+class MobilizationDetail(MobilizationRow):
+    tasks: list[MobilizationTask]
+    can_update: bool
+    update_note: str | None  # why this person cannot tick tasks (shown instead of dead buttons)
+    can_confirm_arrival: bool
+    arrival_note: str | None  # why arrival cannot be confirmed (right now, or by this person)

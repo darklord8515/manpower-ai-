@@ -328,7 +328,7 @@ def test_the_preview_shows_what_approving_does_and_writes_nothing(board: Board) 
     )
     assert people["W04"]["moving_from"] == "T-OLD" and people["W04"]["mob_no"] is None
     assert board.count("SELECT count(*) FROM employee_assignments") == before
-    assert board.count("SELECT count(*) FROM mobilizations") == 0
+    assert board.count("SELECT count(*) FROM mobilizations WHERE NOT is_demo") == 0
 
 
 def test_approving_plans_assignments_starts_mobilizations_and_updates_everything(
@@ -340,14 +340,15 @@ def test_approving_plans_assignments_starts_mobilizations_and_updates_everything
     assert response.status_code == 200, response.text
     result = response.json()
     assert result["ok"] is True and result["request_status_after"] == "filled"
-    assert [p["mob_no"] for p in result["people"]] == ["MOB-2026-0001", "MOB-2026-0002"]
+    # The seed already holds MOB-2026-0101 to 0109, so the next ones follow on from 0109.
+    assert [p["mob_no"] for p in result["people"]] == ["MOB-2026-0110", "MOB-2026-0111"]
 
     detail = board.detail(request)
     line = detail["lines"][0]
     assert detail["status"] == "filled" and (line["status"], line["filled"]) == ("approved", 2)
     assert line["decided_by"] == "Noura Demo" and line["picks"] == []
     assert [(a["code"], a["moving_from"], a["mob_no"]) for a in line["approved"]] == [
-        ("W01", None, "MOB-2026-0001"), ("W04", "T-OLD", "MOB-2026-0002"),
+        ("W01", None, "MOB-2026-0110"), ("W04", "T-OLD", "MOB-2026-0111"),
     ]  # fmt: skip
     assert (
         board.count(
@@ -357,9 +358,16 @@ def test_approving_plans_assignments_starts_mobilizations_and_updates_everything
         )
         == 1
     )  # only W04 depends on another job
-    assert board.count("SELECT count(*) FROM mobilizations WHERE status = 'approved'") == 2
     assert (
-        board.count("SELECT count(*) FROM mobilization_tasks") == 10
+        board.count("SELECT count(*) FROM mobilizations WHERE status = 'approved' AND NOT is_demo")
+        == 2
+    )
+    assert (
+        board.count(
+            """SELECT count(*) FROM mobilization_tasks k
+               JOIN mobilizations m ON m.id = k.mobilization_id WHERE NOT m.is_demo"""
+        )
+        == 10
     )  # five tasks each, made once
     assert (
         board.count(
@@ -448,7 +456,7 @@ def test_approval_checks_every_rule_again_and_writes_nothing_if_one_fails(board:
     blocked = {p["code"]: [v["rule"] for v in p["violations"]] for p in result["people"]}
     assert blocked == {"W01": [], "W04": ["DOC_VALID_THROUGH"]}
     assert board.count("SELECT count(*) FROM employee_assignments") == before  # not even W01
-    assert board.count("SELECT count(*) FROM mobilizations") == 0
+    assert board.count("SELECT count(*) FROM mobilizations WHERE NOT is_demo") == 0
     assert board.detail(request)["status"] == "submitted"
     stale = {p["code"]: p["violations"] for p in board.detail(request)["lines"][0]["picks"]}
     assert stale["W04"][0]["rule"] == "DOC_VALID_THROUGH"  # the board shows what changed

@@ -685,6 +685,7 @@ INSERT INTO permissions (code, description) VALUES
  ('mobilization:read',        'View mobilizations'),
  ('mobilization:create',      'Start mobilization or demobilization'),
  ('mobilization:approve',     'Approve mobilization'),
+ ('mobilization:update',      'Tick mobilization tasks'),
  ('logistics:assign',         'Assign beds and transport'),
  ('approval:final',           'Final approval tier'),
  ('ai:use',                   'Use the AI Command Centre'),
@@ -748,6 +749,8 @@ FROM (VALUES
  ('hr_manager','project:write','all'),
  -- HR raises and prepares staffing requests; the HR Manager approves them (nobody approves their own).
  ('hr_manager','staffing:create','all'),
+ -- HR ticks mobilization tasks and confirms arrival for every department (no Operations or Site logins in the MVP).
+ ('hr_manager','mobilization:update','all'), ('hr_manager','assignment:confirm_arrival','all'),
 
  ('hr_executive','employee:read','all'), ('hr_executive','employee:write','all'),
  ('hr_executive','document:verify','all'), ('hr_executive','document:upload','all'),
@@ -757,6 +760,7 @@ FROM (VALUES
  ('hr_executive','alert:read','all'), ('hr_executive','alert:act','all'),
  ('hr_executive','project:write','all'),
  ('hr_executive','staffing:create','all'),
+ ('hr_executive','mobilization:update','all'), ('hr_executive','assignment:confirm_arrival','all'),
 
  ('project_manager','employee:read','project'), ('project_manager','project:read','project'),
  ('project_manager','staffing:read','project'), ('project_manager','staffing:create','project'),

@@ -6,8 +6,9 @@ schema (roles, permissions, role mapping, work rules, agents) is never touched.
 
 from __future__ import annotations
 
+import json
 import uuid
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
 from argon2 import PasswordHasher
@@ -22,6 +23,8 @@ from app.seed.data import (
     GENERATED_CONTRACT_ENDS,
     GENERATED_EXITS,
     LEAVES,
+    MOBILIZATION_DONE,
+    MOBILIZATION_FIRST_NUMBER,
     NAMED_CONTRACT_ENDS,
     NAMED_EXITS,
     PROJECTS,
@@ -31,6 +34,7 @@ from app.seed.data import (
     TRADE_GROUPS,
 )
 from app.seed.workers import WorkerSeed, build_workers
+from app.services.mobilization import TASK_TEMPLATE, readiness_of
 
 _NAMESPACE = uuid.UUID("6d1f3c0a-5b7e-4d0e-9a52-0c1f7a6b9e11")  # fixed, so ids repeat on reseed
 
@@ -347,6 +351,62 @@ def _load_workers(
         ],
     )  # fmt: skip
     _seed_requests(connection, demo_id("user", "hr_executive"), projects, trades)
+    _seed_mobilizations(connection, workers, demo_id("user", "hr_manager"))
+
+
+def _seed_mobilizations(
+    connection: Connection, workers: list[WorkerSeed], done_by: uuid.UUID
+) -> None:
+    """A mobilization for each person who is Mobilizing, with the checklist part-way done."""
+    mobilizing = sorted((w for w in workers if w.status == "mobilizing"), key=lambda w: w.code)
+    if len(mobilizing) != len(MOBILIZATION_DONE):
+        raise ConfigError(
+            f"The seed has {len(mobilizing)} mobilizing workers but {len(MOBILIZATION_DONE)} "
+            "mobilization plans"
+        )
+    report_on = SEED_TODAY + timedelta(days=3)  # their assignments start then
+    finished = datetime.combine(SEED_TODAY - timedelta(days=1), time(9, 0), tzinfo=UTC)
+    for n, (w, done) in enumerate(zip(mobilizing, MOBILIZATION_DONE, strict=True)):
+        mob_id = demo_id("mobilization", w.code)
+        readiness = readiness_of({title for _, key, title, _ in TASK_TEMPLATE if key in done})
+        connection.execute(
+            text(
+                """INSERT INTO mobilizations
+                       (id, mob_no, assignment_id, report_on, status, readiness, is_demo)
+                   VALUES (:id, :no, :assignment, :report_on, CAST(:status AS mob_status),
+                           CAST(:readiness AS jsonb), true)"""
+            ),
+            {
+                "id": mob_id,
+                "no": f"MOB-{SEED_TODAY.year}-{MOBILIZATION_FIRST_NUMBER + n:04d}",
+                "assignment": demo_id("assignment", w.code),
+                "report_on": report_on,
+                "status": "in_progress" if done else "approved",
+                "readiness": json.dumps(readiness),
+            },
+        )
+        for department, key, title, days_before in TASK_TEMPLATE:
+            is_done = key in done
+            connection.execute(
+                text(
+                    """INSERT INTO mobilization_tasks
+                           (id, mobilization_id, department_id, title, due_on, status, owner_id,
+                            completed_at)
+                       SELECT :id, :mob, d.id, :title, :due, CAST(:status AS task_status), :owner,
+                              :completed
+                       FROM departments d WHERE d.code = :code"""
+                ),
+                {
+                    "id": demo_id("mobilization_task", f"{w.code}:{key}"),
+                    "mob": mob_id,
+                    "title": title,
+                    "due": report_on - timedelta(days=days_before),
+                    "status": "done" if is_done else "open",
+                    "owner": done_by if is_done else None,
+                    "completed": finished if is_done else None,
+                    "code": department,
+                },
+            )
 
 
 def _seed_requests(
