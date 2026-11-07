@@ -73,7 +73,12 @@ def test_signing_out_ends_the_session_and_everything_is_audited(
     assert client.post("/auth/logout").status_code == 204
     assert client.get("/auth/me").status_code == 401
     with migrated_db.connect() as c:
-        actions = [r[0] for r in c.execute(text("SELECT action FROM audit_log ORDER BY id"))]
+        actions = [  # the seed also logs the alerts it raised; this test is about signing in
+            r[0]
+            for r in c.execute(
+                text("SELECT action FROM audit_log WHERE action LIKE 'auth.%' ORDER BY id")
+            )
+        ]
     assert actions == ["auth.login_failed", "auth.login", "auth.logout"]
 
 

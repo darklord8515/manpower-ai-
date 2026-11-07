@@ -28,14 +28,15 @@ def plan_assignment(
     """A `planned` assignment, linked to the one it depends on when the person is moving.
 
     `from_project` and `after_last` (the day after their last day there) identify the assignment
-    they are leaving, so the "transfer dependency" can be watched later. Raises IntegrityError if
-    the person already holds an overlapping live assignment.
+    they are leaving, so the "transfer dependency" can be watched later. The project's end date is
+    remembered too, so the alert can tell when that project was extended past the handover.
+    Raises IntegrityError if the person already holds an overlapping live assignment.
     """
     return session.execute(
         text(
             """INSERT INTO employee_assignments
                    (employee_id, project_id, period, status, depends_on_assignment_id,
-                    request_line_id, approved_by, approved_at)
+                    request_line_id, approved_by, approved_at, source_project_ends_on)
                SELECT e.id, :project_id, daterange(:first, :last, '[)'), 'planned',
                       (SELECT a.id FROM employee_assignments a
                        JOIN projects p ON p.id = a.project_id
@@ -43,7 +44,8 @@ def plan_assignment(
                          AND a.status IN ('planned', 'active')
                          AND upper(a.period) = :after_last
                        LIMIT 1),
-                      :line_id, :approver, now()
+                      :line_id, :approver, now(),
+                      (SELECT p.ends_on FROM projects p WHERE p.code = :from_project)
                FROM employees e WHERE e.employee_code = :code
                RETURNING id"""
         ),

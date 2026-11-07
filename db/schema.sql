@@ -331,6 +331,9 @@ CREATE TABLE employee_assignments (
     approved_at      timestamptz,
     is_demo          boolean NOT NULL DEFAULT false,
     created_at       timestamptz NOT NULL DEFAULT now(),
+    -- Reserved transfer: the end date the source project had when the person was reserved. The
+    -- transfer_dependency_broken detector compares it with the project's end date now.
+    source_project_ends_on date,
     -- THE key rule: an employee can never hold two live assignments that overlap.
     CONSTRAINT employee_assignments_no_overlap
         EXCLUDE USING gist (employee_id WITH =, period WITH &&)

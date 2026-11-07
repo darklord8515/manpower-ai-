@@ -74,6 +74,10 @@ class Settings(BaseSettings):
     recruit_lead_days_local: int = Field(default=30, ge=0, le=365)
     recruit_lead_days_overseas: int = Field(default=60, ge=0, le=365)
     approval_wait_hours: int = Field(default=24, ge=1, le=240)
+    # An alert nobody has taken moves up a level after these hours: "first,second" (HR Manager, then
+    # Operations Manager). Info alerts never escalate. Checked whenever the detectors run.
+    alert_escalation_critical_hours: str = "4,8"
+    alert_escalation_action_hours: str = "24,48"
 
     # Secrets (never committed; read from .env or the host's secret store)
     secret_key: str = ""

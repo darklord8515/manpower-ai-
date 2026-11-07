@@ -3,17 +3,32 @@
 from __future__ import annotations
 
 import uuid
+from datetime import date, datetime
 
 from argon2 import PasswordHasher
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine, text
 
+from app.clock import GULF
 from app.config import AppEnv, Settings
 
 PASSWORD = "a-demo-password-for-tests"  # noqa: S105
 HR_MANAGER = "noura.demo@constructiq.test"
 HR_EXECUTIVE = "priya.demo@constructiq.test"
 CEO = "layla.demo@constructiq.test"
+
+
+class FixedClock:
+    """A clock that says exactly when it is, for rules that count hours or days."""
+
+    def __init__(self, now: datetime) -> None:
+        self._now = now
+
+    def today(self) -> date:
+        return self._now.astimezone(GULF).date()
+
+    def now(self) -> datetime:
+        return self._now
 
 
 def make_settings(**overrides: object) -> Settings:

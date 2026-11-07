@@ -13,7 +13,9 @@ from typing import Any
 
 from argon2 import PasswordHasher
 from sqlalchemy import Connection, text
+from sqlalchemy.orm import Session
 
+from app.clock import GULF, SimulatedClock
 from app.config import ConfigError, Settings
 from app.seed.data import (
     ABSCONDED_ON,
@@ -31,9 +33,11 @@ from app.seed.data import (
     RECRUITMENT,
     REQUESTS,
     SEED_TODAY,
+    SITE_SHIFT_ENDS,
     TRADE_GROUPS,
 )
 from app.seed.workers import WorkerSeed, build_workers
+from app.services.alerts.engine import run_detectors
 from app.services.mobilization import TASK_TEMPLATE, readiness_of
 
 _NAMESPACE = uuid.UUID("6d1f3c0a-5b7e-4d0e-9a52-0c1f7a6b9e11")  # fixed, so ids repeat on reseed
@@ -65,6 +69,7 @@ _RESET_ORDER = (
     "approval_requests",
     "staffing_requests",
     "recruitment_requests",
+    "alerts",
     "leave_records",
     "user_project_access",
     "project_sites",
@@ -87,6 +92,10 @@ def require_not_production(settings: Settings) -> None:
 def reset_demo(connection: Connection, settings: Settings) -> None:
     require_not_production(settings)
     connection.execute(text("UPDATE work_rules SET updated_by = NULL"))
+    # The provisional 2027 ban is a demo assumption (the seed adds it); the schema's own rows stay.
+    connection.execute(
+        text("DELETE FROM work_rules WHERE code = 'midday_ban' AND year = 2027 AND is_provisional")
+    )
     for table in _RESET_ORDER:
         connection.execute(text(f"DELETE FROM {table}"))  # noqa: S608 - fixed list above
 
@@ -162,14 +171,24 @@ def seed_demo(connection: Connection, settings: Settings) -> dict[str, int]:
         connection,
         """INSERT INTO project_sites
                (id, project_id, name, outdoor, default_shift_start, default_shift_end)
-           VALUES (:id, :project_id, :name, :outdoor, '06:00', '12:30')""",
+           VALUES (:id, :project_id, :name, :outdoor, '06:00', :shift_end)""",
         [
             {"id": demo_id("site", f"{p.code}:{n}"), "project_id": projects[p.code],
-             "name": f"Site {n}", "outdoor": p.outdoor}
+             "name": f"Site {n}", "outdoor": p.outdoor,
+             "shift_end": SITE_SHIFT_ENDS.get((p.code, n), "12:30")}
             for p in PROJECTS
             for n in range(1, p.sites + 1)
         ],
     )  # fmt: skip
+    # HR's planning assumption for next summer, until MoHRE announces the dates (is_provisional).
+    connection.execute(
+        text(
+            """INSERT INTO work_rules (code, year, starts_on, ends_on, blocked_from, blocked_to,
+                                       max_daily_hours, is_provisional)
+               VALUES ('midday_ban', 2027, '2027-06-15', '2027-09-15', '12:30', '15:00', 8, true)
+               ON CONFLICT (code, year) DO NOTHING"""
+        )
+    )
 
     _insert(
         connection,
@@ -201,12 +220,20 @@ def seed_demo(connection: Connection, settings: Settings) -> dict[str, int]:
     )
 
     _load_workers(connection, workers, departments["site"], trades, projects)
+    _raise_alerts(connection, settings)
     return {
         "workers": len(workers),
         "documents": sum(len(w.docs) for w in workers),
         "projects": len(PROJECTS),
         "users": len(DEMO_USERS),
     }
+
+
+def _raise_alerts(connection: Connection, settings: Settings) -> None:
+    """The demo starts with the alerts the detectors find in it, as on the seeded date."""
+    with Session(bind=connection, join_transaction_mode="create_savepoint") as session:
+        run_detectors(session, settings, SimulatedClock(SEED_TODAY), is_demo=True, reason="seed")
+        session.commit()
 
 
 def _load_workers(
@@ -419,16 +446,20 @@ def _seed_requests(
     for n, (project, first, last, priority, note, lines) in enumerate(REQUESTS, start=1):
         request_id = demo_id("request", project)
         request_no = f"SR-2026-{n:04d}"
+        # Sent the afternoon before last (3 Nov), then the afternoon of the day before (4 Nov).
+        sent = datetime.combine(
+            SEED_TODAY - timedelta(days=len(REQUESTS) + 1 - n), time(16, 0), tzinfo=GULF
+        )
         connection.execute(
             text(
                 """INSERT INTO staffing_requests
                        (id, request_no, project_id, requested_by, needed_from, needed_until,
-                        priority, status, source_text, is_demo)
+                        priority, status, source_text, is_demo, created_at)
                    VALUES (:id, :no, :project, :user, :first, :last, :priority, 'submitted',
-                           :note, true)"""
+                           :note, true, :sent)"""
             ),
             {"id": request_id, "no": request_no, "project": projects[project], "user": requester,
-             "first": first, "last": last, "priority": priority, "note": note},
+             "first": first, "last": last, "priority": priority, "note": note, "sent": sent},
         )  # fmt: skip
         for trade, headcount, level in lines:
             connection.execute(
@@ -445,10 +476,10 @@ def _seed_requests(
         connection.execute(
             text(
                 """INSERT INTO approval_requests
-                       (id, subject_type, subject_id, requested_by, summary)
-                   VALUES (:id, 'staffing_request', :request, :user, :summary)"""
+                       (id, subject_type, subject_id, requested_by, summary, created_at)
+                   VALUES (:id, 'staffing_request', :request, :user, :summary, :sent)"""
             ),
-            {"id": approval_id, "request": request_id, "user": requester,
+            {"id": approval_id, "request": request_id, "user": requester, "sent": sent,
              "summary": f"{request_no}: {people} people for {project} from {first:%d %b %Y}"},
         )  # fmt: skip
         connection.execute(

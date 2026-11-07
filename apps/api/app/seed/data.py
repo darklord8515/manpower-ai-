@@ -252,3 +252,8 @@ MOBILIZATION_DONE: tuple[tuple[str, ...], ...] = (
     ("documents",),
     (),
 )
+
+
+# Sites whose default shift ends later than the usual 12:30: (project, site number) -> end time.
+# RAK-01 site 2 works until 15:30, which runs into the (provisional) 2027 midday ban.
+SITE_SHIFT_ENDS: dict[tuple[str, int], str] = {("RAK-01", 2): "15:30"}
