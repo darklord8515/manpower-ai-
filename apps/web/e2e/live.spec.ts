@@ -478,6 +478,50 @@ test("Workforce agent: with no model set up the button says so, and the API refu
   expect(noAccess.status()).toBe(403); // may read requests, cannot choose people
 });
 
+test("Virtual HR: with no model set up it still answers plain questions from the real data", async ({
+  page,
+}) => {
+  await signInAs(page, /HR Manager/);
+  const drawer = page.getByRole("dialog", { name: "Virtual HR" });
+  const card = page.getByRole("article", { name: /^Answer from the/ });
+  const ask = async (question: string) => {
+    await page.getByRole("textbox", { name: "Your question" }).fill(question);
+    await page.getByRole("textbox", { name: "Your question" }).press("Enter");
+  };
+  const needing = await attention(page); // critical plus action needed, as the bell counts them
+
+  await page.keyboard.press("Control+k");
+  await expect(drawer.getByText(/No AI model is set up on this server/)).toBeVisible();
+  await ask("show me the alerts");
+  const alerts = card.first();
+  await expect(alerts.getByText("Python only")).toBeVisible({ timeout: 15000 });
+  const count = async (label: string) =>
+    Number(await alerts.locator(`dt:text-is("${label}") + dd`).textContent());
+  expect((await count("Critical")) + (await count("Action needed"))).toBe(needing);
+  await expect(alerts.getByRole("link", { name: "Open To-do" })).toBeVisible();
+
+  await ask("EMP-0142");
+  await expect(card.nth(1)).toContainText("Anil Kumar", { timeout: 15000 });
+  await expect(card.nth(1).getByRole("table")).toBeVisible();
+
+  await ask("what is Anil Kumar's salary?");
+  await expect(card.nth(2).getByRole("note")).toContainText("no salary", { timeout: 15000 });
+
+  const stored = await (await page.request.get("/api/assistant/conversations")).json();
+  expect(stored).toHaveLength(1);
+  await page.keyboard.press("Escape");
+
+  await page.context().clearCookies();
+  await signInAs(page, /MD \/ CEO/);
+  await page.keyboard.press("Control+k");
+  await ask("show me the alerts");
+  await expect(card.first().getByRole("link", { name: "Open To-do" })).toBeVisible({
+    timeout: 15000,
+  });
+  const mine = await (await page.request.get("/api/assistant/conversations")).json();
+  expect(mine).toHaveLength(1); // the CEO sees their own, not the HR Manager's
+});
+
 const pipelineCard = (page: Page, no: string) => page.locator(`button[data-mob="${no}"]`);
 const stageColumn = (page: Page, name: string) => page.getByRole("region", { name, exact: true });
 

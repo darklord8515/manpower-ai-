@@ -123,6 +123,23 @@ entries stream in).
   and action buttons (Approve / Edit / Discard). Never a wall of chat text.
 - Show which agent answered and the tools it used in a small collapsible "Trace" row.
 
+**As built (Virtual HR, Phase 6.2).** The Command Centre is the Virtual HR chat: the top-bar "Ask HR"
+button and Ctrl/Cmd+K open it in the drawer (the thread is kept while the app is open), and
+`/assistant` is the same thread as a page with your saved conversations (private; delete asks
+first). Shown only to people with `ai:use`.
+- A question is a plain bubble on the right; an answer is the AI answer card, never loose text:
+  summary, then blocks (counts, a table that scrolls inside its card, alerts as links, bars), the
+  "Why" line (how the question was understood, and where the numbers were read and when), links to
+  the screens that hold the full list, and the collapsed Trace (real steps, one by one as they happen).
+- The card's pill says who worded it: "AI-worded · checked" (a model's sentence that passed the
+  facts check), "Python wording", or "Python only" (no model answered).
+- A refusal (salary, phone numbers, document numbers) and "unavailable" are amber notes with no
+  data. A wrong word is a question back ("The trades are: ..."), never a guess.
+- Actions are links only. The chat never changes data; the MD/CEO gets the same read-only links.
+- States: loading (steps, then skeleton rows for history), empty (suggestions per role), error with
+  Try again (not offered for "wait for the answer"), the AI-off notice, light and dark, 390px (the
+  drawer is full width, the history folds behind a History button).
+
 ## Motion (Motion library, `motion/react`)
 Use for: sheet and drawer slides, dialog fade/scale, list reorder in the kanban, chip state changes,
 agent-trace steps appearing one by one, rows animating in after a recommendation and out after an

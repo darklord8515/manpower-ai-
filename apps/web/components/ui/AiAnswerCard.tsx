@@ -13,6 +13,8 @@ type Props = {
   agent: string;
   /** Model tier shown in the trace ("mid"). */
   tier: string;
+  /** Replaces the "tier …" pill, e.g. "Python only" when no model answered. */
+  badge?: string;
   /** Steps reported so far. They come from the agent's real tool calls, one per completed step. */
   steps: TraceStep[];
   /** The step in progress, if any, shown with a clock until it completes. */
@@ -41,6 +43,7 @@ const ENTER = { duration: 0.18, ease: "easeOut" } as const;
 export function AiAnswerCard({
   agent,
   tier,
+  badge,
   steps,
   pending,
   running,
@@ -63,11 +66,11 @@ export function AiAnswerCard({
         <Bot className="size-4" aria-hidden="true" />
         <span>{running ? `${agent} is working…` : agent}</span>
         <span className="ml-auto rounded-full border border-border px-2 leading-5">
-          tier {tier}
+          {badge ?? `tier ${tier}`}
         </span>
       </header>
 
-      <div className="border-b border-border">
+      <div className={cn("border-b border-border", !running && steps.length === 0 && "hidden")}>
         <button
           type="button"
           onClick={() => setUserOpen((v) => !v)}

@@ -7,6 +7,11 @@ import type {
   AlertList,
   AlertSummary,
   Assignee,
+  ChatRun,
+  ChatStarted,
+  ChatSuggestions,
+  Conversation,
+  ConversationView,
   DemoRole,
   ExpiringList,
   Me,
@@ -65,7 +70,9 @@ const SIGN_IN_PATHS = ["/auth/login", "/auth/demo-login", "/auth/config", "/auth
 /** A saved change may have changed an alert, so whatever shows alerts should look again. */
 function announceIfWrite(path: string, init?: RequestInit) {
   const method = (init?.method ?? "GET").toUpperCase();
-  if (method !== "GET" && !path.startsWith("/auth")) announceAlertsChanged();
+  if (method !== "GET" && !path.startsWith("/auth") && !path.startsWith("/assistant")) {
+    announceAlertsChanged();
+  }
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -251,6 +258,21 @@ export const api = {
       body: JSON.stringify(body),
     }),
   aiStatus: () => request<AiStatus>("/ai/status"),
+  chatSuggestions: () => request<ChatSuggestions>("/assistant/suggestions"),
+  /** Takes a question. Answers at once with a run id; the answer arrives by polling `chatAnswer`. */
+  sendChat: (message: string, conversationId?: string | null) =>
+    request<ChatStarted>("/assistant/messages", {
+      method: "POST",
+      body: JSON.stringify({
+        message,
+        ...(conversationId ? { conversation_id: conversationId } : {}),
+      }),
+    }),
+  chatAnswer: (runId: string) => request<ChatRun>(`/assistant/messages/${runId}`),
+  conversations: () => request<Conversation[]>("/assistant/conversations"),
+  conversation: (id: string) => request<ConversationView>(`/assistant/conversations/${id}`),
+  deleteConversation: (id: string) =>
+    request<void>(`/assistant/conversations/${id}`, { method: "DELETE" }),
   startAgentRun: (body: AgentRunBody) =>
     request<{ id: string }>("/agent/runs", { method: "POST", body: JSON.stringify(body) }),
   agentRun: (id: string) => request<AgentRun>(`/agent/runs/${id}`),

@@ -620,6 +620,79 @@ export type ProjectDatesBody = { starts_on?: string; ends_on?: string };
 /** Which model tiers are switched on, so a screen can disable its AI buttons with a reason. */
 export type AiStatus = { light: boolean; mid: boolean };
 
+// ---- Virtual HR chat. An answer is blocks the screen draws; the numbers in them are Python's.
+
+export type ChatTone = "neutral" | "good" | "warn" | "bad";
+export type ChatCell = string | number | null;
+export type ChatBlock =
+  | { type: "kpis"; items: { label: string; value: string; tone: ChatTone }[] }
+  | {
+      type: "table";
+      title: string | null;
+      columns: { key: string; label: string; align: "left" | "right" }[];
+      rows: Record<string, ChatCell>[];
+      /** How many match. `rows` may be only the first few. */
+      total: number;
+      href: string | null;
+    }
+  | {
+      type: "alerts";
+      items: {
+        id: string;
+        severity: AlertSeverity;
+        title: string;
+        project: string | null;
+        raised: string;
+      }[];
+      total: number;
+    }
+  | {
+      type: "bars";
+      title: string | null;
+      items: { label: string; value: number; of: number | null; detail: string | null }[];
+    }
+  | { type: "note"; tone: "info" | "warning"; text: string };
+
+export type ChatAnswer = {
+  kind: "data" | "info" | "clarify" | "refusal" | "unavailable" | "error";
+  summary: string;
+  blocks: ChatBlock[];
+  why: string | null;
+  /** Links to screens that already exist. Nothing is changed from the chat. */
+  actions: { label: string; href: string }[];
+  sources: { tool: string; as_of: string }[];
+  agent: string | null;
+  ai_worded: boolean;
+  /** No model answered: the summary is the template one. */
+  python_only: boolean;
+};
+
+export type ChatRun = {
+  id: string;
+  conversation_id: string | null;
+  status: "running" | "succeeded" | "failed" | "refused";
+  steps: AgentStep[];
+  answer: ChatAnswer | null;
+  error: string | null;
+  model: string | null;
+  started_at: string;
+  finished_at: string | null;
+};
+
+export type ChatMessage = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  answer: ChatAnswer | null;
+  run_id: string | null;
+  created_at: string;
+};
+
+export type Conversation = { id: string; title: string; updated_at: string };
+export type ConversationView = Conversation & { messages: ChatMessage[] };
+export type ChatSuggestions = { items: string[]; ai_enabled: boolean };
+export type ChatStarted = { run_id: string; conversation_id: string };
+
 /** One thing the agent has done so far, worded by the server from its real tool calls. */
 export type AgentStep = { title: string; detail: string };
 

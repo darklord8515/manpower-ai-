@@ -13,6 +13,10 @@ type Props = {
   meta?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
+  /** The content manages its own padding and scrolling (the chat), instead of the sheet's. */
+  flush?: boolean;
+  /** Extra controls in the header, beside the close button. */
+  headerActions?: ReactNode;
 };
 
 const SLIDE = { duration: 0.18, ease: "easeOut" } as const;
@@ -22,7 +26,16 @@ const SLIDE = { duration: 0.18, ease: "easeOut" } as const;
  * Slides in from the right; Esc, the close button and the scrim all close it; focus moves in and
  * returns to whatever opened it; the page behind is inert while it is open (Radix Dialog).
  */
-export function DetailSheet({ open, onOpenChange, title, meta, children, footer }: Props) {
+export function DetailSheet({
+  open,
+  onOpenChange,
+  title,
+  meta,
+  children,
+  footer,
+  flush,
+  headerActions,
+}: Props) {
   // Radix only hands focus back to a Dialog.Trigger. This sheet is opened by any button or row, so
   // remember what had focus when it opened and return there, or keyboard users lose their place.
   const opener = useRef<HTMLElement | null>(null);
@@ -70,6 +83,7 @@ export function DetailSheet({ open, onOpenChange, title, meta, children, footer 
                       </div>
                     )}
                   </div>
+                  {headerActions}
                   <Dialog.Close
                     className="grid size-8 shrink-0 place-items-center rounded-control text-muted transition-colors hover:bg-hover hover:text-fg"
                     aria-label={`Close ${title}`}
@@ -77,7 +91,11 @@ export function DetailSheet({ open, onOpenChange, title, meta, children, footer 
                     <X className="size-4.5" aria-hidden="true" />
                   </Dialog.Close>
                 </header>
-                <div className="flex flex-1 flex-col gap-5 overflow-y-auto p-5">{children}</div>
+                {flush ? (
+                  <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+                ) : (
+                  <div className="flex flex-1 flex-col gap-5 overflow-y-auto p-5">{children}</div>
+                )}
                 {footer && (
                   <footer className="border-t border-border px-5 py-3 text-xs text-subtle">
                     {footer}

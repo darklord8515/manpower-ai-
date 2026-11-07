@@ -307,6 +307,12 @@ the bar; that screen is cut instead.
   visible steps (**built**: "Ask Workforce agent" on a request line, "Explain" on a forecast, `make eval` with
   8 cases; the 35-case full-product suite is kept as `post-mvp.yaml`), 5.3 n8n messages and schedules, 5.4 Excel import. Each is verified against a scripted model
   and a local mail catcher until real keys and accounts exist.
+- **Added at the user's request (after 5.2): Virtual HR and all agents**, in slices numbered 6.1 to 6.6
+  (not the "Phase 6" below). 6.1 two model providers per tier with a fallback and `make ai-check`
+  (**built**); 6.2 the Virtual HR chat, the Supervisor, on Cmd+K and `/assistant` with saved private
+  conversations (**built**; `make eval-chat`, 30 questions); 6.3 Mobilization agent; 6.4 a compact
+  Demobilization module and agent; 6.5 Excel import with the Import agent (this is 5.4); 6.6 n8n
+  messaging (this is 5.3). The Document Intelligence agent stays post-MVP. Rules `CHAT_*` in `docs/rules.md`.
 
 ### Phase 6: Hardening and handover
 - **Goal:** safe to put in front of the CEO.
@@ -317,8 +323,9 @@ the bar; that screen is cut instead.
 - **Cut:** nothing in this phase is cut; earlier phases give way first.
 
 ### Still out of scope
-Dashboards for roles other than HR and MD/CEO, the Cmd+K command centre, demobilization, the Document
-Intelligence agent, payroll, leave, attendance and camp management. Payroll and attendance are covered
+Dashboards for roles other than HR and MD/CEO, the Document Intelligence agent, payroll, leave,
+attendance and camp management. (The Cmd+K command centre became the Virtual HR chat, and a compact
+demobilization is planned: see "Added at the user's request" above.) Payroll and attendance are covered
 by products such as Bayzat and TrueBays; the plan is to export to or integrate with them later.
 
 **Cut order across phases if time runs short:** Phase 5 Import Agent, then Phase 4 chart polish, then

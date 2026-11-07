@@ -2,11 +2,13 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { AnimatePresence, motion } from "motion/react";
-import { Menu as MenuIcon, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Bot, Menu as MenuIcon, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { BellMenu } from "@/components/alerts/BellMenu";
+import { AssistantDrawer } from "@/components/assistant/AssistantDrawer";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useChat } from "@/lib/use-chat";
 import { PageTransition } from "@/components/motion/PageTransition";
 import { SkeletonLoader } from "@/components/ui/SkeletonLoader";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -45,6 +47,23 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Safe to read the saved choice here: the shell only renders after sign-in is known, in the browser.
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const [drawer, setDrawer] = useState(false);
+  // Virtual HR: one thread kept while the app is open, so closing the drawer does not lose it.
+  const chat = useChat();
+  const [assistant, setAssistant] = useState(false);
+  const canAsk = user?.permissions.includes("ai:use") ?? false;
+
+  // Cmd+K (Ctrl+K) opens and closes Virtual HR from anywhere.
+  useEffect(() => {
+    if (!canAsk) return;
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setAssistant((open) => !open);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [canAsk]);
 
   // The proxy already sends visitors without a cookie to the sign-in page; this covers a cookie the API rejects.
   useEffect(() => {
@@ -151,6 +170,21 @@ export function AppShell({ children }: { children: ReactNode }) {
             )}
           </p>
           <div className="ml-auto flex items-center gap-1">
+            {canAsk && (
+              <button
+                type="button"
+                onClick={() => setAssistant(true)}
+                className="press mr-1 inline-flex h-8 items-center gap-2 rounded-control border border-border-strong bg-surface px-2.5 text-sm text-muted transition-[transform,background-color,color] duration-120 hover:bg-hover hover:text-fg"
+                aria-label="Ask Virtual HR"
+                aria-keyshortcuts="Control+K Meta+K"
+              >
+                <Bot className="size-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Ask HR</span>
+                <kbd className="hidden rounded border border-border px-1 font-sans text-xs text-subtle md:inline">
+                  Ctrl K
+                </kbd>
+              </button>
+            )}
             <BellMenu />
             <ThemeToggle />
             <UserMenu />
@@ -161,6 +195,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <PageTransition transitionKey={pathname}>{children}</PageTransition>
         </main>
       </div>
+      {canAsk && <AssistantDrawer open={assistant} onOpenChange={setAssistant} chat={chat} />}
     </div>
   );
 }

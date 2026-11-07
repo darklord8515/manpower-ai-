@@ -1,4 +1,5 @@
 import {
+  Bot,
   Building2,
   ClipboardList,
   FileText,
@@ -34,6 +35,14 @@ export const NAV: NavItem[] = [
     icon: ListTodo,
     group: "",
     requires: "alert:read",
+  },
+  {
+    id: "assistant",
+    label: "Virtual HR",
+    href: "/assistant",
+    icon: Bot,
+    group: "",
+    requires: "ai:use",
   },
   {
     id: "workers",
