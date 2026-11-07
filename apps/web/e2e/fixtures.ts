@@ -22,6 +22,7 @@ export const HR_USER = {
     "recruitment:create",
     "alert:read",
     "alert:act",
+    "ai:use",
   ],
   demo_mode: true,
   landing: "hr",
@@ -47,6 +48,7 @@ export const EXEC_USER = {
     "recruitment:read",
     "alert:read",
     "alert:act",
+    "ai:use",
   ],
 };
 
@@ -66,6 +68,7 @@ export const CEO_USER = {
     "assignment:approve",
     "recruitment:read",
     "alert:read",
+    "ai:use",
   ],
   landing: "executive",
 };
@@ -231,6 +234,8 @@ export async function mockApi(
       can_act: quiet.can_act,
     }),
   );
+  // No model by default: the AI buttons stay out of the way. agent.spec.ts switches them on.
+  await page.route("**/api/ai/status", (r) => json(r, { detail: "Not found" }, 404));
   await page.route("**/api/summary/trades", (r) => {
     seen.trades += 1;
     return json(r, TRADE_STRENGTH);

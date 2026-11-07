@@ -22,6 +22,8 @@ type Props = {
   summary?: string;
   /** Workers or items the rules excluded, with the reason. Shown as an amber callout. */
   excluded?: Exclusion[];
+  /** The callout's heading (the count is added). */
+  excludedTitle?: string;
   /** The data (rows, list, table). Appears after the run, animated by the caller. */
   children?: ReactNode;
   /** The "Why" line. */
@@ -44,6 +46,7 @@ export function AiAnswerCard({
   running,
   summary,
   excluded,
+  excludedTitle = "Excluded by the agent",
   children,
   why,
   actions,
@@ -131,7 +134,7 @@ export function AiAnswerCard({
             >
               <p className="flex items-center gap-2 font-semibold">
                 <TriangleAlert className="size-3.5" aria-hidden="true" />
-                Excluded by the agent ({excluded.length})
+                {excludedTitle} ({excluded.length})
               </p>
               <ul className="m-0 mt-1 flex list-none flex-col gap-0.5 pl-[22px]">
                 {excluded.map((x) => (

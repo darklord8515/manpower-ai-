@@ -2,9 +2,12 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api";
-import { line, pick } from "./test-data";
+import { agentRun, line, pick } from "./test-data";
 
 const api = {
+  startAgentRun: vi.fn(),
+  agentRun: vi.fn(),
+  choosePeople: vi.fn(),
   suggestPeople: vi.fn(),
   removePerson: vi.fn(),
   restorePerson: vi.fn(),
@@ -17,6 +20,9 @@ vi.mock("@/lib/api", async (importOriginal) => {
     ...original,
     api: {
       ...original.api,
+      startAgentRun: (...a: unknown[]) => api.startAgentRun(...a),
+      agentRun: (...a: unknown[]) => api.agentRun(...a),
+      choosePeople: (...a: unknown[]) => api.choosePeople(...a),
       suggestPeople: (...a: unknown[]) => api.suggestPeople(...a),
       removePerson: (...a: unknown[]) => api.removePerson(...a),
       restorePerson: (...a: unknown[]) => api.restorePerson(...a),
@@ -257,5 +263,60 @@ describe("LineCard changes", () => {
     await user.click(screen.getByRole("button", { name: "Suggest people" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("SR-2026-0001 is cancelled.");
     expect(onChanged).not.toHaveBeenCalled();
+  });
+});
+
+describe("LineCard and the Workforce agent", () => {
+  const ready = { available: true, reason: null };
+
+  it("offers the agent only to someone who may use it", () => {
+    setup();
+    expect(screen.queryByRole("button", { name: "Ask Workforce agent" })).not.toBeInTheDocument();
+  });
+
+  it("offers it beside Suggest people, and not on a line with no place left", () => {
+    setup({ agent: ready });
+    expect(screen.getByRole("button", { name: "Ask Workforce agent" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Suggest people" })).toBeInTheDocument();
+  });
+
+  it("does not offer it when the line is full", () => {
+    const full = line({
+      headcount: 2,
+      picks: [pick("EMP-0107", "Imran Qureshi"), pick("EMP-0112", "Saleem Akhtar")],
+    });
+    setup({ agent: ready, line: full });
+    expect(screen.queryByRole("button", { name: "Ask Workforce agent" })).not.toBeInTheDocument();
+  });
+
+  it("shows it switched off with the reason when the server has no model", () => {
+    setup({ agent: { available: false, reason: "The AI model is not set up on this server." } });
+    const button = screen.getByRole("button", { name: "Ask Workforce agent" });
+    expect(button).toBeDisabled();
+    expect(button).toHaveAccessibleDescription("The AI model is not set up on this server.");
+  });
+
+  it("opens the agent's panel, which starts a run for this line, and Esc closes it", async () => {
+    api.startAgentRun.mockResolvedValue({ id: "run-1" });
+    api.agentRun.mockResolvedValue(agentRun());
+    const { user } = setup({ agent: ready });
+    await user.click(screen.getByRole("button", { name: "Ask Workforce agent" }));
+    expect(
+      await screen.findByRole("article", { name: "Answer from the Workforce agent" }),
+    ).toBeInTheDocument();
+    expect(api.startAgentRun).toHaveBeenCalledWith({
+      kind: "recommend_line",
+      request_no: "SR-2026-0001",
+      line_id: "line-1",
+    });
+    await user.keyboard("{Escape}");
+    expect(
+      screen.queryByRole("article", { name: "Answer from the Workforce agent" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not offer it to someone who cannot prepare the line", () => {
+    setup({ agent: ready, canPrepare: false });
+    expect(screen.queryByRole("button", { name: "Ask Workforce agent" })).not.toBeInTheDocument();
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleCheck, CircleX, Sparkles, TriangleAlert, UserMinus } from "lucide-react";
+import { Bot, CircleCheck, CircleX, Sparkles, TriangleAlert, UserMinus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { BUTTON, FIELD, PRIMARY_BUTTON } from "@/components/ui/button-styles";
@@ -8,6 +8,7 @@ import { api, ApiError } from "@/lib/api";
 import type { BoardExcluded, LineRow, Violation } from "@/lib/api-types";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { AgentPanel } from "./AgentPanel";
 import { PickList } from "./PickList";
 import { plural } from "./parts";
 
@@ -31,6 +32,11 @@ type Props = {
   /** Something changed on the server: reload the request and say what happened. */
   onChanged: (notice: string) => void;
   onApprove: () => void;
+  /**
+   * The Workforce agent button. Absent when the person may not use AI; `available` false shows it
+   * switched off, with `reason` beside it.
+   */
+  agent?: { available: boolean; reason: string | null };
 };
 
 const MIN_REJECT = 10;
@@ -72,7 +78,9 @@ export function LineCard({
   onSwap,
   onChanged,
   onApprove,
+  agent,
 }: Props) {
+  const [asking, setAsking] = useState(0); // goes up each time the agent is asked; 0 = closed
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [removing, setRemoving] = useState<string[] | null>(null);
   const [removeReason, setRemoveReason] = useState("");
@@ -163,6 +171,7 @@ export function LineCard({
     if (removing) setRemoving(null);
     else if (rejecting) setRejecting(false);
     else if (swapping) onSwap(null);
+    else if (asking > 0) setAsking(0);
   };
 
   const startRemoving = (codes: string[]) => {
@@ -347,6 +356,25 @@ export function LineCard({
               Suggest people
             </button>
           )}
+          {agent && openSlots > 0 && (
+            <>
+              <button
+                type="button"
+                className={BUTTON}
+                disabled={busy || !agent.available}
+                aria-describedby={agent.reason ? `${line.id}-agent-note` : undefined}
+                onClick={() => setAsking((n) => n + 1)}
+              >
+                <Bot className="size-4" aria-hidden="true" />
+                Ask Workforce agent
+              </button>
+              {agent.reason && (
+                <span id={`${line.id}-agent-note`} className="text-xs text-muted">
+                  {agent.reason}
+                </span>
+              )}
+            </>
+          )}
           {selected.size > 0 && (
             <button
               type="button"
@@ -364,6 +392,17 @@ export function LineCard({
             </span>
           )}
         </div>
+      )}
+
+      {editable && agent && asking > 0 && (
+        <AgentPanel
+          key={asking}
+          requestNo={requestNo}
+          line={line}
+          alreadyChosen={chosen.map((p) => p.code)}
+          onApplied={onChanged}
+          onClose={() => setAsking(0)}
+        />
       )}
 
       {editable && removing && (

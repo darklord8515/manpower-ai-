@@ -449,6 +449,35 @@ test("Allocation: the HR Executive cannot approve and the MD/CEO cannot choose p
   expect(suggest.status()).toBe(403);
 });
 
+test("Workforce agent: with no model set up the button says so, and the API refuses a run", async ({
+  page,
+}) => {
+  const origin = { Origin: "http://localhost:3100" };
+  await signInAs(page, /HR Executive/);
+  expect(await (await page.request.get("/api/ai/status")).json()).toEqual({
+    light: false,
+    mid: false,
+  });
+  await page.goto("/requests?request=SR-2026-0001");
+  const steel = page.getByRole("region", { name: "Steel fixer line" });
+  await expect(steel.getByRole("button", { name: "Ask Workforce agent" })).toBeDisabled();
+  await expect(steel.getByText("The AI model is not set up on this server.")).toBeVisible();
+
+  const detail = await (await page.request.get("/api/requests/SR-2026-0001")).json();
+  const run = { kind: "recommend_line", request_no: "SR-2026-0001", line_id: detail.lines[0].id };
+  const refused = await page.request.post("/api/agent/runs", { data: run, headers: origin });
+  expect(refused.status()).toBe(503);
+  expect(await refused.text()).toContain("not set up");
+
+  await page.goto("/projects/RAK-07/forecast");
+  await expect(page.getByRole("button", { name: "Explain" })).toBeDisabled();
+
+  await page.context().clearCookies();
+  await signInAs(page, /MD \/ CEO/);
+  const noAccess = await page.request.post("/api/agent/runs", { data: run, headers: origin });
+  expect(noAccess.status()).toBe(403); // may read requests, cannot choose people
+});
+
 const pipelineCard = (page: Page, no: string) => page.locator(`button[data-mob="${no}"]`);
 const stageColumn = (page: Page, name: string) => page.getByRole("region", { name, exact: true });
 

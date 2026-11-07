@@ -81,6 +81,17 @@ export function AllocationScreen() {
   );
   const projects = useLoad(() => api.projects(), "projects");
   const trades = useLoad(() => api.trades(), "trades", canPrepare);
+  // The Workforce agent is for people who prepare lines and may use AI; it is shown switched off,
+  // with the reason, when the server has no model.
+  const canAsk = canPrepare && user.permissions.includes("ai:use");
+  const ai = useLoad(() => api.aiStatus(), "ai-status", canAsk);
+  const agent =
+    canAsk && ai.data
+      ? {
+          available: ai.data.mid,
+          reason: ai.data.mid ? null : "The AI model is not set up on this server.",
+        }
+      : undefined;
 
   const request: RequestDetail | null =
     detail.data && detail.data.request_no === selectedNo ? detail.data : null;
@@ -386,6 +397,7 @@ export function AllocationScreen() {
                     onSwap={setSwapping}
                     onChanged={changed}
                     onApprove={() => setApproving(l.id)}
+                    agent={agent}
                   />
                 ))}
               </>

@@ -2,6 +2,7 @@
 
 import {
   ArrowLeft,
+  Bot,
   CalendarClock,
   ChevronDown,
   CircleAlert,
@@ -25,6 +26,7 @@ import { api, ApiError } from "@/lib/api";
 import type { Advice, ProjectForecast, TradeForecast } from "@/lib/api-types";
 import { formatDate } from "@/lib/format";
 import { useLoad } from "@/lib/use-load";
+import { ExplainPanel } from "./ExplainPanel";
 import { forgetAdded, wasJustAdded } from "./just-added";
 import { ReserveSheet } from "./ReserveSheet";
 
@@ -423,11 +425,18 @@ function readAddress() {
 }
 
 export function ForecastScreen({ code }: { code: string }) {
+  const user = useUser();
   const [initial] = useState(readAddress);
   const [start, setStart] = useState(initial.start);
   const [notice, setNotice] = useState(() => wasJustAdded(code));
   useEffect(() => forgetAdded(), []); // the banner is for the first visit only
   const forecast = useLoad(() => api.forecast(code, start || undefined), `${code}:${start}`);
+  // "Explain" is for people who may use AI. It is shown switched off, with the reason, when the
+  // server has no model. The explanation belongs to the date it was asked for.
+  const canExplain =
+    user.permissions.includes("ai:use") && user.permissions.includes("forecast:read");
+  const ai = useLoad(() => api.aiStatus(), "ai-status", canExplain);
+  const [explain, setExplain] = useState<{ n: number; start: string } | null>(null);
 
   // The address bar keeps the what-if date, so the view can be shared or reloaded.
   useEffect(() => {
@@ -491,6 +500,25 @@ export function ForecastScreen({ code }: { code: string }) {
               Back to project start
             </button>
           )}
+          {canExplain && data && ai.data && (
+            <div className="flex flex-col items-start gap-1">
+              <button
+                type="button"
+                className={BUTTON}
+                disabled={!ai.data.mid}
+                aria-describedby={ai.data.mid ? undefined : "explain-note"}
+                onClick={() => setExplain((e) => ({ n: (e?.n ?? 0) + 1, start }))}
+              >
+                <Bot className="size-4" aria-hidden="true" />
+                Explain
+              </button>
+              {!ai.data.mid && (
+                <span id="explain-note" className="text-xs text-muted">
+                  The AI model is not set up on this server.
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
@@ -504,6 +532,15 @@ export function ForecastScreen({ code }: { code: string }) {
             Dismiss
           </button>
         </p>
+      )}
+
+      {explain && explain.start === start && data && (
+        <ExplainPanel
+          key={explain.n}
+          project={code}
+          start={start}
+          onClose={() => setExplain(null)}
+        />
       )}
 
       {forecast.loading && <ForecastSkeleton />}

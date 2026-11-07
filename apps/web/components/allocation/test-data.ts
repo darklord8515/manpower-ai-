@@ -1,4 +1,11 @@
-import type { ApproveResponse, LineRow, PickRow } from "@/lib/api-types";
+import type {
+  AgentRecommendation,
+  AgentRun,
+  AgentSelection,
+  ApproveResponse,
+  LineRow,
+  PickRow,
+} from "@/lib/api-types";
 
 /** Builders for the allocation tests (imported by tests only). */
 export const pick = (code: string, name: string, changes: Partial<PickRow> = {}): PickRow => ({
@@ -65,5 +72,51 @@ export const approval = (changes: Partial<ApproveResponse> = {}): ApproveRespons
   filled_after: 2,
   headcount: 3,
   request_status_after: "partially_filled",
+  ...changes,
+});
+
+export const selection = (
+  code: string,
+  name: string,
+  changes: Partial<AgentSelection> = {},
+): AgentSelection => ({
+  code,
+  name,
+  level: 3,
+  group: "free",
+  reason: "Free now, level 3",
+  reason_by: "ai",
+  ...changes,
+});
+
+export const recommendation = (
+  changes: Partial<AgentRecommendation> = {},
+): AgentRecommendation => ({
+  trade: "Steel fixer",
+  open_places: 3,
+  shortfall: 1,
+  note: null,
+  selections: [selection("EMP-0107", "Imran Qureshi"), selection("EMP-0112", "Saleem Akhtar")],
+  rejected: [],
+  ...changes,
+});
+
+/** A finished recommendation run unless told otherwise. */
+export const agentRun = (changes: Partial<AgentRun> = {}): AgentRun => ({
+  id: "run-1",
+  kind: "recommend_line",
+  status: "succeeded",
+  steps: [
+    { title: "Read the request line", detail: "Steel fixer: 3 needed for RAK-03 from 8 Nov 2026" },
+    { title: "Searched the people who could be chosen", detail: "5 could be chosen" },
+    { title: "Chose 2", detail: "1 place left open" },
+  ],
+  recommendation: recommendation(),
+  answer: null,
+  error: null,
+  model: "fake-mid",
+  tier: "mid",
+  started_at: "2026-11-05T05:00:00Z",
+  finished_at: "2026-11-05T05:00:04Z",
   ...changes,
 });

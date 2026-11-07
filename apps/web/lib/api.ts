@@ -1,4 +1,7 @@
 import type {
+  AgentRun,
+  AgentRunBody,
+  AiStatus,
   AlertDetail,
   AlertFilters,
   AlertList,
@@ -145,10 +148,14 @@ export const api = {
       `/requests/${encodeURIComponent(no)}/lines/${line}/candidates${query ? `?${query}` : ""}`,
     );
   },
-  choosePeople: (no: string, line: string, employeeCodes: string[]) =>
+  /** `agentRun` is set when applying what the Workforce agent recommended. */
+  choosePeople: (no: string, line: string, employeeCodes: string[], agentRun?: string) =>
     request<PicksResponse>(`/requests/${encodeURIComponent(no)}/lines/${line}/picks`, {
       method: "POST",
-      body: JSON.stringify({ employee_codes: employeeCodes }),
+      body: JSON.stringify({
+        employee_codes: employeeCodes,
+        ...(agentRun ? { agent_run: agentRun } : {}),
+      }),
     }),
   removePerson: (no: string, line: string, employeeCode: string, reason: string) =>
     request<void>(`/requests/${encodeURIComponent(no)}/lines/${line}/picks/remove`, {
@@ -243,6 +250,10 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
+  aiStatus: () => request<AiStatus>("/ai/status"),
+  startAgentRun: (body: AgentRunBody) =>
+    request<{ id: string }>("/agent/runs", { method: "POST", body: JSON.stringify(body) }),
+  agentRun: (id: string) => request<AgentRun>(`/agent/runs/${id}`),
   summaryByTrade: () => request<TradeStrength[]>("/summary/trades"),
   preferences: () => request<Preferences>("/auth/me/preferences"),
   savePreferences: (preferences: Preferences) =>

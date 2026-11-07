@@ -223,6 +223,7 @@ export async function mockRequests(page: Page, options: RequestsOptions = {}) {
     cancelled: [] as string[],
     suggested: 0,
     detailReads: 0,
+    agentPicks: [] as { codes: string[]; run: string }[],
   };
   let nextRequest = 3;
   let nextMob = 1;
@@ -428,7 +429,11 @@ export async function mockRequests(page: Page, options: RequestsOptions = {}) {
     }
 
     if (action === "picks") {
-      const { employee_codes } = body as { employee_codes: string[] };
+      const { employee_codes, agent_run } = body as {
+        employee_codes: string[];
+        agent_run?: string;
+      };
+      if (agent_run) seen.agentPicks.push({ codes: employee_codes, run: agent_run });
       const results = employee_codes.map((code) => {
         const c = lookup(line, code) as Candidate;
         const why = options.refuse?.[code];
@@ -437,7 +442,11 @@ export async function mockRequests(page: Page, options: RequestsOptions = {}) {
         if (existing) {
           existing.removed_reason = null;
         } else {
-          line.picks.push({ code, source: "hr", reason: "Chosen by HR", removed_reason: null });
+          line.picks.push(
+            agent_run
+              ? { code, source: "agent", reason: "Free now, level 4", removed_reason: null }
+              : { code, source: "hr", reason: "Chosen by HR", removed_reason: null },
+          );
         }
         return { code, name: c.name, outcome: "chosen" as const, violations: [] as Violation[] };
       });

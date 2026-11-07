@@ -614,3 +614,51 @@ export type AlertFilters = {
 };
 
 export type ProjectDatesBody = { starts_on?: string; ends_on?: string };
+
+// ---------------------------------------------------------------------------------- the AI agent
+
+/** Which model tiers are switched on, so a screen can disable its AI buttons with a reason. */
+export type AiStatus = { light: boolean; mid: boolean };
+
+/** One thing the agent has done so far, worded by the server from its real tool calls. */
+export type AgentStep = { title: string; detail: string };
+
+export type AgentSelection = {
+  code: string;
+  name: string;
+  level: number | null;
+  group: string;
+  reason: string;
+  /** Who wrote the reason line: the model, or the rules service when the model's did not check out. */
+  reason_by: "ai" | "rules";
+};
+
+export type AgentDropped = { code: string; name: string; rule: string; message: string };
+
+export type AgentRecommendation = {
+  trade: string;
+  open_places: number;
+  shortfall: number;
+  note: string | null;
+  selections: AgentSelection[];
+  rejected: AgentDropped[];
+};
+
+export type AgentRunBody =
+  | { kind: "recommend_line"; request_no: string; line_id: string }
+  | { kind: "explain_forecast"; project: string; start?: string | null };
+
+export type AgentRun = {
+  id: string;
+  kind: "recommend_line" | "explain_forecast";
+  status: "running" | "succeeded" | "failed" | "refused";
+  steps: AgentStep[];
+  recommendation: AgentRecommendation | null;
+  /** The explanation of a forecast. */
+  answer: string | null;
+  error: string | null;
+  model: string | null;
+  tier: string;
+  started_at: string;
+  finished_at: string | null;
+};
