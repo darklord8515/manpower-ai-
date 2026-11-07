@@ -30,6 +30,7 @@ from app.schemas import (
     RecruitmentList,
     RecruitmentRow,
 )
+from app.services.alerts.engine import run_after_change
 
 router = APIRouter(prefix="/recruitment-requests", tags=["recruitment"])
 
@@ -176,6 +177,7 @@ def raise_request(
     request: Request,
     session: SessionDep,
     clock: ClockDep,
+    settings: SettingsDep,
     user: Creator,
 ) -> RecruitmentRow:
     """Ask for people. It starts as a future requirement and counts as pending in the forecast."""
@@ -254,6 +256,7 @@ def raise_request(
             "headcount": body.headcount, "source": body.source, "replaces": body.replaces,
         },
     )  # fmt: skip
+    run_after_change(session, settings, clock)
     return created
 
 
@@ -264,6 +267,7 @@ def advance_request(
     request: Request,
     session: SessionDep,
     clock: ClockDep,
+    settings: SettingsDep,
     user: Creator,
 ) -> AdvanceResult:
     """Move people on to the next stage (or cancel). If only some move, the request is split."""
@@ -346,6 +350,7 @@ def advance_request(
         before={"stage": stage, "headcount": current["headcount"]},
         after={"stage": body.to, "moved": count, "request_no": advanced.request_no},
     )  # fmt: skip
+    run_after_change(session, settings, clock)
     return AdvanceResult(
         advanced=advanced, remaining=_get(session, remaining_id, today) if remaining_id else None
     )

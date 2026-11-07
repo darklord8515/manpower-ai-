@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, datetime
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -179,6 +179,7 @@ class Summary(BaseModel):
     expiry_by_week: list[ExpiryWeek]  # 13 weeks (90 days) from today
     short_total: int  # people short across active projects (planned minus deployed)
     projects: list[ProjectRow]
+    insight: str  # the one sentence at the top of Home, chosen and worded in Python
 
 
 class PublicConfig(BaseModel):
@@ -783,3 +784,143 @@ class MobilizationDetail(MobilizationRow):
     update_note: str | None  # why this person cannot tick tasks (shown instead of dead buttons)
     can_confirm_arrival: bool
     arrival_note: str | None  # why arrival cannot be confirmed (right now, or by this person)
+
+
+# ------------------------------------------------------------------------------------- alerts
+
+AlertSeverity = Literal["critical", "action_needed", "info"]
+AlertStatus = Literal["open", "in_progress", "snoozed", "resolved", "dismissed"]
+AlertType = Literal[
+    "upcoming_shortfall",
+    "ending_without_next",
+    "document_expiry",
+    "mobilization_stuck",
+    "transfer_dependency_broken",
+    "approval_waiting",
+    "midday_ban_conflict",
+]
+
+
+class AlertRow(BaseModel):
+    id: uuid.UUID
+    type: AlertType
+    severity: AlertSeverity
+    status: AlertStatus
+    title: str
+    project: str | None  # project code; None = company-wide
+    raised_at: datetime
+    due_at: datetime | None
+    assignee: str | None
+    assignee_id: uuid.UUID | None
+    escalation_level: int
+    escalated_to: str | None  # "HR Manager" or "Operations Manager" once it has moved up
+    snoozed_until: datetime | None
+    resolved_at: datetime | None
+    resolution_note: str | None
+
+
+class AlertCounts(BaseModel):
+    critical: int
+    action_needed: int
+    info: int
+
+
+class AlertList(BaseModel):
+    items: list[AlertRow]
+    counts: AlertCounts  # live alerts (open and in progress), by severity, under the other filters
+    snoozed: int  # how many are snoozed under the same filters
+    last_run: datetime | None
+    now: datetime  # the server's clock (it can be the simulated one)
+    can_act: bool
+
+
+class AlertSummary(BaseModel):
+    """What the bell and the CEO tile show."""
+
+    counts: AlertCounts
+    needs_attention: int  # critical plus action needed
+    top: list[AlertRow]  # the most urgent, at most five
+    mine: int
+    last_run: datetime | None
+    now: datetime
+    can_act: bool
+
+
+class AlertAction(BaseModel):
+    action: str
+    label: str
+    params: dict[str, str | int | None]
+
+
+class AlertHistory(BaseModel):
+    at: datetime
+    by: str  # a person, or "System"
+    what: str  # "Raised", "Taken by Priya Demo", "Snoozed until 6 Nov 2026"...
+
+
+class AlertDetail(AlertRow):
+    explanation: str | None
+    narrated: bool  # true once the narrator has rewritten it (Phase 5); false = template wording
+    facts: dict[str, Any]
+    actions: list[AlertAction]
+    can_act: bool
+    can_dismiss: bool
+    history: list[AlertHistory]
+
+
+class Assignee(BaseModel):
+    id: uuid.UUID
+    name: str
+    role: str
+
+
+class AssignBody(BaseModel):
+    user_id: uuid.UUID
+
+
+class SnoozeBody(BaseModel):
+    until: datetime
+
+
+class DismissBody(BaseModel):
+    reason: str = Field(max_length=500)
+
+    @field_validator("reason")
+    @classmethod
+    def _reason(cls, value: str) -> str:
+        value = value.strip()
+        if len(value) < 10:
+            raise ValueError("Give a reason of at least 10 characters.")
+        return value
+
+
+class BulkBody(BaseModel):
+    ids: list[uuid.UUID] = Field(min_length=1, max_length=100)
+    action: Literal["snooze", "assign"]
+    until: datetime | None = None
+    user_id: uuid.UUID | None = None
+
+
+class BulkResult(BaseModel):
+    changed: int
+
+
+class RunResult(BaseModel):
+    raised: int
+    updated: int
+    resolved: int
+    reopened: int
+    escalated: int
+
+
+class ProjectDates(BaseModel):
+    """Change a project's dates. Either one, or both."""
+
+    starts_on: date | None = None
+    ends_on: date | None = None
+
+    @model_validator(mode="after")
+    def _something(self) -> ProjectDates:
+        if self.starts_on is None and self.ends_on is None:
+            raise ValueError("Give a new start date, a new end date, or both.")
+        return self

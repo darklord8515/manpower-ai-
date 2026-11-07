@@ -15,23 +15,28 @@ from app.audit import write_audit
 from app.auth.deps import AuthUser, authenticated, get_clock, require
 from app.auth.scope import employee_scope, full_profile
 from app.clock import Clock
+from app.config import Settings, get_settings
 from app.db import get_session
 from app.routes.documents import expiring
 from app.schemas import (
     ExpiryCounts,
     ExpiryWeek,
     NewProject,
+    ProjectDates,
     ProjectRow,
     Summary,
     Trade,
     TradeStrength,
     WorkforceCounts,
 )
+from app.services.alerts.engine import run_after_change
+from app.services.insight import insight_for
 
 router = APIRouter(tags=["projects"])
 
 SessionDep = Annotated[Session, Depends(get_session)]
 ClockDep = Annotated[Clock, Depends(get_clock)]
+SettingsDep = Annotated[Settings, Depends(get_settings)]
 
 
 def _projects(session: Session, user: AuthUser) -> list[ProjectRow]:
@@ -100,6 +105,66 @@ def _insert_project(session: Session, body: NewProject) -> tuple[uuid.UUID, str]
     )
 
 
+@router.patch("/projects/{code}")
+def change_project_dates(
+    code: str,
+    body: ProjectDates,
+    request: Request,
+    session: SessionDep,
+    clock: ClockDep,
+    settings: SettingsDep,
+    user: Annotated[AuthUser, Depends(require("project:write"))],
+) -> ProjectRow:
+    """Move a project's start or end date (PROJECT_DATES).
+
+    Requirement lines that covered the whole project follow. People already placed keep the dates
+    they were given: moving a project does not quietly move them. The alert detectors run after.
+    """
+    project = (
+        session.execute(
+            text(
+                """SELECT id, status::text AS status, starts_on, ends_on FROM projects
+                   WHERE code = :code FOR UPDATE"""
+            ),
+            {"code": code},
+        )
+        .mappings()
+        .first()
+    )
+    scope = user.scope("project:write")
+    if project is None or (scope != "all" and project["id"] not in user.whole_projects):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Project not found")
+    if project["status"] in ("completed", "cancelled"):
+        raise HTTPException(status.HTTP_409_CONFLICT, "This project is closed.")
+    starts = body.starts_on or project["starts_on"]
+    ends = body.ends_on or project["ends_on"]
+    if starts is not None and ends is not None and ends < starts:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT, "The end date must not be before the start date."
+        )
+    if (starts, ends) != (project["starts_on"], project["ends_on"]):
+        session.execute(
+            text("UPDATE projects SET starts_on = :s, ends_on = :e WHERE id = :id"),
+            {"s": starts, "e": ends, "id": project["id"]},
+        )
+        old_start, old_end = project["starts_on"], project["ends_on"]
+        if None not in (old_start, old_end, starts, ends):
+            session.execute(
+                text(
+                    """UPDATE manpower_requirements SET period = daterange(:s, :e, '[]')
+                       WHERE project_id = :id AND period = daterange(:os, :oe, '[]')"""
+                ),
+                {"s": starts, "e": ends, "os": old_start, "oe": old_end, "id": project["id"]},
+            )
+        write_audit(
+            session, request, "project.dates_changed", "project", user, entity_id=project["id"],
+            before={"starts_on": project["starts_on"], "ends_on": project["ends_on"]},
+            after={"starts_on": starts, "ends_on": ends},
+        )  # fmt: skip
+        run_after_change(session, settings, clock)
+    return next(p for p in _projects(session, user) if p.code == code)
+
+
 @router.get("/trades")
 def list_trades(
     session: SessionDep, _user: Annotated[AuthUser, Depends(authenticated())]
@@ -114,6 +179,8 @@ def create_project(
     body: NewProject,
     request: Request,
     session: SessionDep,
+    clock: ClockDep,
+    settings: SettingsDep,
     user: Annotated[AuthUser, Depends(require("project:write"))],
 ) -> ProjectRow:
     """A new project in planning, with the trades it needs. HR runs the forecast next."""
@@ -148,6 +215,7 @@ def create_project(
              "starts": line.starts_on or body.starts_on, "ends": line.ends_on or body.ends_on},
         )  # fmt: skip
     write_audit(session, request, "project.created", "project", user, entity_id=project_id)
+    run_after_change(session, settings, clock)
     return next(p for p in _projects(session, user) if p.code == project_code)
 
 
@@ -213,13 +281,17 @@ def summary(
     )
     projects = _projects(session, user) if user.can("project:read") else []
     today = clock.today()
+    short_total = sum(max(p.planned - p.deployed, 0) for p in projects if p.status == "active")
     return Summary(
         today=today,
         workforce=workforce,
         documents=documents,
         expiry_by_week=_expiry_by_week(session, user, today),
-        short_total=sum(max(p.planned - p.deployed, 0) for p in projects if p.status == "active"),
+        short_total=short_total,
         projects=projects,
+        insight=insight_for(
+            session, user, clock.now(), short_total=short_total, documents=documents
+        ),
     )
 
 

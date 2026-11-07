@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import Settings, get_settings, validate_for_environment
 from app.routes import (
+    alerts,
     auth,
     documents,
     forecast,
@@ -95,6 +96,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(recruitment.router)
     app.include_router(requests.router)
     app.include_router(mobilizations.router)
+    app.include_router(alerts.router)
     return app
 
 

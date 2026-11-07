@@ -34,6 +34,7 @@ from app.schemas import (
     RestorePick,
 )
 from app.services import allocation
+from app.services.alerts.engine import run_after_change
 from app.services.allocation import AllocationError, Line
 
 router = APIRouter(prefix="/requests", tags=["requests"])
@@ -213,6 +214,7 @@ def raise_request(
         session, request, "request.created", "staffing_request", user, entity_id=request_id,
         after={"request_no": request_no, "project": body.project, "people": people},
     )  # fmt: skip
+    run_after_change(session, settings, clock)
     detail = allocation.request_detail(session, settings, user, request_no, today)
     assert detail is not None
     return detail
@@ -373,6 +375,7 @@ def approve_line(
                 "request_status": result.request_status_after,
             },
         )  # fmt: skip
+        run_after_change(session, settings, clock)
     return result
 
 
@@ -397,6 +400,7 @@ def reject_line(
         entity_id=line.request_id,
         after={"line": line.trade, "reason": body.reason, "request_status": new_status},
     )  # fmt: skip
+    run_after_change(session, settings, clock)
     detail = allocation.request_detail(session, settings, user, request_no, clock.today())
     assert detail is not None
     return detail
@@ -421,6 +425,7 @@ def cancel_request(
         session, request, "request.cancelled", "staffing_request", user,
         entity_id=lines[0].request_id, after={"reason": body.reason},
     )  # fmt: skip
+    run_after_change(session, settings, clock)
     detail = allocation.request_detail(session, settings, user, request_no, clock.today())
     assert detail is not None
     return detail

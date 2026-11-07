@@ -28,6 +28,7 @@ from app.schemas import (
     ReserveResponse,
     ReserveResult,
 )
+from app.services.alerts.engine import run_after_change
 from app.services.assignments import plan_assignment
 from app.services.forecast import ForecastError, forecast_project
 
@@ -142,6 +143,7 @@ def reserve_people(
             "refused": {r.code: r.reason for r in results if r.outcome == "refused"},
         },
     )  # fmt: skip
+    run_after_change(session, settings, clock)
     return ReserveResponse(results=results, reserved=len(reserved))
 
 
@@ -186,6 +188,7 @@ def release_people(
         session, request, "project.reservation_released", "project", user,
         entity_id=visible["id"], after={"released": released},
     )  # fmt: skip
+    run_after_change(session, settings, clock)
     return ReleaseResult(
         released=released, not_found=[c for c in body.employee_codes if c not in released]
     )

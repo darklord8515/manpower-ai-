@@ -140,12 +140,14 @@ Config (env, not code): `TRANSFER_BUFFER_DAYS=7`, `FORECAST_DOC_HORIZON_DAYS=90`
 | `FORECAST_DEPENDENCY` | A deployable worker coming from another project is labelled "depends on <project> finishing by <start − buffer>". | |
 | `RESERVE_TRANSFER` | "Reserve transfers" needs `assignment:approve` with scope on the target project. In one transaction it creates a staffing request (source "Forecast reservation", status approved / partially filled), its lines, `planned` assignments with `depends_on_assignment_id` set for workers coming from another project, and draft mobilizations with `report_on = start_date`. Every hard rule runs, and the DB overlap constraint applies. | A later attempt to extend the source assignment fails with `ASSIGN_OVERLAP` naming the reservation. |
 | `RECRUIT_REQUEST` | "Raise recruitment request" needs `recruitment:create`. Trade, headcount (default: the uncovered gap, min 1), needed-by (default: `start_date − 30 days`, not in the past) and a reason of at least 10 characters are required. Open / in-progress requests count as "recruitment pending" in the forecast. | DB checks headcount and reason length. |
+| `PROJECT_DATES` | The HR Manager and the HR Executive (`project:write`) may change a project's start date, end date or both (`PATCH /projects/{code}`). The end must not be before the start; a completed or cancelled project is closed. Requirement lines that covered the whole project follow the new dates. People already placed keep the dates they were given: moving a project does not quietly move them. The change is audited and the detectors run (a later end can break a reserved transfer, `transfer_dependency_broken`). | Doing the same change twice does nothing and is not audited again. |
+| `TRANSFER_SOURCE_END` | When a person is reserved or approved to move from another project, the source project's end date at that moment is stored on the new planned assignment (`source_project_ends_on`). | Lets the transfer alert tell "the project was extended" from "this person was released early on purpose". |
 
 ### Dashboard insights
 
 | Code | Rule | Notes |
 |---|---|---|
-| `INSIGHT_PYTHON_ONLY` | The insight line at the top of each role dashboard is chosen and worded by a Python service from a ranked list of rules per role (e.g. HR: the highest-severity open alert or forecast gap; CEO: the biggest shortage by project; PM: the nearest unmet request). Numbers, dates and project codes come from the same services as the KPIs. No model writes or edits it. | Tested with fixed seed data. If nothing needs attention it says so ("Nothing needs attention today"). |
+| `INSIGHT_PYTHON_ONLY` | The insight line at the top of each role dashboard is chosen and worded by a Python service from a ranked list of rules per role (e.g. HR: the highest-severity open alert or forecast gap; CEO: the biggest shortage by project; PM: the nearest unmet request). Numbers, dates and project codes come from the same services as the KPIs. No model writes or edits it. | Tested with fixed seed data. If nothing needs attention it says so ("Nothing needs attention today"). Built in `app/services/insight.py`, returned as `insight` by `/summary`: HR and the Executive get the most urgent live alert and how many more need attention; the MD/CEO gets the people short and the documents running out; anyone without alert access gets the documents line. |
 | `INSIGHT_SCOPED` | An insight is computed only from data the viewer's scope allows. | |
 
 ### HR Action Center (alerts)
@@ -162,7 +164,10 @@ Config (env, not code): `TRANSFER_BUFFER_DAYS=7`, `FORECAST_DOC_HORIZON_DAYS=90`
 | `ALERT_AUDIT` | Every status change, assignment, snooze, dismissal, escalation and action taken from an alert is written to `audit_log` with the alert id. | |
 | `ALERT_NARRATION_FAITHFUL` | Narrator text is saved only if every number, date and code in it appears in `facts_json`, and every action is in the detector's allow-list. Otherwise the template text stays. | See `docs/agents.md`, Alert Narrator. |
 | `ALERT_NO_SENSITIVE` | `facts_json` never holds `doc_number`, phone numbers or contract values. | |
-| `ALERT_ESCALATION` | Config `ALERT_ESCALATION`: level 0 = HR team (HR Executives), level 1 = HR Manager, level 2 = Operations Manager. Default delays: critical 4 h → 8 h, action needed 24 h → 48 h, info never. Escalation stops when someone takes the alert (`in_progress`) or snoozes it. The API decides when to escalate; n8n delivers the messages. | On free hosting, escalation is checked at detector runs, so a 4 h step can fire late (see plan). |
+| `ALERT_ESCALATION` | Config `ALERT_ESCALATION`: level 0 = HR team (HR Executives), level 1 = HR Manager, level 2 = Operations Manager. Default delays: critical 4 h → 8 h, action needed 24 h → 48 h, info never. Escalation stops when someone takes the alert (`in_progress`) or snoozes it. The API decides when to escalate; n8n delivers the messages. | On free hosting, escalation is checked at detector runs, so a 4 h step can fire late (see plan). Settings `ALERT_ESCALATION_CRITICAL_HOURS` ("4,8") and `ALERT_ESCALATION_ACTION_HOURS` ("24,48"). The wait is counted from when the alert was raised, or from when its last snooze ended. The level is set and audited; delivering the message is Phase 5. |
+| `ALERT_RUN` | A detector run compares each detector's findings with the live alerts of its type: new findings are raised, changed ones updated in place (facts, title, severity), gone ones resolved with "Condition cleared: ...", ended snoozes reopened, and untaken alerts escalated. It runs after any change that can alter a condition (requests raised, approved, rejected or cancelled; people reserved or released; recruitment raised or advanced; mobilization tasks ticked and arrivals; projects added or their dates changed), at seed time, and on `POST /alerts/run` (`alert:detect`, the service account: n8n and the cron). A detector error is logged and never fails the change that triggered the run. | `app/services/alerts/engine.py`. Running twice with nothing changed changes nothing. |
+| `ALERT_LAST_RUN` | "Detectors last ran at ..." is the time of the last scheduled, manual or seed run (audit action `alerts.detectors_run`). Runs after a change are not logged there, so the line stays the schedule. | |
+| `ALERT_DISMISS_AGAIN` | A dismissed alert is raised again only if the condition got worse: higher severity; for a shortfall, a bigger gap; for a document, the next threshold (90 → 60 → 30 → 7 → expired). | Part of `ALERT_DISMISS`. Only shortfall, ending, document and midday-ban alerts can be dismissed; the rest clear when the cause is fixed and can only be snoozed. |
 
 **The seven detectors.** Each defines its severity rule, `dedupe_key`, resolve condition and allowed actions.
 
@@ -172,12 +177,26 @@ Config (env, not code): `TRANSFER_BUFFER_DAYS=7`, `FORECAST_DOC_HORIZON_DAYS=90`
 | `ending_without_next` | Workers whose active assignment ends within 14 days have no planned next assignment (grouped per project and end date) | action needed ≤ 14 days; info 15–30 days | `ending_without_next:{project}:{end_date}` | every listed worker has a next assignment, or the end date moves out of range | Open Allocation Board (open requests for their trade), Open forecast, Assign to me, Snooze, Dismiss |
 | `document_expiry` | A required document of an active employee is 90 / 60 / 30 / 7 days from expiry, or expired | info at 90 / 60, action needed at 30, critical at 7 or expired while assigned | `document_expiry:{document_id}` (severity rises in place) | a renewed document is verified | Send renewal reminder, Open employee, Snooze, Dismiss |
 | `mobilization_stuck` | A mobilization task is past `due_on`, or a readiness item is missing with `report_on` ≤ 3 days away | critical ≤ 2 days to report, else action needed | `mobilization_stuck:{mobilization_id}` | all readiness items done | Open mobilization, Assign to me, Snooze |
-| `transfer_dependency_broken` | A reserved transfer's source assignment or project now ends after `target start − buffer` (event: project end date changed, or daily) | critical | `transfer_dependency:{source_project}:{target_project}:{target_start}` | dates fit again, or the reservation is released / replaced | Open forecast, Release reservation, Assign to me, Snooze |
+| `transfer_dependency_broken` | A reserved transfer's source project now ends later than it did when the person was reserved (`employee_assignments.source_project_ends_on`), and after `target start − buffer` (event: project end date changed, or daily). Someone released early on purpose is not flagged. | critical | `transfer_dependency:{source_project}:{target_project}:{target_start}` | dates fit again, or the reservation is released / replaced | Open forecast, Release reservation, Assign to me, Snooze |
 | `approval_waiting` | An approval step has been pending > `APPROVAL_WAIT_HOURS` (24) | action needed; critical > 48 h | `approval_waiting:{approval_id}` | the step is decided | Open on Allocation Board, Remind approver, Snooze |
 | `midday_ban_conflict` | A planned / active outdoor assignment's effective shift breaks a `work_rules` midday ban (including provisional rules) on dates in the window | critical in the ban period; action needed if the ban starts within 30 days; info when the rule is provisional and further away | `midday_ban:{site}:{rule_year}` | shifts changed, exemption approved, or rule changed | Open site shifts, Request exemption, Snooze, Dismiss |
 
 The `approval_waiting` alert replaces the separate 24 h reminder and 48 h escalation in the n8n
 approval workflow. n8n still sends the first "approval requested" message.
+
+Built as written, with these choices to know about:
+- `document_expiry` covers every current document of someone still employed (`active`, `on_leave`,
+  `suspended`). Home also counts the documents of people who have left, so on the seeded demo Home shows
+  38 (2 / 8 / 11 / 17) and the alerts 37.
+- `mobilization_stuck` raises one alert per unfinished checklist, so on the seeded date (the report day is
+  three days away) seven are raised.
+- `midday_ban_conflict` finds an assignment's effective shift as the assignment's own shift, else the site's
+  default; an assignment with no site counts toward every outdoor site of its project, so the people count
+  reads "up to n". Its alert has no action buttons yet (no site-shift screen or exemption flow).
+- Alert titles and explanations are Python templates. `narrated_by_run` stays empty until the narrator
+  (Phase 5) exists, and the screen then labels the text "Written by AI".
+- Not offered because not built: Send renewal reminder and Remind approver (Phase 5, n8n), Open site shifts,
+  Request exemption.
 
 ## Policy rules (agents read these)
 
