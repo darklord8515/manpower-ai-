@@ -210,6 +210,44 @@ def test_a_server_error_is_retried_up_to_three_times_then_reported(calm: list[fl
     assert calls["n"] == 3
 
 
+def test_a_provider_that_refuses_json_mode_is_asked_again_without_it() -> None:
+    bodies: list[dict[str, Any]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)
+        bodies.append(body)
+        if "response_format" in body:
+            return httpx.Response(400, text='{"error":{"message":"Failed to validate JSON."}}')
+        return httpx.Response(200, json={"choices": [{"message": {"content": '{"a": 1}'}}]})
+
+    client = client_for(
+        make_settings(llm_tier_mid_primary="groq:g", groq_api_key=GROQ_KEY),
+        "mid",
+        httpx.MockTransport(handler),
+    )
+    assert client is not None
+    assert client.chat(MESSAGES, json_output=True).content == '{"a": 1}'
+    assert ["response_format" in b for b in bodies] == [True, False]
+
+
+def test_a_400_that_is_not_about_json_is_not_asked_again() -> None:
+    calls = {"n": 0}
+
+    def handler(_: httpx.Request) -> httpx.Response:
+        calls["n"] += 1
+        return httpx.Response(400, text='{"error":{"message":"The model does not exist"}}')
+
+    client = client_for(
+        make_settings(llm_tier_mid_primary="groq:g", groq_api_key=GROQ_KEY),
+        "mid",
+        httpx.MockTransport(handler),
+    )
+    assert client is not None
+    with pytest.raises(LLMError, match="400"):
+        client.chat(MESSAGES, json_output=True)
+    assert calls["n"] == 1
+
+
 def test_a_refused_key_is_not_retried(calm: list[float]) -> None:
     calls = {"n": 0}
 

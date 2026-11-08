@@ -37,6 +37,8 @@ from app.config import Settings, get_settings
 
 CANDIDATES = Path(__file__).resolve().parents[2] / "agents" / "evals" / "models.yaml"
 PAUSE_SECONDS = 1.5  # free tiers allow about 30 requests a minute
+JSON_TOKENS = 600  # room to think and then answer
+TOOL_TOKENS = 500
 
 AGENTS = ("workforce", "mobilization", "demobilization", "import", "none")
 SYSTEM = (
@@ -108,7 +110,7 @@ def _ask(
         score.failures.append(f"rate limited: {str(error)[:80]}")
         return None
     except LLMError as error:
-        score.failures.append(str(error)[:100])
+        score.failures.append(str(error)[:260])
         return None
     finally:
         score.times.append(time.monotonic() - started)
@@ -128,28 +130,44 @@ def check(settings: Settings, label: str) -> Score:
             {"role": "system", "content": SYSTEM},
             {"role": "user", "content": question},
         ]
-        reply = _ask(score, client, messages, json_output=True, max_tokens=120)
+        # Models that think before they answer need room for both, or the answer comes back empty.
+        reply = _ask(score, client, messages, json_output=True, max_tokens=JSON_TOKENS)
         if reply is None:
             continue
         try:
             agent = str(parse_json_object(reply.content).get("agent", "")).strip().lower()
         except ValueError:
+            score.failures.append(f"not a JSON object: {_said(reply.content)}")
             continue
         if agent in AGENTS:
             score.json_ok += 1
             score.routed += agent == expected
+        else:
+            score.failures.append(f"agent {agent!r} is not one of the allowed names")
     for prompt, needle in TOOL_PROMPTS:
         messages = [
             {"role": "system", "content": "Use the tool to answer. Do not answer in words."},
             {"role": "user", "content": prompt},
         ]
-        reply = _ask(score, client, messages, tools=[SEARCH])
+        reply = _ask(score, client, messages, tools=[SEARCH], max_tokens=TOOL_TOKENS)
         if reply is None:
             continue
         call = next((c for c in reply.tool_calls if c.name == SEARCH.name), None)
         trade = str(call.arguments.get("trade", "")).lower() if call else ""
+        if call is None:
+            score.failures.append(f"no tool call; it said: {_said(reply.content)}")
+        elif needle not in trade:
+            score.failures.append(f"called the tool for the wrong trade: {trade!r}")
         score.tool_ok += bool(call) and needle in trade
     return score
+
+
+def _said(content: str) -> str:
+    """What a model replied, on one short line, to see why it did not count."""
+    line = " ".join(content.split())
+    if not line:
+        return "(an empty reply: it may have used its whole budget thinking)"
+    return repr(line[:110] + ("…" if len(line) > 110 else ""))
 
 
 def _row(s: Score) -> str:

@@ -68,6 +68,11 @@ def test_replies_that_are_not_json_or_name_no_agent_do_not_count(
 
     score = run(monkeypatch, ScriptedLLM(odd))
     assert (score.json_ok, score.routed, score.tool_ok) == (0, 0, 0)
+    # the table says why, with what the model actually said, so a bad column can be understood
+    why = " ".join(score.failures)
+    assert "not a JSON object: 'not json'" in why
+    assert "agent 'hr' is not one of the allowed names" in why
+    assert "no tool call; it said: (an empty reply" in why
 
 
 def test_provider_failures_are_noted_and_rate_limits_counted(

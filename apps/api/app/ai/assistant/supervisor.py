@@ -53,6 +53,10 @@ log = logging.getLogger(__name__)
 AGENT = "supervisor"
 STALE_AFTER_SECONDS = 120
 HISTORY_TURNS = 4
+# Models that think before they answer (gpt-oss, Nemotron) spend part of this on thinking, and an
+# answer that does not fit comes back empty, so the budgets leave room for both.
+ROUTER_TOKENS = 700
+WORDING_TOKENS = 600
 # Two messages at once is plenty for a free model; a third waits a moment, then is told to retry.
 _SLOTS = threading.BoundedSemaphore(4)
 SLOT_WAIT_SECONDS = 15
@@ -135,7 +139,7 @@ def _route_by_model(
             client,
             [{"role": "system", "content": system}, {"role": "user", "content": content}],
             Route,
-            max_tokens=250,
+            max_tokens=ROUTER_TOKENS,
         )
     except RedactionError as error:
         return None, 0, 0, f"LLM_REDACT: {error}"
@@ -161,7 +165,7 @@ def _reword(client: LLMClient, message: str, found: Findings) -> tuple[str | Non
             client,
             [{"role": "system", "content": SYSTEM_WORDING}, {"role": "user", "content": content}],
             Wording,
-            max_tokens=300,
+            max_tokens=WORDING_TOKENS,
         )
     except (LLMError, InvalidOutput, RedactionError):
         return None, 0, 0

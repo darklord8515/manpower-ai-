@@ -1,9 +1,16 @@
 # Models `make ai-check` tries. Add or remove lines freely: it only asks providers whose key is in
 # .env (GROQ_API_KEY, OPENROUTER_API_KEY, HF_TOKEN, ANTHROPIC_API_KEY). Ollama needs none.
-# Names change often on free tiers; if one is gone the check says so and carries on.
+# Free-tier model names change often (Groq retired its Llama models on 16 Aug 2026 and OpenRouter
+# dropped openai/gpt-oss-120b:free). A name that is gone is reported with the provider's own
+# message and the check carries on. Use `make ai-check MODELS="groq:some-model"` to try one.
+#
+# Privacy: OpenRouter's free endpoints may keep and train on prompts. Keep to the fictional demo
+# data on them; real employee data belongs on a paid, no-training provider (see docs/agents.md).
 candidates:
-  - groq:llama-3.1-8b-instant
-  - groq:llama-3.3-70b-versatile
+  - groq:openai/gpt-oss-20b
   - groq:openai/gpt-oss-120b
-  - openrouter:openai/gpt-oss-120b:free
+  - groq:qwen/qwen3.6-27b
   - openrouter:nvidia/nemotron-3.5-super-vl:free
+  - openrouter:openrouter/free
+  - openrouter:google/gemma-4-31b-it:free
+  - openrouter:deepseek/deepseek-v4-flash:free

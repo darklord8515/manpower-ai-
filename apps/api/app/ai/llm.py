@@ -247,14 +247,17 @@ class OpenAICompatibleClient:
         headers = dict(self._extra_headers)
         if self._key:
             headers["Authorization"] = f"Bearer {self._key}"
+        url = f"{self._base}/chat/completions"
         response = _post(
-            "The model provider",
-            f"{self._base}/chat/completions",
-            payload,
-            headers,
-            self._timeout,
-            self._transport,
+            "The model provider", url, payload, headers, self._timeout, self._transport
         )
+        if json_output and response.status_code == 400 and "json" in response.text.lower():
+            # JSON mode makes some providers refuse a reply that is not clean JSON (a model that
+            # thinks aloud first). Ask again without it: the reply is parsed and checked here.
+            payload.pop("response_format", None)
+            response = _post(
+                "The model provider", url, payload, headers, self._timeout, self._transport
+            )
         data = _json_of("The model provider", response)
         choices = _objects(data.get("choices"))
         message = _obj(choices[0].get("message")) if choices else {}
