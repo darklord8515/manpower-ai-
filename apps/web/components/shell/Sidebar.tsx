@@ -32,7 +32,7 @@ export function SidebarContent({ items, collapsed = false, onNavigate }: Props) 
         )}
       >
         <AlhamraMark className="h-8 w-7 text-(--sb-text)" label={collapsed ? "Alhamra" : ""} />
-        {!collapsed && <span className="text-sm font-semibold tracking-[0.04em]">CONSTRUCTIQ</span>}
+        {!collapsed && <span className="text-sm font-semibold tracking-[0.04em]">HAMRA AI</span>}
       </div>
 
       <nav aria-label="Main" className="flex-1 overflow-y-auto px-2 py-3">

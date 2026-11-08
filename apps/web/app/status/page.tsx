@@ -9,7 +9,7 @@ export default function StatusPage() {
     <div className="mx-auto flex min-h-screen w-full max-w-360 flex-col px-4 md:px-6">
       <header className="flex h-14 items-center gap-3 border-b border-border">
         <AlhamraMark className="h-8 w-7 text-fg" label="Alhamra" />
-        <span className="text-sm font-semibold tracking-[0.04em]">CONSTRUCTIQ</span>
+        <span className="text-sm font-semibold tracking-[0.04em]">HAMRA AI</span>
         <div className="ml-auto">
           <ThemeToggle />
         </div>

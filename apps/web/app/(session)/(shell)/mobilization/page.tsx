@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { MobilizationScreen } from "@/components/mobilization/MobilizationScreen";
 
-export const metadata: Metadata = { title: "Mobilization · CONSTRUCTIQ" };
+export const metadata: Metadata = { title: "Mobilization · HAMRA AI" };
 
 // Personal, signed-in data loaded in the browser (see app/(session)/layout.tsx).
 export const instant = false;

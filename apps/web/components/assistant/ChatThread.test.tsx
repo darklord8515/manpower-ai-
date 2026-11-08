@@ -144,7 +144,7 @@ describe("ChatThread", () => {
         status: "refused",
         answer: answer({
           kind: "refusal",
-          summary: "ConstructIQ holds no salary or pay data, so I cannot answer that.",
+          summary: "HAMRA AI holds no salary or pay data, so I cannot answer that.",
           blocks: [],
           actions: [],
           sources: [],

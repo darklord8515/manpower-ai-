@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { GalleryClient } from "@/components/gallery/GalleryClient";
 
-export const metadata = { title: "Design system gallery · CONSTRUCTIQ" };
+export const metadata = { title: "Design system gallery · HAMRA AI" };
 
 /**
  * Development-only: every shared component in every state, for review and screenshots.

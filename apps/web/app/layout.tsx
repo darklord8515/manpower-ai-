@@ -18,7 +18,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CONSTRUCTIQ",
+  title: "HAMRA AI",
   description: "Workforce operations for Alhamra Construction & Development",
   icons: { icon: "/brand/favicon-tab.svg" },
 };

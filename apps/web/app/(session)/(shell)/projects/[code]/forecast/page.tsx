@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ForecastScreen } from "@/components/projects/ForecastScreen";
 
-export const metadata: Metadata = { title: "Manpower forecast · CONSTRUCTIQ" };
+export const metadata: Metadata = { title: "Manpower forecast · HAMRA AI" };
 
 // Personal, signed-in data loaded in the browser (see app/(session)/layout.tsx).
 export const instant = false;

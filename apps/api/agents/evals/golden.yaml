@@ -1,4 +1,4 @@
-# CONSTRUCTIQ — golden agent evals for the MVP (v3)
+# HAMRA AI — golden agent evals for the MVP (v3)
 #
 # Run with `make eval`. It needs the `mid` model in .env (LLM_TIER_MID_*) and the demo data from
 # `make seed`; it asks the real model, so it costs calls (about 8 cases, 3 to 6 model calls each).

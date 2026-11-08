@@ -1,4 +1,4 @@
-# CONSTRUCTIQ — Design direction
+# HAMRA AI — Design direction
 
 Goal: very neat, clean, calm enterprise UI. Dense enough for managers to scan 40 workers
 at once; premium enough to impress a CEO. Think "operations software", not "marketing site".
@@ -18,7 +18,7 @@ or big empty cards into the app.
 
 ## Photos
 - **Login:** one full-height construction-site photo with a dark overlay (`--photo-overlay`) and the
-  Alhamra wordmark (`assets/brand/ALHAMRA-LOGO.svg`, white, see `CLAUDE.md` → Brand) with CONSTRUCTIQ set in
+  Alhamra wordmark (`assets/brand/ALHAMRA-LOGO.svg`, white, see `CLAUDE.md` → Brand) with HAMRA AI set in
   type beneath it; the sign-in form sits beside it.
 - **Projects:** one site photo per project card and in the project DetailSheet header.
 - **Nowhere else.** No photos on data screens (dashboards, board, forecast, Action Center).
@@ -48,7 +48,7 @@ forecast Sankey and capacity heatmap, counters that update when HR acts. No maps
   from the user's role permissions. Only built screens are listed; nothing unbuilt is shown. The active
   item has a red bar that slides between items. HRM patterns come from BambooHR, Rippling, Personio,
   Zoho People and Frappe HR (patterns only, never their branding).
-- Sidebar header: the Alhamra mark (`assets/brand/ALHAMRA-FAVICON-LOGO.svg`) with CONSTRUCTIQ beside it; only
+- Sidebar header: the Alhamra mark (`assets/brand/ALHAMRA-FAVICON-LOGO.svg`) with HAMRA AI beside it; only
   the mark when collapsed.
 - Top bar: page title + breadcrumb, global search, Cmd+K AI command bar, notifications, user menu.
   In demo mode, a role switcher pill ("Viewing as: Project Manager").

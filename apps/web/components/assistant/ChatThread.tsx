@@ -42,7 +42,7 @@ function Welcome({ chat }: { chat: ReturnType<typeof useChat> }) {
         <h3 className="text-md font-semibold">Ask Virtual HR</h3>
         <p className="mt-1 text-sm text-muted">
           Ask about workers, documents, alerts, projects, forecasts and staffing requests. I answer
-          from ConstructIQ’s own data, as you, and I never change anything.
+          from HAMRA AI’s own data, as you, and I never change anything.
         </p>
       </div>
       {suggestions && !suggestions.ai_enabled && (

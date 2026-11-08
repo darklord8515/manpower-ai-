@@ -1,4 +1,4 @@
-# CONSTRUCTIQ developer commands. Works with GNU Make on Windows (cmd.exe) and Linux.
+# HAMRA AI developer commands. Works with GNU Make on Windows (cmd.exe) and Linux.
 COMPOSE = docker compose --env-file .env -f infra/docker-compose.yml
 API = uv --directory apps/api
 

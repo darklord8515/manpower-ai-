@@ -53,7 +53,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         yield
 
     app = FastAPI(
-        title="CONSTRUCTIQ API",
+        title="HAMRA AI API",
         version="0.1.0",
         lifespan=lifespan,
         docs_url=None if settings.is_production else "/docs",

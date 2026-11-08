@@ -32,7 +32,7 @@ function Loading() {
   return (
     <div className="grid min-h-screen place-items-center bg-bg p-6">
       <div className="w-full max-w-sm">
-        <SkeletonLoader label="Opening CONSTRUCTIQ" count={3} />
+        <SkeletonLoader label="Opening HAMRA AI" count={3} />
       </div>
     </div>
   );
@@ -166,7 +166,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <span className="font-medium text-fg">{page.label}</span>
               </>
             ) : (
-              "CONSTRUCTIQ"
+              "HAMRA AI"
             )}
           </p>
           <div className="ml-auto flex items-center gap-1">

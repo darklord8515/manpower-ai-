@@ -346,7 +346,7 @@ def test_approving_plans_assignments_starts_mobilizations_and_updates_everything
     detail = board.detail(request)
     line = detail["lines"][0]
     assert detail["status"] == "filled" and (line["status"], line["filled"]) == ("approved", 2)
-    assert line["decided_by"] == "Noura Demo" and line["picks"] == []
+    assert line["decided_by"] == "Mr Imtiyaz" and line["picks"] == []
     assert [(a["code"], a["moving_from"], a["mob_no"]) for a in line["approved"]] == [
         ("W01", None, "MOB-2026-0110"), ("W04", "T-OLD", "MOB-2026-0111"),
     ]  # fmt: skip

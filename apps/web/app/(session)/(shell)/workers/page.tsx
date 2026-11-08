@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { WorkersScreen } from "@/components/workers/WorkersScreen";
 
-export const metadata: Metadata = { title: "Workers · CONSTRUCTIQ" };
+export const metadata: Metadata = { title: "Workers · HAMRA AI" };
 
 // Personal, signed-in data loaded in the browser (see app/(session)/layout.tsx).
 export const instant = false;

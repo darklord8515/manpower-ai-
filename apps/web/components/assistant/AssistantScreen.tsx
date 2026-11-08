@@ -107,7 +107,7 @@ export function AssistantScreen() {
         <div className="flex flex-col gap-1">
           <h1 className="text-xl font-semibold">Virtual HR</h1>
           <p className="text-sm text-muted">
-            Ask in plain words. Answers come from ConstructIQ’s own data, as you, and nothing is
+            Ask in plain words. Answers come from HAMRA AI’s own data, as you, and nothing is
             changed from here.
           </p>
         </div>

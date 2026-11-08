@@ -184,7 +184,7 @@ def test_two_people_cannot_take_the_same_alert(center: Center) -> None:
 
 def test_an_alert_can_be_given_to_someone_who_works_on_alerts(center: Center) -> None:
     names = [a["name"] for a in center.manager.get("/alerts/assignees").json()]
-    assert names == ["Noura Demo", "Priya Demo"]  # not the MD, who cannot act
+    assert names == ["Mr Imtiyaz", "Priya Demo"]  # not the MD, who cannot act
     sanjeev = center.find("Sanjeev Rana")["id"]
     priya = next(
         a["id"] for a in center.manager.get("/alerts/assignees").json() if "Priya" in a["name"]

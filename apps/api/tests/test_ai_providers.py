@@ -307,7 +307,7 @@ def test_each_provider_gets_its_own_key_and_openrouter_is_named() -> None:
     assert "http-referer" not in seen["api.groq.com"]
     assert seen["openrouter.ai"]["authorization"] == f"Bearer {ROUTER_KEY}"
     assert seen["openrouter.ai"]["http-referer"] == "https://hr.example.test"
-    assert seen["openrouter.ai"]["x-title"] == "CONSTRUCTIQ"
+    assert seen["openrouter.ai"]["x-title"] == "HAMRA AI"
 
 
 def test_the_fallback_answers_when_the_primary_is_rate_limited() -> None:

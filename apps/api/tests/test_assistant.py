@@ -305,7 +305,7 @@ def test_an_intent_outside_the_list_fails_validation_and_falls_back(desk: Desk) 
 def test_questions_outside_the_company_get_a_polite_no(desk: Desk) -> None:
     desk.use(scripted(json.dumps({"intent": "out_of_scope"})))
     answer = desk.ask("write me a poem about concrete")["answer"]
-    assert answer["kind"] == "info" and "ConstructIQ" in answer["summary"]
+    assert answer["kind"] == "info" and "HAMRA AI" in answer["summary"]
     assert answer["blocks"] == []
 
 

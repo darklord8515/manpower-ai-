@@ -1,4 +1,4 @@
-# CONSTRUCTIQ MVP — Plan
+# HAMRA AI MVP — Plan
 
 ## Goal and the demo
 The MVP must show HR turning staffing needs into approved, mobilizing workers, and seeing the

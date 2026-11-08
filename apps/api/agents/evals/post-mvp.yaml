@@ -1,4 +1,4 @@
-# CONSTRUCTIQ — golden agent evals for the FULL product (v2, 35 cases: 30 + 5 forecasting)
+# HAMRA AI — golden agent evals for the FULL product (v2, 35 cases: 30 + 5 forecasting)
 #
 # NOT RUN IN THE MVP. These cases need the Supervisor Agent and the Command Centre (a chat box),
 # the Mobilization, Demobilization and Import agents' tools, and users the MVP does not have

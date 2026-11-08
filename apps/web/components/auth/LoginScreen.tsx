@@ -17,9 +17,9 @@ const NOTICES: Record<string, string> = {
 };
 
 const DEMO_ACCOUNTS: { role: DemoRole; title: string; person: string }[] = [
-  { role: "hr_manager", title: "HR Manager", person: "Noura" },
+  { role: "hr_manager", title: "HR Manager", person: "Mr Imtiyaz" },
   { role: "hr_executive", title: "HR Executive", person: "Priya" },
-  { role: "ceo", title: "MD / CEO", person: "Layla" },
+  { role: "ceo", title: "MD / CEO", person: "Mr Sanjay" },
 ];
 
 function formatCountdown(seconds: number): string {
@@ -162,7 +162,7 @@ export function LoginScreen() {
         />
         <div className="relative z-10 flex flex-col gap-3">
           <AlhamraWordmark className="h-12 w-auto max-w-72 lg:h-16" />
-          <p className="text-sm font-semibold tracking-[0.24em]">CONSTRUCTIQ</p>
+          <p className="text-sm font-semibold tracking-[0.24em]">HAMRA AI</p>
           <p className="hidden max-w-sm text-base text-(--sb-muted) lg:block">
             Workforce operations for Alhamra Construction &amp; Development.
           </p>
@@ -176,7 +176,7 @@ export function LoginScreen() {
         />
         <Reveal index={0} className="relative w-full max-w-sm">
           <h1 className="text-xl leading-8 font-semibold">Sign in</h1>
-          <p className="mt-1 text-sm text-muted">Use your CONSTRUCTIQ account.</p>
+          <p className="mt-1 text-sm text-muted">Use your HAMRA AI account.</p>
 
           {notice && (
             <p

@@ -180,7 +180,7 @@ const FORECAST: Answer = {
 
 const REFUSAL: Answer = {
   kind: "refusal",
-  summary: "ConstructIQ holds no salary or pay data, so I cannot answer that.",
+  summary: "HAMRA AI holds no salary or pay data, so I cannot answer that.",
   blocks: [],
   why: "Salary is not stored in this system at all.",
   actions: [],

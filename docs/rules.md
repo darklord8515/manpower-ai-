@@ -1,4 +1,4 @@
-# CONSTRUCTIQ — Rules
+# HAMRA AI — Rules
 
 Two kinds of rule, kept apart on purpose:
 

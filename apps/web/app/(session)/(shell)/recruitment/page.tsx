@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { RecruitmentScreen } from "@/components/recruitment/RecruitmentScreen";
 
-export const metadata: Metadata = { title: "Recruitment · CONSTRUCTIQ" };
+export const metadata: Metadata = { title: "Recruitment · HAMRA AI" };
 
 // Personal, signed-in data loaded in the browser (see app/(session)/layout.tsx).
 export const instant = false;

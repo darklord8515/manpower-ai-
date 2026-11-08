@@ -1,4 +1,4 @@
-# CONSTRUCTIQ — Agents
+# HAMRA AI — Agents
 
 One tool-calling loop, one `LLMClient` interface. Rules the agents must respect are in
 `docs/rules.md`; the database seed for this file is the `agents` insert at the end of `db/schema.sql`.

@@ -1,4 +1,4 @@
-# CONSTRUCTIQ
+# HAMRA AI
 
 AI workforce operations platform for a construction company in Ras Al Khaimah, UAE.
 This is the MVP the CEO will review before approving the full build. Quality bar: enterprise SaaS.
@@ -9,7 +9,7 @@ Read these before any task:
 - `db/schema.sql` — the database. It is the source of truth; do not invent tables.
 - `docs/agents.md` — the 6 agents: tools, permissions, limits, model tier
 - `docs/rules.md` — hard rules (Python validators) and policy rules (agents read)
-- `docs/CONSTRUCTIQ-spec.pdf` — full client concept (most of it is OUT of MVP scope)
+- `docs/HAMRA AI-spec.pdf` — full client concept (most of it is OUT of MVP scope)
 
 `legacy-web/` is the old frontend. Read it for ideas only. Never import from it, never edit it.
 
@@ -54,7 +54,7 @@ The company logos are `ALHAMRA-LOGO.svg` (wordmark with "Construction & Developm
 - Wordmark: login screen only (on the photo overlay). Mark: sidebar header and the browser-tab
   icon (on a dark rounded square, since white-only artwork vanishes on a light tab).
 - No cropping, stretching, extra effects or second colours. Keep clear space of at least the
-  mark's inner-square width. Product name CONSTRUCTIQ is set in type beside or under the logo.
+  mark's inner-square width. Product name HAMRA AI is set in type beside or under the logo.
 
 ## Layout
 ```

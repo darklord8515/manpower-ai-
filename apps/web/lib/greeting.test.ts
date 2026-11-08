@@ -28,6 +28,8 @@ describe("greeting", () => {
   it("greets by first name only", () => {
     expect(greeting("morning", "Noura Demo")).toBe("Good morning, Noura");
     expect(greeting("evening", "Layla Demo")).toBe("Good evening, Layla");
+    expect(greeting("morning", "Mr Sanjay")).toBe("Good morning, Mr Sanjay");
+    expect(greeting("morning", "Mr. Imtiyaz Khan")).toBe("Good morning, Mr. Imtiyaz");
     expect(firstName("  Priya   Demo ")).toBe("Priya");
     expect(firstName("Madonna")).toBe("Madonna");
   });

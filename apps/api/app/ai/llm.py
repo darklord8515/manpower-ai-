@@ -491,7 +491,7 @@ def client_for(
             clients.append(AnthropicClient(config, settings.llm_timeout_seconds, transport))
             continue
         headers = (
-            {"HTTP-Referer": settings.web_base_url, "X-Title": "CONSTRUCTIQ"}
+            {"HTTP-Referer": settings.web_base_url, "X-Title": "HAMRA AI"}
             if config.vendor == "openrouter"
             else None
         )

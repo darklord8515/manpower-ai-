@@ -152,7 +152,7 @@ def test_a_checklist_lists_its_tasks_by_department_with_who_did_them(pipeline: P
     ]
     docs, bed, *_rest, induction = detail["tasks"]
     assert (docs["status"], docs["overdue"], docs["due_on"]) == ("open", True, "2026-11-01")
-    assert (bed["status"], bed["done_by"], bed["overdue"]) == ("done", "Noura Demo", False)
+    assert (bed["status"], bed["done_by"], bed["overdue"]) == ("done", "Mr Imtiyaz", False)
     assert (induction["status"], induction["overdue"]) == ("open", False)  # due on the report day
     assert detail["can_update"] is True and detail["update_note"] is None
     assert detail["can_confirm_arrival"] is False
@@ -200,7 +200,7 @@ def test_ticking_a_task_moves_the_card_and_records_who(pipeline: Pipeline) -> No
     )
     assert detail["overdue"] == 0  # the overdue documents task is done
     docs = detail["tasks"][0]
-    assert (docs["status"], docs["done_by"], docs["overdue"]) == ("done", "Noura Demo", False)
+    assert (docs["status"], docs["done_by"], docs["overdue"]) == ("done", "Mr Imtiyaz", False)
     assert docs["done_at"] is not None
     readiness = pipeline.scalar(
         "SELECT readiness FROM mobilizations WHERE mob_no = :n", n="MOB-2026-0109"

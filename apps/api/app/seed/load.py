@@ -48,9 +48,9 @@ def demo_id(kind: str, key: str) -> uuid.UUID:
 
 
 DEMO_USERS = (
-    ("hr_manager", "Noura Demo", "noura.demo@constructiq.test"),
+    ("hr_manager", "Mr Imtiyaz", "noura.demo@constructiq.test"),
     ("hr_executive", "Priya Demo", "priya.demo@constructiq.test"),
-    ("ceo", "Layla Demo", "layla.demo@constructiq.test"),
+    ("ceo", "Mr Sanjay", "layla.demo@constructiq.test"),
 )
 
 DEPARTMENTS = (("hr", "Human Resources"), ("operations", "Operations"), ("site", "Site workforce"))

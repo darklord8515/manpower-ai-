@@ -21,3 +21,6 @@ coverage/
 *.xlsx
 *.xls
 *.csv.private
+
+# Purchased UI template, kept locally as a layout reference only (docs/smarthr-reference.md)
+smarthr.dreamstechnologies.com/

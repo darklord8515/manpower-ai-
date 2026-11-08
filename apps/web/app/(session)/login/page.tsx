@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { LoginScreen } from "@/components/auth/LoginScreen";
 
-export const metadata: Metadata = { title: "Sign in · CONSTRUCTIQ" };
+export const metadata: Metadata = { title: "Sign in · HAMRA AI" };
 
 // Reads the session in the browser (see app/(session)/layout.tsx).
 export const instant = false;

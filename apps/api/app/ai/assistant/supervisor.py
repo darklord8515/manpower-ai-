@@ -90,7 +90,7 @@ def _out_of_scope(user: AuthUser) -> ChatAnswer:
     topics = ", ".join(i.name for i in available_to(user))
     return ChatAnswer(
         kind="info",
-        summary="I can only help with ConstructIQ: workers, documents, alerts, projects, "
+        summary="I can only help with HAMRA AI: workers, documents, alerts, projects, "
         "forecasts and staffing requests. " + " ".join(capabilities(user)[:3]),
         why=f"Outside what I answer ({topics}).",
     )
@@ -242,7 +242,7 @@ def answer_message(  # noqa: C901 - the pipeline reads best top to bottom
         return done(
             ChatAnswer(
                 kind="info",
-                summary="I can answer from ConstructIQ's own data, as "
+                summary="I can answer from HAMRA AI's own data, as "
                 "you: " + " ".join(capabilities(user)),
                 why="Your role decides which of these you can use.",
             )

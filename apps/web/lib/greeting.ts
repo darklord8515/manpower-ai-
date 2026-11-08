@@ -24,8 +24,14 @@ export function periodFor(now: Date): DayPeriod {
   return "evening";
 }
 
+const HONORIFICS = new Set(["mr", "mrs", "ms", "dr", "eng"]);
+
+/** The name to greet: "Priya Demo" is Priya, "Mr Sanjay" stays Mr Sanjay. */
 export function firstName(fullName: string): string {
-  return fullName.trim().split(/\s+/)[0] ?? fullName;
+  const [first = fullName, second] = fullName.trim().split(/\s+/);
+  return HONORIFICS.has(first.toLowerCase().replace(".", "")) && second
+    ? `${first} ${second}`
+    : first;
 }
 
 export function greeting(period: DayPeriod, fullName: string): string {

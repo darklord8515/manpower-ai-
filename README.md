@@ -1,4 +1,4 @@
-# CONSTRUCTIQ
+# HAMRA AI
 
 Workforce operations platform for Alhamra Construction & Development (Ras Al Khaimah, UAE).
 Read `CLAUDE.md` first, then `docs/mvp-plan.md` and `docs/design-direction.md`.

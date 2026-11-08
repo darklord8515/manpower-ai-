@@ -77,7 +77,7 @@ def check(message: str, user: AuthUser) -> Gated:
     if _RESTRICTED.search(message):
         if _SALARY.search(message):
             return _refuse(
-                "ConstructIQ holds no salary or pay data, so I cannot answer that.",
+                "HAMRA AI holds no salary or pay data, so I cannot answer that.",
                 "Salary is not stored in this system at all.",
             )
         return _refuse(
@@ -100,7 +100,7 @@ def check(message: str, user: AuthUser) -> Gated:
         return Gated(
             ChatAnswer(
                 kind="info",
-                summary="I can answer from ConstructIQ's own data, as you: " + " ".join(lines),
+                summary="I can answer from HAMRA AI's own data, as you: " + " ".join(lines),
                 why="Your role decides which of these you can use.",
             )
         )
