@@ -108,10 +108,12 @@ export function useWorkerDetail(code: string | null) {
 
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
   const current = result && result.code === code && result.attempt === attempt ? result : null;
+  // While a profile is read again (after a save) the last one stays on screen instead of a skeleton.
+  const shown = current ?? (result && result.code === code ? result : null);
   return {
-    worker: current?.worker ?? null,
+    worker: current?.worker ?? shown?.worker ?? null,
     error: current?.error ?? null,
-    loading: code !== null && current === null,
+    loading: code !== null && shown === null,
     retry,
   };
 }

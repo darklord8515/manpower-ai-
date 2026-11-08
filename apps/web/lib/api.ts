@@ -40,6 +40,7 @@ import type {
   TradeStrength,
   Trade,
   WorkerDetail,
+  WorkerEditBody,
   WorkerFacets,
   WorkerList,
 } from "./api-types";
@@ -318,6 +319,17 @@ export const api = {
   workers: (query: WorkersQuery) => request<WorkerList>(`/workers?${toApiParams(query)}`),
   workerFacets: () => request<WorkerFacets>("/workers/facets"),
   worker: (code: string) => request<WorkerDetail>(`/workers/${encodeURIComponent(code)}`),
+  /** HR edits a worker. Only the fields sent change; null clears a date. */
+  editWorker: (code: string, body: WorkerEditBody) =>
+    request<WorkerDetail>(`/workers/${encodeURIComponent(code)}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  editDocumentExpiry: (code: string, documentType: string, expiryDate: string) =>
+    request<WorkerDetail>(
+      `/workers/${encodeURIComponent(code)}/documents/${encodeURIComponent(documentType)}`,
+      { method: "PATCH", body: JSON.stringify({ expiry_date: expiryDate }) },
+    ),
   /** The eye icon: one number in full. The API records who looked. */
   revealNumber: (code: string, documentType: string) =>
     request<{ number: string }>(

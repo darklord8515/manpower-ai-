@@ -8,7 +8,12 @@ const workers = vi.fn();
 const workerFacets = vi.fn();
 const worker = vi.fn();
 const revealNumber = vi.fn();
+const editWorker = vi.fn();
+const editDocumentExpiry = vi.fn();
+const trades = vi.fn();
+let permissions = ["employee:read", "employee:write"];
 
+vi.mock("@/components/auth/AuthProvider", () => ({ useUser: () => ({ permissions }) }));
 vi.mock("@/lib/api", async (importOriginal) => {
   const original = await importOriginal<typeof import("@/lib/api")>();
   return {
@@ -19,6 +24,10 @@ vi.mock("@/lib/api", async (importOriginal) => {
       workerFacets: () => workerFacets(),
       worker: (code: string) => worker(code),
       revealNumber: (code: string, type: string) => revealNumber(code, type),
+      editWorker: (code: string, body: unknown) => editWorker(code, body),
+      editDocumentExpiry: (code: string, type: string, date: string) =>
+        editDocumentExpiry(code, type, date),
+      trades: () => trades(),
       workersCsvUrl: () => "/api/workers/export.csv?sort=name",
     },
   };
@@ -104,6 +113,10 @@ beforeEach(() => {
   workerFacets.mockReset().mockResolvedValue(FACETS);
   worker.mockReset().mockResolvedValue(DETAIL);
   revealNumber.mockReset().mockResolvedValue({ number: "784-1988-1234567-1" });
+  editWorker.mockReset().mockResolvedValue({ ...DETAIL, designation: "Foreman" });
+  editDocumentExpiry.mockReset().mockResolvedValue(DETAIL);
+  trades.mockReset().mockResolvedValue([{ name: "Mason" }, { name: "Painter" }]);
+  permissions = ["employee:read", "employee:write"];
   window.history.replaceState(null, "", "/workers");
 });
 
@@ -193,6 +206,69 @@ describe("Workers", () => {
     const sheet = await screen.findByRole("dialog");
     expect(await within(sheet).findByText(/before the job on RAK-01 ends/)).toBeInTheDocument();
     expect(worker).toHaveBeenCalledWith("EMP-0088");
+  });
+
+  it("lets HR edit a worker: only the changed fields are sent, and it says so", async () => {
+    window.history.replaceState(null, "", "/workers?worker=EMP-0088");
+    render(<WorkersScreen />);
+    const user = userEvent.setup();
+    const sheet = await screen.findByRole("dialog");
+    await user.click(await within(sheet).findByRole("button", { name: "Edit details" }));
+    const save = within(sheet).getByRole("button", { name: "Save changes" });
+    expect(save).toBeDisabled(); // nothing changed yet
+    await user.type(within(sheet).getByLabelText("Designation"), "Foreman");
+    expect(within(sheet).getByText("1 change")).toBeInTheDocument();
+    await user.click(save);
+    expect(editWorker).toHaveBeenCalledWith("EMP-0088", { designation: "Foreman" });
+    expect(await within(sheet).findByRole("status")).toHaveTextContent(
+      "Sanjeev Rana’s details were saved.",
+    );
+    expect(worker).toHaveBeenCalledTimes(2); // the profile was read again
+  });
+
+  it("shows why a change was refused and keeps what was typed", async () => {
+    editWorker.mockRejectedValue(
+      new ApiError(422, "Enter a phone number such as +971 50 123 4567"),
+    );
+    window.history.replaceState(null, "", "/workers?worker=EMP-0088");
+    render(<WorkersScreen />);
+    const user = userEvent.setup();
+    const sheet = await screen.findByRole("dialog");
+    await user.click(await within(sheet).findByRole("button", { name: "Edit details" }));
+    const phone = within(sheet).getByLabelText("Phone");
+    await user.clear(phone);
+    await user.type(phone, "call me");
+    await user.click(within(sheet).getByRole("button", { name: "Save changes" }));
+    expect(await within(sheet).findByRole("alert")).toHaveTextContent("Enter a phone number");
+    expect(phone).toHaveValue("call me");
+    await user.click(within(sheet).getByRole("button", { name: "Cancel" }));
+    expect(within(sheet).getByRole("button", { name: "Edit details" })).toBeInTheDocument();
+  });
+
+  it("lets HR correct when a document runs out", async () => {
+    window.history.replaceState(null, "", "/workers?worker=EMP-0088");
+    render(<WorkersScreen />);
+    const user = userEvent.setup();
+    const sheet = await screen.findByRole("dialog");
+    await user.click(await within(sheet).findByRole("button", { name: /Documents/ }));
+    await user.click(within(sheet).getByRole("button", { name: "Change date" }));
+    const field = within(sheet).getByLabelText(/expires on/);
+    await user.clear(field);
+    await user.type(field, "2028-02-01");
+    await user.click(within(sheet).getByRole("button", { name: "Save" }));
+    expect(editDocumentExpiry).toHaveBeenCalledWith("EMP-0088", "residency_visa", "2028-02-01");
+    expect(await within(sheet).findByText(/runs out on 1 Feb 2028/)).toBeInTheDocument();
+  });
+
+  it("offers no editing to someone who may only read", async () => {
+    permissions = ["employee:read"];
+    window.history.replaceState(null, "", "/workers?worker=EMP-0088");
+    render(<WorkersScreen />);
+    const sheet = await screen.findByRole("dialog");
+    await within(sheet).findByText(/before the job on RAK-01 ends/);
+    expect(within(sheet).queryByRole("button", { name: "Edit details" })).toBeNull();
+    await userEvent.setup().click(within(sheet).getByRole("button", { name: /Documents/ }));
+    expect(within(sheet).queryByRole("button", { name: "Change date" })).toBeNull();
   });
 
   it("hides status, project and filters from the narrow projection", async () => {

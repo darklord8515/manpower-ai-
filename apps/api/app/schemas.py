@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import uuid
 from datetime import date, datetime
 from typing import Annotated, Any, Literal
@@ -103,6 +104,7 @@ class WorkerDetail(WorkerRow):
     assignments: list[AssignmentDetail]
     risks: list[Risk]
     employment_status: str | None = None
+    designation: str | None = None
     contract_end_on: date | None = None
     exit_on: date | None = None
     exit_reason: str | None = None
@@ -110,6 +112,51 @@ class WorkerDetail(WorkerRow):
 
 class WorkerNumber(BaseModel):
     number: str
+
+
+_PHONE = re.compile(r"^\+?[0-9][0-9 ()-]{6,19}$")
+
+
+class WorkerEdit(BaseModel):
+    """What HR may change on a worker. Only the fields sent are changed; null clears a date."""
+
+    full_name: str | None = Field(default=None, min_length=2, max_length=120)
+    trade: str | None = Field(default=None, min_length=1, max_length=60)  # a trade's name
+    level: int | None = Field(default=None, ge=1, le=5)
+    designation: str | None = Field(default=None, max_length=80)
+    phone: str | None = Field(default=None, max_length=25)
+    whatsapp_number: str | None = Field(default=None, max_length=25)
+    contract_end_on: date | None = None
+    exit_on: date | None = None
+    exit_reason: (
+        Literal["resigned", "terminated", "absconded", "contract_ended", "other"] | None
+    ) = None
+
+    @field_validator("phone", "whatsapp_number")
+    @classmethod
+    def _phone(cls, value: str | None) -> str | None:
+        if value is not None and value.strip() and not _PHONE.match(value.strip()):
+            raise ValueError("Enter a phone number such as +971 50 123 4567")
+        return value.strip() if value and value.strip() else None
+
+    @field_validator("full_name", "designation")
+    @classmethod
+    def _tidy(cls, value: str | None) -> str | None:
+        return " ".join(value.split()) if value else value
+
+    @model_validator(mode="after")
+    def _exit_reason_needs_a_day(self) -> WorkerEdit:
+        if (
+            "exit_reason" in self.model_fields_set
+            and self.exit_reason
+            and ("exit_on" in self.model_fields_set and self.exit_on is None)
+        ):
+            raise ValueError("A reason for leaving needs a leaving date")
+        return self
+
+
+class DocumentExpiryEdit(BaseModel):
+    expiry_date: date
 
 
 class Facet(BaseModel):

@@ -118,6 +118,7 @@ export type WorkerDetail = WorkerRow & {
   assignments: WorkerAssignment[];
   risks: WorkerRisk[];
   employment_status?: string | null;
+  designation?: string | null;
   contract_end_on?: string | null;
   exit_on?: string | null;
   exit_reason?: string | null;
@@ -619,6 +620,18 @@ export type ProjectDatesBody = { starts_on?: string; ends_on?: string };
 
 /** Which model tiers are switched on, so a screen can disable its AI buttons with a reason. */
 export type AiStatus = { light: boolean; mid: boolean };
+
+export type WorkerEditBody = {
+  full_name?: string;
+  trade?: string;
+  level?: number;
+  designation?: string | null;
+  phone?: string | null;
+  whatsapp_number?: string | null;
+  contract_end_on?: string | null;
+  exit_on?: string | null;
+  exit_reason?: "resigned" | "terminated" | "absconded" | "contract_ended" | "other" | null;
+};
 
 // ---- Virtual HR chat. An answer is blocks the screen draws; the numbers in them are Python's.
 

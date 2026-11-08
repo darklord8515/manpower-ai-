@@ -8,6 +8,7 @@ export const HR_USER = {
   roles: ["hr_manager"],
   permissions: [
     "employee:read",
+    "employee:write",
     "project:read",
     "project:write",
     "staffing:read",
@@ -37,6 +38,7 @@ export const EXEC_USER = {
   roles: ["hr_executive"],
   permissions: [
     "employee:read",
+    "employee:write",
     "project:read",
     "project:write",
     "staffing:read",
@@ -294,7 +296,7 @@ export const WORKER_ROWS = Array.from({ length: 30 }, (_, i) => {
   };
 });
 
-const WORKER_DETAIL = {
+export const WORKER_DETAIL = {
   ...WORKER_ROWS[0],
   documents: [
     {

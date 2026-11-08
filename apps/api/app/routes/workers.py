@@ -14,6 +14,7 @@ from app.audit import write_audit
 from app.auth.deps import AuthUser, get_clock, require
 from app.auth.scope import employee_scope, full_profile, masked
 from app.clock import Clock
+from app.config import Settings, get_settings
 from app.db import get_session
 from app.exports import csv_download
 from app.labels import DOCUMENT_LABEL, EXIT_LABEL, document_label
@@ -21,22 +22,27 @@ from app.schemas import (
     AssignmentDetail,
     DocumentBrief,
     DocumentDetail,
+    DocumentExpiryEdit,
     Facet,
     MobilizationBrief,
     Risk,
     WorkerDetail,
+    WorkerEdit,
     WorkerFacets,
     WorkerList,
     WorkerNumber,
     WorkerRow,
 )
+from app.services.alerts.engine import run_after_change
 from app.services.mobilization import stage_of
 
 router = APIRouter(prefix="/workers", tags=["workers"])
 
 SessionDep = Annotated[Session, Depends(get_session)]
 ClockDep = Annotated[Clock, Depends(get_clock)]
+SettingsDep = Annotated[Settings, Depends(get_settings)]
 Reader = Annotated[AuthUser, Depends(require("employee:read"))]
+Writer = Annotated[AuthUser, Depends(require("employee:write"))]
 SensitiveReader = Annotated[AuthUser, Depends(require("employee:read_sensitive"))]
 
 # Sorting is a whitelist, never the caller's text.
@@ -469,8 +475,8 @@ def get_worker(code: str, session: SessionDep, clock: ClockDep, user: Reader) ->
     employee = (
         session.execute(
             text(
-                """SELECT employment_status::text AS employment_status, contract_end_on, exit_on,
-                          exit_reason::text AS exit_reason
+                """SELECT employment_status::text AS employment_status, designation,
+                          contract_end_on, exit_on, exit_reason::text AS exit_reason
                    FROM employees WHERE employee_code = :code"""
             ),
             {"code": code},
@@ -486,10 +492,166 @@ def get_worker(code: str, session: SessionDep, clock: ClockDep, user: Reader) ->
         risks=_risks(raw_documents, raw_assignments, today)
         + _people_risks(dict(employee), raw_assignments, today),
         employment_status=employee["employment_status"],
+        designation=employee["designation"],
         contract_end_on=employee["contract_end_on"],
         exit_on=employee["exit_on"],
         exit_reason=employee["exit_reason"],
     )
+
+
+def _unprocessable(message: str) -> HTTPException:
+    return HTTPException(422, message)
+
+
+@router.patch("/{code}")
+def edit_worker(  # noqa: C901 - one list of checks, then one update
+    code: str,
+    body: WorkerEdit,
+    request: Request,
+    session: SessionDep,
+    clock: ClockDep,
+    settings: SettingsDep,
+    user: Writer,
+) -> WorkerDetail:
+    """HR edits a worker. Only what is sent changes; each change is checked and audited."""
+    sent = body.model_fields_set
+    if not sent:
+        raise _unprocessable("Nothing to change")
+    scope_sql, params = employee_scope(user, "employee:write")
+    row = (
+        session.execute(
+            text(
+                f"""SELECT e.id, e.full_name, e.designation, e.phone, e.whatsapp_number,
+                           e.joined_on, e.contract_end_on, e.exit_on,
+                           e.exit_reason::text AS exit_reason, e.primary_trade_id,
+                           t.name AS trade, es.level
+                    FROM employees e JOIN trades t ON t.id = e.primary_trade_id
+                    LEFT JOIN employee_skills es
+                      ON es.employee_id = e.id AND es.trade_id = e.primary_trade_id
+                    WHERE e.employee_code = :code AND ({scope_sql})"""  # noqa: S608
+            ),
+            {**params, "code": code},
+        )
+        .mappings()
+        .first()
+    )
+    if row is None:  # also when the worker is outside the caller's scope
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Worker not found")
+    for field in ("full_name", "trade", "level"):
+        if field in sent and getattr(body, field) is None:
+            raise _unprocessable(f"{field.replace('_', ' ').capitalize()} cannot be empty")
+    contract = body.contract_end_on if "contract_end_on" in sent else row["contract_end_on"]
+    leaving = body.exit_on if "exit_on" in sent else row["exit_on"]
+    joined: date | None = row["joined_on"]
+    if joined and contract and contract < joined:
+        raise _unprocessable(f"The contract cannot end before they joined on {_day(joined)}")
+    if joined and leaving and leaving < joined:
+        raise _unprocessable(f"The leaving date cannot be before they joined on {_day(joined)}")
+    trade_id = row["primary_trade_id"]
+    if "trade" in sent and body.trade:
+        found = session.execute(
+            text("SELECT id FROM trades WHERE lower(name) = lower(:n)"), {"n": body.trade}
+        ).first()
+        if found is None:
+            raise _unprocessable(f"There is no trade called {body.trade}")
+        trade_id = found.id
+
+    changes: dict[str, Any] = {}
+    for field in ("full_name", "designation", "phone", "whatsapp_number", "contract_end_on",
+                  "exit_on"):  # fmt: skip
+        if field in sent:
+            changes[field] = getattr(body, field)
+    if "exit_reason" in sent:
+        changes["exit_reason"] = body.exit_reason
+    if "exit_on" in sent and body.exit_on is None and "exit_reason" not in sent:
+        changes["exit_reason"] = None  # no leaving date, no reason for leaving
+    if trade_id != row["primary_trade_id"]:
+        changes["primary_trade_id"] = trade_id
+    before = {k: row[k] for k in changes if k in row.keys() and k != "primary_trade_id"}  # noqa: SIM118
+    if changes:
+        sets = ", ".join(
+            f"{k} = CAST(:{k} AS exit_reason)" if k == "exit_reason" else f"{k} = :{k}"
+            for k in changes
+        )
+        session.execute(
+            text(f"UPDATE employees SET {sets}, updated_at = now() WHERE id = :id"),  # noqa: S608
+            {**changes, "id": row["id"]},
+        )
+    if "level" in sent or trade_id != row["primary_trade_id"]:
+        level = body.level if "level" in sent else (row["level"] or 3)
+        session.execute(
+            text(
+                """INSERT INTO employee_skills (employee_id, trade_id, level)
+                   VALUES (:e, :t, :l)
+                   ON CONFLICT (employee_id, trade_id) DO UPDATE SET level = EXCLUDED.level"""
+            ),
+            {"e": row["id"], "t": trade_id, "l": level},
+        )
+    after = {k: v for k, v in changes.items() if k != "primary_trade_id"}
+    if "trade" in sent:
+        before["trade"], after["trade"] = row["trade"], body.trade
+    if "level" in sent:
+        before["level"], after["level"] = row["level"], body.level
+    write_audit(
+        session, request, "employee.edited", "employee", user, entity_id=row["id"],
+        before=before, after=after,
+    )  # fmt: skip
+    run_after_change(session, settings, clock)  # a new contract or leaving date can raise alerts
+    return get_worker(code, session, clock, user)
+
+
+@router.patch("/{code}/documents/{doc_type}")
+def edit_document_expiry(
+    code: str,
+    doc_type: str,
+    body: DocumentExpiryEdit,
+    request: Request,
+    session: SessionDep,
+    clock: ClockDep,
+    settings: SettingsDep,
+    user: Writer,
+) -> WorkerDetail:
+    """HR corrects when a current document runs out (after a renewal, or a typing mistake)."""
+    if doc_type not in DOCUMENT_LABEL:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Document not found")
+    scope_sql, params = employee_scope(user, "employee:write")
+    doc = (
+        session.execute(
+            text(
+                f"""SELECT d.id, d.expiry_date, d.issued_on, d.status::text AS status
+                    FROM employee_documents d JOIN employees e ON e.id = d.employee_id
+                    WHERE e.employee_code = :code AND d.doc_type = CAST(:doc_type AS document_type)
+                      AND d.is_current AND ({scope_sql})"""  # noqa: S608
+            ),
+            {**params, "code": code, "doc_type": doc_type},
+        )
+        .mappings()
+        .first()
+    )
+    if doc is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Document not found")
+    if doc["issued_on"] and body.expiry_date < doc["issued_on"]:
+        raise _unprocessable(f"It cannot run out before it was issued on {_day(doc['issued_on'])}")
+    # A renewed date on an expired document needs checking again, not a status saying expired.
+    status_now = (
+        "pending_check"
+        if doc["status"] == "expired" and body.expiry_date >= clock.today()
+        else doc["status"]
+    )
+    session.execute(
+        text(
+            """UPDATE employee_documents SET expiry_date = :d,
+                      status = CAST(:s AS document_status) WHERE id = :id"""
+        ),
+        {"d": body.expiry_date, "s": status_now, "id": doc["id"]},
+    )
+    write_audit(
+        session, request, "document.expiry_edited", "employee_document", user, entity_id=doc["id"],
+        before={"expiry_date": doc["expiry_date"], "status": doc["status"]},
+        after={"expiry_date": body.expiry_date, "status": status_now},
+    )  # fmt: skip
+    run_after_change(session, settings, clock)
+    return get_worker(code, session, clock, user)
 
 
 @router.post("/{code}/documents/{doc_type}/reveal")

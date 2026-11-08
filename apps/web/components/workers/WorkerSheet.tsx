@@ -1,17 +1,21 @@
 "use client";
 
-import { ArrowRightLeft, CalendarClock, CircleAlert, Phone, UserX } from "lucide-react";
+import { ArrowRightLeft, CalendarClock, CircleAlert, Pencil, Phone, UserX } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useUser } from "@/components/auth/AuthProvider";
 import { SlidingTabs } from "@/components/motion/SlidingTabs";
+import { BUTTON, FIELD, PRIMARY_BUTTON, SMALL_BUTTON } from "@/components/ui/button-styles";
 import { DetailSheet } from "@/components/ui/DetailSheet";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { SkeletonLoader } from "@/components/ui/SkeletonLoader";
 import { StatusChip } from "@/components/ui/StatusChip";
+import { api, ApiError } from "@/lib/api";
 import type { WorkerDetail, WorkerRisk } from "@/lib/api-types";
 import { DOCUMENT_NAME, NUMBER_NAME, timeLeft } from "@/lib/documents";
 import { formatDate } from "@/lib/format";
+import { EditWorker } from "./EditWorker";
 import { RevealNumber } from "./RevealNumber";
 import { useWorkerDetail } from "./useWorkers";
 import { WorkerStatusChip } from "./WorkerStatusChip";
@@ -112,7 +116,89 @@ function Overview({ worker }: { worker: WorkerDetail }) {
   );
 }
 
-function Documents({ worker }: { worker: WorkerDetail }) {
+/** HR corrects when a document runs out: one date field and Save, no dialog. */
+function ExpiryEditor({
+  worker,
+  type,
+  current,
+  onChanged,
+}: {
+  worker: WorkerDetail;
+  type: string;
+  current: string | null;
+  onChanged: (notice: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(current ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const name = DOCUMENT_NAME[type] ?? type;
+  if (!open)
+    return (
+      <button type="button" onClick={() => setOpen(true)} className={`${SMALL_BUTTON} mt-2`}>
+        <Pencil className="size-3.5" aria-hidden="true" />
+        Change date
+      </button>
+    );
+  return (
+    <form
+      className="mt-2 flex flex-col gap-2"
+      onSubmit={async (event) => {
+        event.preventDefault();
+        setSaving(true);
+        setError(null);
+        try {
+          await api.editDocumentExpiry(worker.code, type, value);
+          setOpen(false);
+          onChanged(`${name} now runs out on ${formatDate(value)}.`);
+        } catch (e) {
+          setError(e instanceof ApiError ? e.message : "Couldn’t save. Try again.");
+        } finally {
+          setSaving(false);
+        }
+      }}
+    >
+      <label className="text-xs font-medium text-muted" htmlFor={`exp-${type}`}>
+        {name} expires on
+      </label>
+      <div className="flex items-center gap-2">
+        <input
+          id={`exp-${type}`}
+          type="date"
+          required
+          className={FIELD}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+        />
+        <button
+          type="submit"
+          className={PRIMARY_BUTTON}
+          disabled={saving || !value || value === current}
+        >
+          {saving ? "Saving…" : "Save"}
+        </button>
+        <button type="button" className={BUTTON} onClick={() => setOpen(false)} disabled={saving}>
+          Cancel
+        </button>
+      </div>
+      {error && (
+        <p role="alert" className="text-xs text-danger-text">
+          {error}
+        </p>
+      )}
+    </form>
+  );
+}
+
+function Documents({
+  worker,
+  canEdit,
+  onChanged,
+}: {
+  worker: WorkerDetail;
+  canEdit: boolean;
+  onChanged: (notice: string) => void;
+}) {
   if (worker.documents.length === 0)
     return (
       <EmptyState icon={UserX} title="No documents on file">
@@ -150,6 +236,14 @@ function Documents({ worker }: { worker: WorkerDetail }) {
                 </Fact>
               )}
             </dl>
+            {canEdit && doc.expiry && (
+              <ExpiryEditor
+                worker={worker}
+                type={doc.type}
+                current={doc.expiry}
+                onChanged={onChanged}
+              />
+            )}
           </li>
         );
       })}
@@ -208,11 +302,39 @@ function Assignments({ worker }: { worker: WorkerDetail }) {
   );
 }
 
-function Profile({ worker, initialTab }: { worker: WorkerDetail; initialTab: TabId }) {
+function Profile({
+  worker,
+  initialTab,
+  canEdit,
+  onChanged,
+}: {
+  worker: WorkerDetail;
+  initialTab: TabId;
+  canEdit: boolean;
+  onChanged: (notice: string) => void;
+}) {
   const [tab, setTab] = useState<TabId>(initialTab);
+  const [editing, setEditing] = useState(false);
   const full = worker.status !== null; // the narrow projection has nothing but the overview
+  if (editing)
+    return (
+      <EditWorker
+        worker={worker}
+        onCancel={() => setEditing(false)}
+        onSaved={(_fresh, notice) => {
+          setEditing(false);
+          onChanged(notice);
+        }}
+      />
+    );
   return (
     <>
+      {canEdit && full && (
+        <button type="button" onClick={() => setEditing(true)} className={`${BUTTON} self-start`}>
+          <Pencil className="size-4" aria-hidden="true" />
+          Edit details
+        </button>
+      )}
       {full && (
         <SlidingTabs
           label="Worker details"
@@ -226,7 +348,7 @@ function Profile({ worker, initialTab }: { worker: WorkerDetail; initialTab: Tab
         />
       )}
       {tab === "overview" && <Overview worker={worker} />}
-      {tab === "documents" && <Documents worker={worker} />}
+      {tab === "documents" && <Documents worker={worker} canEdit={canEdit} onChanged={onChanged} />}
       {tab === "assignments" && <Assignments worker={worker} />}
     </>
   );
@@ -244,6 +366,10 @@ type Props = {
 
 export function WorkerSheet({ code, fallbackName, initialTab = "overview", onClose }: Props) {
   const { worker, error, loading, retry } = useWorkerDetail(code);
+  const canEdit = useUser().permissions.includes("employee:write");
+  // The message belongs to the worker it was about, so it never shows on someone else.
+  const [saved, setSaved] = useState<{ code: string; text: string } | null>(null);
+  const notice = saved && saved.code === code ? saved.text : null;
   return (
     <DetailSheet
       open={code !== null}
@@ -269,7 +395,26 @@ export function WorkerSheet({ code, fallbackName, initialTab = "overview", onClo
           {error.message}
         </ErrorState>
       )}
-      {worker && <Profile key={worker.code} worker={worker} initialTab={initialTab} />}
+      {notice && (
+        <p
+          role="status"
+          className="rounded-control bg-success-soft px-3 py-2 text-sm text-success-text"
+        >
+          {notice}
+        </p>
+      )}
+      {worker && (
+        <Profile
+          key={worker.code}
+          worker={worker}
+          initialTab={initialTab}
+          canEdit={canEdit}
+          onChanged={(text) => {
+            setSaved({ code: worker.code, text });
+            retry();
+          }}
+        />
+      )}
     </DetailSheet>
   );
 }
