@@ -237,22 +237,22 @@ Rules `CHAT_*` in `docs/rules.md`. Differences from the design above, on purpose
 
 ## 5. Mobilization Agent — `mobilization` · tier `light` · P6
 
-**Job.** Answers "where is this mobilization?", checks readiness against the checklist, and creates
-the department tasks once a mobilization is approved.
+**Job.** Answers "where is this mobilization?" and "who is stuck?" from the checklist. The checklist
+has three items for now (documents, PPE, induction); beds and transport are not part of the MVP.
+It only reads. The mobilization service creates the tasks on approval, and HR ticks them.
 
 | Tool | Inputs | Output | Permission |
 |---|---|---|---|
-| `list_mobilizations` | `from?`, `to?`, `project_code?`, `status?`, `limit` (≤ 50) | `[{mob_no, employee_code, name, project_code, report_on, status}]` | `mobilization:read [scoped]` |
-| `get_mobilization` | `mob_no` | Status, report date, bed and vehicle (labels only), readiness snapshot, tasks | `mobilization:read [scoped]` |
-| `check_readiness` | `mob_no` | `{ready, items[] {item: docs·ppe·induction·bed·transport, ok, detail}}` | `mobilization:read [scoped]` |
-| `create_mob_tasks` | `mob_no` | `[{task_id, department, title, due_on}]` — titles come from a fixed Python template | `mobilization:create [scoped]` |
+| `list_mobilizations` | `project?`, `overdue_only?`, `worker?` (employee code), `mob_no?` | Table of `{mob_no, worker, project, report_on, stage, tasks_done/total, overdue}`; one match also shows its tasks (title, due, done or open) | `mobilization:read [scoped]` |
 
-The mobilization service itself (P1) creates tasks on approval; this agent only answers questions
-and re-creates tasks if they were never created. `create_mob_tasks` refuses unless the mobilization
-is `approved` and has no open tasks yet (idempotent).
+The stage, "ready" and "overdue" come from `services/mobilization.py` (rule MOB_STAGE); the model
+only words the result. One tool replaces the earlier `get_mobilization`, `check_readiness` and
+`create_mob_tasks`: the first two are one read, and an agent never writes (CLAUDE.md), so the third
+is not built.
 
-**Must never.** Approve, cancel or complete a mobilization. Assign beds or vehicles (that is
-`logistics:assign`, a human action). Invent task titles outside the template. Send messages.
+**Must never.** Approve, cancel or complete a mobilization, tick or reopen a task, or confirm an
+arrival (buttons on permission-checked routes). Invent task titles outside the template. Send
+messages.
 
 ---
 

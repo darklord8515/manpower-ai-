@@ -14,7 +14,14 @@ from typing import Literal
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.ai.assistant.intents import Route, available_to, capabilities, employee_code, project_code
+from app.ai.assistant.intents import (
+    Route,
+    available_to,
+    capabilities,
+    employee_code,
+    mob_no,
+    project_code,
+)
 from app.ai.redact import RedactionError, check_messages
 from app.auth.deps import AuthUser
 from app.schemas import ChatAction, ChatAnswer
@@ -108,6 +115,9 @@ def check(message: str, user: AuthUser) -> Gated:
     code = employee_code(stripped)
     if code and re.fullmatch(r"(?i)emp[-\s]?\d{1,4}", stripped):
         return Gated(route=Route(intent="worker", code=code), source="pattern")
+    number = mob_no(stripped)
+    if number and re.fullmatch(r"(?i)mob[-\s]?\d{4}[-\s]?\d{1,4}", stripped):
+        return Gated(route=Route(intent="mobilizations", code=number), source="pattern")
     project = project_code(stripped)
     if project and re.fullmatch(r"(?i)[a-z]{2,4}[-\s]?\d{1,3}", stripped):
         return Gated(route=Route(intent="forecast", project=project), source="pattern")
@@ -147,6 +157,16 @@ def keyword_route(session: Session, message: str) -> Route | None:
         return Route(intent="documents", window=window, project=project)
     if re.search(r"\b(forecast|can we staff|gap|short of|shortage)\b", lower) and project:
         return Route(intent="forecast", project=project)
+    if re.search(
+        r"\b(mobili[sz]ations?|checklists?|report(?:s|ing)? to site|ready to report)\b", lower
+    ):
+        late = re.search(r"\b(overdue|stuck|late|delayed|behind)\b", lower)
+        return Route(
+            intent="mobilizations",
+            project=project,
+            code=mob_no(message) or employee_code(message),
+            status="overdue" if late else "ready" if "ready" in lower else None,
+        )
     if re.search(r"\b(requests?|approvals?)\b", lower):
         return Route(intent="requests", project=project)
     if re.search(r"\bprojects?\b", lower) and not trade:

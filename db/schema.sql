@@ -848,7 +848,7 @@ INSERT INTO agents (code, name, description, model_policy, allowed_tools, is_ena
                            'worker_profile','documents_expiring','list_alerts','list_projects',
                            'list_requests'], true),
  ('mobilization', 'Mobilization Agent', 'Checklists, readiness, department tasks',
-  '{"tier": "light"}', ARRAY['list_mobilizations','get_mobilization','check_readiness','create_mob_tasks'], true),
+  '{"tier": "light"}', ARRAY['list_mobilizations'], true),  -- read-only (migration 0014)
  ('demobilization', 'Demobilization Agent', 'Clearance tracking, reassignment suggestions',
   '{"tier": "light"}', ARRAY['get_demobilization','check_clearance','search_employees'], true),
  -- Post-MVP (docs/mvp-plan.md, "Path to production"). Document read tools moved to the Workforce Agent.

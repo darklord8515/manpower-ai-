@@ -497,7 +497,15 @@ def test_words_become_checked_values(migrated_db: Engine, make_client: Callable[
         assert ok(intent="forecast", project="RAK-07", when="next_90_days").params["start"] == (
             "2027-02-03"
         )
+        assert ok(intent="mobilizations", code="mob 2026 107").params == {"mob_no": "MOB-2026-0107"}
+        assert ok(intent="mobilizations", name="how is emp 107?").params == {"worker": "EMP-0107"}
+        assert ok(intent="mobilizations", status="stuck").params == {"overdue_only": True}
+        assert ok(intent="mobilizations", status="not started").params == {
+            "stage": "pending_checklist"
+        }
+        assert ok(intent="mobilizations", project="falcon villas").params == {"project": "RAK-07"}
         for bad in (
+            intents.Route(intent="mobilizations", status="sleepy"),
             intents.Route(intent="workers", trade="astronaut"),
             intents.Route(intent="workers", project="Atlantis"),
             intents.Route(intent="workers", status="sleepy"),
@@ -507,6 +515,77 @@ def test_words_become_checked_values(migrated_db: Engine, make_client: Callable[
             intents.Route(intent="worker"),
         ):
             assert isinstance(intents.resolve(s, bad, SEED_TODAY), intents.Clarify), bad
+
+
+# -------------------------------------------------------------------- the mobilization agent
+
+
+def test_who_is_stuck_in_mobilization_is_answered_from_the_pipeline_without_a_model(
+    desk: Desk,
+) -> None:
+    desk.use(None)
+    view = desk.ask("who is stuck in mobilization?")
+    assert view["status"] == "succeeded"
+    answer = view["answer"]
+    assert answer["agent"] == "mobilization" and answer["python_only"]
+    assert answer["sources"][0]["tool"] == "list_mobilizations"
+    assert answer["summary"] == "2 mobilizations match, 2 with an overdue task."
+    table = next(b for b in answer["blocks"] if b["type"] == "table")
+    api = desk.manager.get("/mobilizations", params={"overdue": "true"}).json()["items"]
+    assert [r["mob_no"] for r in table["rows"]] == [i["mob_no"] for i in api]
+    assert [s["title"] for s in view["steps"]] == [
+        "Understood the question",
+        "Read the mobilization pipeline",
+    ]
+
+
+def test_a_mobilization_number_shows_that_checklist(desk: Desk) -> None:
+    desk.use(None)
+    view = desk.ask("MOB-2026-0107")
+    tables = [b for b in view["answer"]["blocks"] if b["type"] == "table"]
+    assert [t.get("title") for t in tables] == [None, "Checklist"]
+    checklist = tables[1]["rows"]
+    assert [(r["task"], r["state"]) for r in checklist] == [
+        ("Verify residency visa and medical fitness", "Overdue"),
+        ("Issue PPE", "Done"),
+        ("Site induction", "Open"),
+    ]
+    assert tables[0]["rows"][0]["progress"] == "1 of 3"
+
+
+def test_asking_the_chat_to_tick_a_task_changes_nothing(desk: Desk) -> None:
+    desk.use(None)
+    before = desk.manager.get("/mobilizations/MOB-2026-0107").json()
+    view = desk.ask("mark the checklist done for MOB-2026-0107")
+    assert view["answer"]["kind"] == "data"  # it only reads
+    assert desk.manager.get("/mobilizations/MOB-2026-0107").json() == before
+    assert desk.one("SELECT allowed_tools FROM agents WHERE code = 'mobilization'") == [
+        "list_mobilizations"
+    ]
+    assert desk.one("SELECT count(*) FROM audit_log WHERE action LIKE 'mobilization.%'") == 0
+
+
+def test_the_ceo_can_ask_about_mobilizations_and_a_tool_needs_its_permission(
+    desk: Desk, migrated_db: Engine
+) -> None:
+    desk.use(None)
+    assert desk.ask("which mobilizations are overdue", who=desk.ceo)["status"] == "succeeded"
+    with Session(migrated_db) as session:
+        manager = session.execute(
+            text("SELECT id FROM users WHERE email = :e"), {"e": HR_MANAGER}
+        ).scalar_one()
+        user = load_user(session, manager)
+        assert user is not None
+        user.permissions.pop("mobilization:read")
+        run = open_run(
+            session, agent_code="supervisor", user_id=manager, user_input="t", intent="chat",
+            model="m",
+        )  # fmt: skip
+        ctx = ToolContext(
+            session, make_settings(), user, SEED_TODAY, {"clock": SimulatedClock(SEED_TODAY)}
+        )
+        with pytest.raises(ToolRefused):
+            call_tool(ctx, run, TOOLS["list_mobilizations"], {}, {"list_mobilizations"})
 
 
 def test_dates_for_words_like_next_month_are_python_dates() -> None:

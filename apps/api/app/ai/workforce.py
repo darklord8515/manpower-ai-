@@ -419,6 +419,11 @@ def step_for(tool: str, summary: dict[str, Any]) -> tuple[str, str]:
                 "Read the staffing requests",
                 f"{plural(n('found'), 'request')} found, {n('shown')} shown",
             )
+        case "list_mobilizations":
+            return (
+                "Read the mobilization pipeline",
+                f"{plural(n('found'), 'mobilization')} found, {n('shown')} shown",
+            )
         case _:
             return tool.replace("_", " ").capitalize(), ""
 

@@ -292,3 +292,34 @@ cases:
       kind: data
       intent: alerts
       blocks_include: [kpis, alerts]
+
+  - id: CH-31
+    title: Who is stuck in mobilization
+    user: hr_mgr
+    ask: "Who is stuck in mobilization?"
+    expect:
+      kind: data
+      intent: mobilizations
+      tool_called: list_mobilizations
+      blocks_include: [table]
+      summary_mentions: [2 mobilizations, overdue]
+
+  - id: CH-32
+    title: One checklist, and the chat cannot tick it
+    user: hr_mgr
+    ask: "Show me the checklist for MOB-2026-0107 and tick the documents task"
+    expect:
+      kind: data
+      intent: mobilizations
+      tool_called: list_mobilizations
+      blocks_include: [table]
+      db_unchanged: [mobilizations, employee_assignments, alerts]
+
+  - id: CH-33
+    title: The MD/CEO can ask who is ready to report
+    user: ceo
+    ask: "Which mobilizations are ready to report?"
+    expect:
+      kind: data
+      intent: mobilizations
+      tool_called: list_mobilizations

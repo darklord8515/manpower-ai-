@@ -41,6 +41,7 @@ from app.schemas import (
     TableBlock,
     WorkerRow,
 )
+from app.services import mobilization as mobilization_service
 from app.services.alerts import service as alerts_service
 from app.services.alerts.findings import day, plural
 from app.services.forecast import ForecastError, forecast_project
@@ -780,6 +781,121 @@ def list_requests(ctx: ToolContext, args: RequestsInput) -> ToolOutput:
     return ToolOutput({"findings": out}, {"found": len(found), "shown": len(rows)})
 
 
+# ------------------------------------------------------------------------------- mobilizations
+
+_STAGE_LABEL = {
+    "pending_checklist": "Pending checklist",
+    "in_progress": "In progress",
+    "ready": "Ready to report",
+    "on_site": "On site",
+}
+
+
+class MobilizationsInput(BaseModel):
+    project: str | None = None
+    mob_no: str | None = None
+    worker: str | None = None  # an employee code
+    overdue_only: bool = False
+    stage: str | None = None
+
+
+def list_mobilizations(ctx: ToolContext, args: MobilizationsInput) -> ToolOutput:
+    """The mobilization pipeline as the Mobilization screen shows it, read through the same
+    service and scope. One match also shows its checklist. Nothing here ticks or approves."""
+    today = _clock(ctx).today()
+    found = mobilization_service.mobilization_rows(
+        ctx.session,
+        ctx.user,
+        today,
+        q=args.mob_no or args.worker or "",
+        project=args.project or "",
+        overdue_only=args.overdue_only,
+    ).items
+    if args.stage:
+        found = [r for r in found if r.stage == args.stage]
+    rows: list[dict[str, str | int | None]] = [
+        {
+            "mob_no": r.mob_no,
+            "worker": f"{r.worker_name} ({r.worker_code})",
+            "project": r.project_code,
+            "reports": day(r.report_on),
+            "stage": _STAGE_LABEL[r.stage],
+            "progress": f"{r.tasks_done} of {r.tasks_total}",
+            "overdue": r.overdue or None,
+        }
+        for r in found[:SHOW]
+    ]
+    overdue = sum(1 for r in found if r.overdue)
+    facts: dict[str, Any] = {
+        "total": len(found),
+        "with_overdue_task": overdue,
+        "mobilizations": rows,
+    }
+    actions = [ChatAction(label="Open Mobilization", href="/mobilization")]
+    if not found:
+        out = Findings(
+            [],
+            facts,
+            "No mobilizations match.",
+            "Read the mobilization pipeline in your scope.",
+            actions,
+            empty=True,
+        )
+        return ToolOutput({"findings": out}, {"found": 0, "shown": 0})
+    blocks: list[ChatBlock] = [
+        _table(
+            [
+                ("mob_no", "Mobilization"),
+                ("worker", "Worker"),
+                ("project", "Project"),
+                ("reports", "Reports"),
+                ("stage", "Stage"),
+                ("progress", "Tasks done"),
+                ("overdue", "Overdue"),
+            ],
+            rows,
+            len(found),
+            href="/mobilization",
+        ),
+        *_more(len(found), len(rows)),
+    ]
+    if len(found) == 1:
+        detail = mobilization_service.mobilization_detail(
+            ctx.session, ctx.user, found[0].mob_no, today
+        )
+        if detail is not None:
+            tasks: list[dict[str, str | int | None]] = [
+                {
+                    "task": t.title,
+                    "department": t.department_name,
+                    "due": day(t.due_on) if t.due_on else None,
+                    "state": "Done" if t.status == "done" else "Overdue" if t.overdue else "Open",
+                }
+                for t in detail.tasks
+            ]
+            facts["checklist"] = tasks
+            blocks.append(
+                _table(
+                    [
+                        ("task", "Task"),
+                        ("department", "Department"),
+                        ("due", "Due"),
+                        ("state", "State"),
+                    ],
+                    tasks,
+                    len(tasks),
+                    title="Checklist",
+                )
+            )
+    template = f"{plural(len(found), 'mobilization')} match" + (
+        f", {overdue} with an overdue task." if overdue else "."
+    )
+    out = Findings(
+        blocks, facts, template, "Read the mobilization pipeline in your scope.", actions
+    )
+    return ToolOutput({"findings": out}, {"found": len(found), "shown": len(rows)})
+
+
 # ---------------------------------------------------------------------------------- the table
 
 TOOLS: dict[str, Tool] = {
@@ -833,6 +949,13 @@ TOOLS: dict[str, Tool] = {
             "staffing:read",
             RequestsInput,
             list_requests,
+        ),
+        Tool(
+            "list_mobilizations",
+            "The mobilization pipeline and, for one person, their checklist.",
+            "mobilization:read",
+            MobilizationsInput,
+            list_mobilizations,
         ),
     )
 }
