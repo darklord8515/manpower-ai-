@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { BellMenu } from "@/components/alerts/BellMenu";
 import { AssistantDrawer } from "@/components/assistant/AssistantDrawer";
+import { AssistantLauncher, showLauncher } from "@/components/assistant/AssistantLauncher";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useChat } from "@/lib/use-chat";
 import { PageTransition } from "@/components/motion/PageTransition";
@@ -191,11 +192,18 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main id="main" tabIndex={-1} className="mx-auto w-full max-w-360 flex-1 px-4 py-6 md:px-6">
+        <main
+          id="main"
+          tabIndex={-1}
+          className="mx-auto w-full max-w-360 flex-1 px-4 pt-6 pb-20 md:px-6"
+        >
           <PageTransition transitionKey={pathname}>{children}</PageTransition>
         </main>
       </div>
       {canAsk && <AssistantDrawer open={assistant} onOpenChange={setAssistant} chat={chat} />}
+      {showLauncher({ canAsk, pathname, open: assistant }) && (
+        <AssistantLauncher onOpen={() => setAssistant(true)} />
+      )}
     </div>
   );
 }
