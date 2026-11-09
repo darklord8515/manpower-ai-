@@ -10,7 +10,7 @@ const json = (route: Route, body: unknown, status = 200) =>
   route.fulfill({ status, json: body, headers: {} });
 
 type Stage = "pending_checklist" | "in_progress" | "ready" | "on_site";
-type Key = "documents" | "bed" | "transport" | "ppe" | "induction";
+type Key = "documents" | "ppe" | "induction";
 
 const TEMPLATE: { department: string; name: string; key: Key; title: string; before: number }[] = [
   {
@@ -19,20 +19,6 @@ const TEMPLATE: { department: string; name: string; key: Key; title: string; bef
     key: "documents",
     title: "Verify residency visa and medical fitness",
     before: 7,
-  },
-  {
-    department: "operations",
-    name: "Operations",
-    key: "bed",
-    title: "Assign a camp bed",
-    before: 3,
-  },
-  {
-    department: "operations",
-    name: "Operations",
-    key: "transport",
-    title: "Arrange transport to site",
-    before: 3,
   },
   { department: "site", name: "Site workforce", key: "ppe", title: "Issue PPE", before: 1 },
   {
@@ -43,7 +29,7 @@ const TEMPLATE: { department: string; name: string; key: Key; title: string; bef
     before: 0,
   },
 ];
-const ALL: Key[] = ["documents", "bed", "transport", "ppe", "induction"];
+const ALL: Key[] = ["documents", "ppe", "induction"];
 
 type Fake = {
   mob_no: string;
@@ -60,25 +46,11 @@ type Fake = {
 const PEOPLE: [string, string, string, string, string, Key[]][] = [
   ["Aamir Siddiqui", "EMP-0501", "Steel fixer", "RAK-03", "Greens", ALL],
   ["Basil Thomas", "EMP-0502", "Carpenter", "RAK-06", "Saij", ALL],
-  [
-    "Chandan Roy",
-    "EMP-0503",
-    "Mason",
-    "RAK-01",
-    "Marina Waterfront",
-    ["documents", "bed", "transport", "ppe"],
-  ],
-  [
-    "Dawood Karim",
-    "EMP-0504",
-    "Steel fixer",
-    "RAK-03",
-    "Greens",
-    ["documents", "bed", "transport"],
-  ],
-  ["Elias Mathew", "EMP-0505", "General labour", "RAK-02", "Aila Homes", ["documents", "bed"]],
+  ["Chandan Roy", "EMP-0503", "Mason", "RAK-01", "Marina Waterfront", ["documents", "ppe"]],
+  ["Dawood Karim", "EMP-0504", "Steel fixer", "RAK-03", "Greens", ["documents", "ppe"]],
+  ["Elias Mathew", "EMP-0505", "General labour", "RAK-02", "Aila Homes", ["documents"]],
   ["Faisal Noor", "EMP-0506", "Electrician", "RAK-05", "Beach Club", ["documents"]],
-  ["Girish Nair", "EMP-0507", "Mason", "RAK-01", "Marina Waterfront", ["bed", "transport", "ppe"]],
+  ["Girish Nair", "EMP-0507", "Mason", "RAK-01", "Marina Waterfront", ["ppe"]],
   ["Hassan Javed", "EMP-0508", "Carpenter", "RAK-06", "Saij", ["documents"]],
   ["Ismail Qadir", "EMP-0509", "Steel fixer", "RAK-03", "Greens", []],
 ];
@@ -133,7 +105,7 @@ export async function mockMobilizations(page: Page, options: MobilizationOptions
   const stageOf = (p: Fake): Stage =>
     p.arrived_on
       ? "on_site"
-      : p.done.size === 5
+      : p.done.size === TEMPLATE.length
         ? "ready"
         : p.done.size > 0
           ? "in_progress"
@@ -169,7 +141,7 @@ export async function mockMobilizations(page: Page, options: MobilizationOptions
       project_name: p.project_name,
       report_on: p.report_on,
       tasks_done: p.done.size,
-      tasks_total: 5,
+      tasks_total: TEMPLATE.length,
       overdue: t.filter((x) => x.overdue).length,
       arrived_on: p.arrived_on,
     };

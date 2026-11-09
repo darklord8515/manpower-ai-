@@ -3,9 +3,9 @@
 Runs on the seeded demo. Its nine Mobilizing workers are MOB-2026-0101 to 0109, all reporting on
 Sunday 8 Nov 2026 (the simulated date is Thursday 5 Nov):
 
-  0101 0102  all five tasks done (ready to report)
-  0103 0104  four and three done          0105 two done        0106 0108  one done
-  0107       bed, transport and PPE done; the documents check (due 1 Nov) and induction are open
+  0101 0102  all three tasks done (ready to report)
+  0103 0104  documents and PPE done        0105 0106 0108  documents done
+  0107       PPE done; the documents check (due 1 Nov) and induction are open
   0109       nothing done; the documents check is overdue
 
 HR (Manager and Executive) ticks tasks and confirms arrival; the MD/CEO only reads.
@@ -86,11 +86,11 @@ def pipeline(make_client: Any, migrated_db: Engine) -> Pipeline:
 @pytest.mark.parametrize(
     ("status", "done", "total", "stage"),
     [
-        ("approved", 0, 5, "pending_checklist"),
-        ("in_progress", 1, 5, "in_progress"),
-        ("in_progress", 4, 5, "in_progress"),
-        ("in_progress", 5, 5, "ready"),
-        ("completed", 5, 5, "on_site"),
+        ("approved", 0, 3, "pending_checklist"),
+        ("in_progress", 1, 3, "in_progress"),
+        ("in_progress", 2, 3, "in_progress"),
+        ("in_progress", 3, 3, "ready"),
+        ("completed", 3, 3, "on_site"),
         ("pending_approval", 0, 0, "pending_checklist"),
     ],
 )
@@ -117,7 +117,7 @@ def test_the_seeded_pipeline_has_nine_cards_in_their_stages(pipeline: Pipeline) 
         "pending_checklist": ["0109"],
     }
     stuck = pipeline.row("MOB-2026-0107")
-    assert (stuck["tasks_done"], stuck["tasks_total"], stuck["overdue"]) == (3, 5, 1)
+    assert (stuck["tasks_done"], stuck["tasks_total"], stuck["overdue"]) == (1, 3, 1)
     assert stuck["report_on"] == "2026-11-08" and stuck["arrived_on"] is None
     assert stuck["worker_name"] and stuck["worker_code"].startswith("EMP-")
     assert stuck["project_code"].startswith("RAK-")
@@ -145,14 +145,12 @@ def test_a_checklist_lists_its_tasks_by_department_with_who_did_them(pipeline: P
     detail = pipeline.detail("MOB-2026-0107")
     assert [(t["department"], t["title"]) for t in detail["tasks"]] == [
         ("hr", "Verify residency visa and medical fitness"),
-        ("operations", "Assign a camp bed"),
-        ("operations", "Arrange transport to site"),
         ("site", "Issue PPE"),
         ("site", "Site induction"),
     ]
-    docs, bed, *_rest, induction = detail["tasks"]
+    docs, ppe, induction = detail["tasks"]
     assert (docs["status"], docs["overdue"], docs["due_on"]) == ("open", True, "2026-11-01")
-    assert (bed["status"], bed["done_by"], bed["overdue"]) == ("done", "Mr Imtiyaz", False)
+    assert (ppe["status"], ppe["done_by"], ppe["overdue"]) == ("done", "Mr Imtiyaz", False)
     assert (induction["status"], induction["overdue"]) == ("open", False)  # due on the report day
     assert detail["can_update"] is True and detail["update_note"] is None
     assert detail["can_confirm_arrival"] is False
@@ -205,9 +203,7 @@ def test_ticking_a_task_moves_the_card_and_records_who(pipeline: Pipeline) -> No
     readiness = pipeline.scalar(
         "SELECT readiness FROM mobilizations WHERE mob_no = :n", n="MOB-2026-0109"
     )
-    assert readiness == {
-        "documents": True, "bed": False, "transport": False, "ppe": False, "induction": False,
-    }  # fmt: skip
+    assert readiness == {"documents": True, "ppe": False, "induction": False}
     audit = pipeline.scalar(
         "SELECT count(*) FROM audit_log WHERE action = 'mobilization.task_done'"
     )
@@ -260,7 +256,7 @@ def test_finishing_the_last_task_makes_the_card_ready(pipeline: Pipeline) -> Non
 
 
 def test_the_hr_executive_ticks_tasks_too(pipeline: Pipeline) -> None:
-    response = pipeline.tick("MOB-2026-0109", "Assign a camp bed", who=pipeline.executive)
+    response = pipeline.tick("MOB-2026-0109", "Issue PPE", who=pipeline.executive)
     assert response.status_code == 200, response.text
     assert response.json()["tasks"][1]["done_by"] == "Priya Demo"
 
@@ -320,11 +316,11 @@ def test_arrival_waits_for_the_report_day(pipeline: Pipeline) -> None:
 
 def test_arrival_waits_for_the_checklist_and_names_how_much_is_left(pipeline: Pipeline) -> None:
     pipeline.report_today("MOB-2026-0103")
-    response = pipeline.arrive("MOB-2026-0103")  # four of five done
+    response = pipeline.arrive("MOB-2026-0103")  # two of three done
     assert response.status_code == 409
     assert "Finish the checklist first: 1 task is still open." in response.text
     pipeline.report_today("MOB-2026-0105")
-    assert "3 tasks are still open" in pipeline.arrive("MOB-2026-0105").text
+    assert "2 tasks are still open" in pipeline.arrive("MOB-2026-0105").text
     detail = pipeline.detail("MOB-2026-0103")
     assert detail["can_confirm_arrival"] is False
     assert detail["arrival_note"] == "Finish the checklist first: 1 task is still open."
@@ -375,7 +371,7 @@ def test_arrival_happens_once_and_closes_the_checklist(pipeline: Pipeline) -> No
     assert again.status_code == 409 and "arrived on" in again.text
     reopen = pipeline.tick("MOB-2026-0102", "Issue PPE", action="reopen")
     assert reopen.status_code == 409 and "checklist is closed" in reopen.text
-    assert pipeline.row("MOB-2026-0102")["tasks_done"] == 5
+    assert pipeline.row("MOB-2026-0102")["tasks_done"] == 3
 
 
 def test_the_hr_executive_confirms_arrival_too(pipeline: Pipeline) -> None:
@@ -434,7 +430,7 @@ def test_a_worker_profile_shows_their_mobilization_number_and_progress(pipeline:
     brief = profile["assignments"][0]["mobilization"]
     assert brief == {
         "mob_no": "MOB-2026-0107", "status": "in_progress", "stage": "in_progress",
-        "tasks_done": 3, "tasks_total": 5,
+        "tasks_done": 1, "tasks_total": 3,
     }  # fmt: skip
     # People who are simply deployed have no mobilization.
     deployed = pipeline.manager.get("/workers", params={"status": "deployed"}).json()["items"][0]

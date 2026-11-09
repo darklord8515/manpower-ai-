@@ -367,8 +367,8 @@ def test_approving_plans_assignments_starts_mobilizations_and_updates_everything
             """SELECT count(*) FROM mobilization_tasks k
                JOIN mobilizations m ON m.id = k.mobilization_id WHERE NOT m.is_demo"""
         )
-        == 10
-    )  # five tasks each, made once
+        == 6
+    )  # three tasks each, made once
     assert (
         board.count(
             "SELECT count(*) FROM employees "

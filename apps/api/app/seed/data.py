@@ -237,18 +237,18 @@ REQUESTS: tuple[tuple[str, date, date, int, str, tuple[tuple[str, int, int], ...
 )  # fmt: skip
 
 # The nine seeded Mobilizing workers (in code order) become MOB-2026-0101 to 0109 with their tasks
-# part-way done: which of the five checklist items (documents, bed, transport, ppe, induction) are
-# done. Two are ready to report, five are part-way and two have not started. The seventh (0107) is
-# the stuck one: its documents check and induction are open, so the documents task is overdue.
+# part-way done: which of the three checklist items (documents, ppe, induction) are done. Two are
+# ready to report, six are part-way and one has not started. The seventh (0107) is the stuck one:
+# its documents check and induction are open, so the documents task is overdue.
 MOBILIZATION_FIRST_NUMBER = 101
 MOBILIZATION_DONE: tuple[tuple[str, ...], ...] = (
-    ("documents", "bed", "transport", "ppe", "induction"),
-    ("documents", "bed", "transport", "ppe", "induction"),
-    ("documents", "bed", "transport", "ppe"),
-    ("documents", "bed", "transport"),
-    ("documents", "bed"),
+    ("documents", "ppe", "induction"),
+    ("documents", "ppe", "induction"),
+    ("documents", "ppe"),
+    ("documents", "ppe"),
     ("documents",),
-    ("bed", "transport", "ppe"),
+    ("documents",),
+    ("ppe",),
     ("documents",),
     (),
 )

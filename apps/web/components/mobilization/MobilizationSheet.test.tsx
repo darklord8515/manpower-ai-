@@ -29,8 +29,6 @@ import { MobilizationSheet } from "./MobilizationSheet";
 
 const TITLES: [string, string, string][] = [
   ["hr", "Human Resources", "Verify residency visa and medical fitness"],
-  ["operations", "Operations", "Assign a camp bed"],
-  ["operations", "Operations", "Arrange transport to site"],
   ["site", "Site workforce", "Issue PPE"],
   ["site", "Site workforce", "Site induction"],
 ];
@@ -49,7 +47,7 @@ function detail(done: number, changes: Partial<MobilizationDetail> = {}): Mobili
   }));
   return {
     mob_no: "MOB-2026-0107",
-    stage: done === 5 ? "ready" : done > 0 ? "in_progress" : "pending_checklist",
+    stage: done === 3 ? "ready" : done > 0 ? "in_progress" : "pending_checklist",
     status: done > 0 ? "in_progress" : "approved",
     worker_code: "EMP-0507",
     worker_name: "Girish Nair",
@@ -58,7 +56,7 @@ function detail(done: number, changes: Partial<MobilizationDetail> = {}): Mobili
     project_name: "Marina Waterfront",
     report_on: "2026-11-08",
     tasks_done: done,
-    tasks_total: 5,
+    tasks_total: 3,
     overdue: done === 0 ? 1 : 0,
     arrived_on: null,
     tasks,
@@ -95,9 +93,8 @@ describe("MobilizationSheet", () => {
     setup();
     expect(screen.getByRole("status", { name: "Loading the checklist" })).toBeInTheDocument();
     expect(await screen.findByRole("region", { name: "Human Resources" })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Operations" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Site workforce" })).toBeInTheDocument();
-    expect(screen.getByText("2 of 5 tasks done")).toBeInTheDocument();
+    expect(screen.getByText("2 of 3 tasks done")).toBeInTheDocument();
     expect(screen.getAllByText("Done by Noura Demo, 4 Nov 2026")).toHaveLength(2);
     expect(api.mobilization).toHaveBeenCalledWith("MOB-2026-0107");
   });
@@ -111,7 +108,7 @@ describe("MobilizationSheet", () => {
         name: "Mark done: Verify residency visa and medical fitness",
       }),
     );
-    expect(await screen.findByText("1 of 5 tasks done")).toBeInTheDocument();
+    expect(await screen.findByText("1 of 3 tasks done")).toBeInTheDocument();
     expect(api.markTaskDone).toHaveBeenCalledWith("MOB-2026-0107", "task-0");
     expect(screen.getByRole("status", { name: "" })).toHaveTextContent(
       "Verify residency visa and medical fitness is done.",
@@ -128,7 +125,7 @@ describe("MobilizationSheet", () => {
         name: "Reopen Verify residency visa and medical fitness",
       }),
     );
-    expect(await screen.findByText("0 of 5 tasks done, 1 overdue")).toBeInTheDocument();
+    expect(await screen.findByText("0 of 3 tasks done, 1 overdue")).toBeInTheDocument();
     expect(api.reopenTask).toHaveBeenCalledWith("MOB-2026-0107", "task-0");
   });
 
@@ -140,7 +137,7 @@ describe("MobilizationSheet", () => {
     const { user, onChanged } = setup();
     await user.click(await screen.findByRole("button", { name: /Mark done: Issue PPE/ }));
     expect(await screen.findByRole("alert")).toHaveTextContent("checklist is closed");
-    expect(screen.getByText("0 of 5 tasks done, 1 overdue")).toBeInTheDocument();
+    expect(screen.getByText("0 of 3 tasks done, 1 overdue")).toBeInTheDocument();
     expect(onChanged).not.toHaveBeenCalled();
   });
 
@@ -161,7 +158,7 @@ describe("MobilizationSheet", () => {
   });
 
   it("explains why arrival cannot be confirmed yet", async () => {
-    api.mobilization.mockResolvedValue(detail(5));
+    api.mobilization.mockResolvedValue(detail(3));
     setup();
     expect(
       await screen.findByText("Reports on 8 Nov 2026. Arrival can be confirmed from that day."),
@@ -171,10 +168,10 @@ describe("MobilizationSheet", () => {
 
   it("confirms arrival, closes the checklist and tells the board who is now deployed", async () => {
     api.mobilization.mockResolvedValue(
-      detail(5, { can_confirm_arrival: true, arrival_note: null }),
+      detail(3, { can_confirm_arrival: true, arrival_note: null }),
     );
     api.confirmArrival.mockResolvedValue(
-      detail(5, {
+      detail(3, {
         stage: "on_site",
         status: "completed",
         arrived_on: "2026-11-08",
@@ -213,19 +210,19 @@ describe("MobilizationSheet", () => {
 
   it("shows the reason and a Retry when the checklist cannot be loaded", async () => {
     api.mobilization.mockRejectedValueOnce(new ApiError(500, "The checklist could not be opened."));
-    api.mobilization.mockResolvedValueOnce(detail(3));
+    api.mobilization.mockResolvedValueOnce(detail(2));
     const { user } = setup();
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "The checklist could not be opened.",
     );
     await user.click(screen.getByRole("button", { name: "Retry" }));
-    await waitFor(() => expect(screen.getByText("3 of 5 tasks done")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("2 of 3 tasks done")).toBeInTheDocument());
   });
 
   it("closes from the close button", async () => {
     api.mobilization.mockResolvedValue(detail(1));
     const { user, onClose } = setup();
-    await screen.findByRole("region", { name: "Operations" });
+    await screen.findByRole("region", { name: "Site workforce" });
     await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: /^Close/ }));
     expect(onClose).toHaveBeenCalled();
   });

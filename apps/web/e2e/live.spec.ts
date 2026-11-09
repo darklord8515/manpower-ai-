@@ -538,16 +538,14 @@ test("Mobilization: the seeded pipeline sits in its stages, and a profile shows 
 
   const stuck = pipelineCard(page, "MOB-2026-0107");
   await expect(stuck).toContainText("1 overdue");
-  await expect(stuck).toContainText("3 of 5 tasks done");
+  await expect(stuck).toContainText("1 of 3 tasks done");
   const code = /EMP-\d{4}/.exec(await stuck.innerText())?.[0] ?? "";
   await stuck.click();
   const sheet = page.getByRole("dialog");
   const docs = sheet.locator('li[data-task="Verify residency visa and medical fitness"]');
   await expect(docs).toContainText("Overdue");
   await expect(docs).toContainText("Due 1 Nov 2026");
-  await expect(sheet.locator('li[data-task="Assign a camp bed"]')).toContainText(
-    "Done by Noura Demo",
-  );
+  await expect(sheet.locator('li[data-task="Issue PPE"]')).toContainText("Done by Noura Demo");
   await expect(sheet.getByRole("button", { name: "Confirm arrival" })).toBeDisabled();
   await page.keyboard.press("Escape");
 
@@ -557,7 +555,7 @@ test("Mobilization: the seeded pipeline sits in its stages, and a profile shows 
     .getByRole("button", { name: /^Projects/ })
     .click();
   await expect(page.getByRole("link", { name: "MOB-2026-0107" })).toBeVisible();
-  await expect(page.getByRole("dialog").getByText("3 of 5 tasks done")).toBeVisible();
+  await expect(page.getByRole("dialog").getByText("1 of 3 tasks done")).toBeVisible();
 });
 
 test("Mobilization: the MD/CEO reads every checklist but cannot change one, even by asking the API", async ({

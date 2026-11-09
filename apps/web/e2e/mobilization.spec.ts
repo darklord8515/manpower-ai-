@@ -54,7 +54,7 @@ test("Mobilization is in the sidebar and shows everyone in their stage", async (
   const stuck = card(page, "MOB-2026-0107");
   await expect(stuck).toContainText("Girish Nair");
   await expect(stuck).toContainText("1 overdue");
-  await expect(stuck).toContainText("3 of 5 tasks done");
+  await expect(stuck).toContainText("1 of 3 tasks done");
   await expect(stuck).toContainText("Reports 8 Nov 2026");
   await expect(card(page, "MOB-2026-0105")).not.toContainText("overdue");
 });
@@ -67,15 +67,15 @@ test("a card opens the checklist by department, with what is overdue and who did
   await expect(sheet(page).getByRole("heading", { name: "Girish Nair" })).toBeVisible();
   await expect(page).toHaveURL(/\?mob=MOB-2026-0107/);
   await expect(sheet(page).getByText("MOB-2026-0107")).toBeVisible();
-  for (const department of ["Human Resources", "Operations", "Site workforce"]) {
+  for (const department of ["Human Resources", "Site workforce"]) {
     await expect(sheet(page).getByRole("region", { name: department })).toBeVisible();
   }
   await expect(task(page, DOCS)).toContainText("Due 1 Nov 2026");
   await expect(task(page, DOCS)).toContainText("Overdue");
-  await expect(task(page, "Assign a camp bed")).toContainText("Done by Noura Demo, 4 Nov 2026");
+  await expect(task(page, "Issue PPE")).toContainText("Done by Noura Demo, 4 Nov 2026");
   await expect(task(page, "Site induction")).toContainText("Due 8 Nov 2026");
   await expect(task(page, "Site induction")).not.toContainText("Overdue");
-  await expect(sheet(page).getByText("3 of 5 tasks done, 1 overdue")).toBeVisible();
+  await expect(sheet(page).getByText("1 of 3 tasks done, 1 overdue")).toBeVisible();
 });
 
 test("Esc closes the checklist and puts the focus back on the card", async ({ page }) => {
@@ -111,7 +111,7 @@ test("marking a task done updates the checklist and moves the card", async ({ pa
     .click();
   await expect(sheet(page).getByText(`${DOCS} is done.`)).toBeVisible();
   await expect(task(page, DOCS)).toContainText("Done by Noura Demo");
-  await expect(sheet(page).getByText("1 of 5 tasks done")).toBeVisible();
+  await expect(sheet(page).getByText("1 of 3 tasks done")).toBeVisible();
   expect(fake.seen.ticks).toEqual([{ mob: "MOB-2026-0109", task: DOCS, action: "done" }]);
   await page.keyboard.press("Escape");
   await expect(
@@ -142,7 +142,7 @@ test("when the server refuses a change, the sheet says why and nothing moves", a
     .getByRole("button", { name: `Mark done: ${DOCS}` })
     .click();
   await expect(sheet(page).getByRole("alert")).toContainText("MOB-2026-0109 is completed.");
-  await expect(sheet(page).getByText("0 of 5 tasks done")).toBeVisible();
+  await expect(sheet(page).getByText("0 of 3 tasks done")).toBeVisible();
 });
 
 test("arrival cannot be confirmed before the report day, and the sheet says when", async ({
@@ -203,7 +203,7 @@ test("the MD sees the pipeline and every checklist but cannot change anything", 
   await expect(
     sheet(page).getByRole("button", { name: /Mark done|Reopen|Confirm arrival/ }),
   ).toHaveCount(0);
-  await expect(task(page, "Assign a camp bed")).toContainText("Done by Noura Demo");
+  await expect(task(page, "Issue PPE")).toContainText("Done by Noura Demo");
 });
 
 test("the pipeline can be searched and filtered", async ({ page }) => {

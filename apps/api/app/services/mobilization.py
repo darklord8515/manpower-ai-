@@ -29,8 +29,6 @@ from app.schemas import (
 # (department code, readiness key, task, days before the report date it is due)
 TASK_TEMPLATE: tuple[tuple[str, str, str, int], ...] = (
     ("hr", "documents", "Verify residency visa and medical fitness", 7),
-    ("operations", "bed", "Assign a camp bed", 3),
-    ("operations", "transport", "Arrange transport to site", 3),
     ("site", "ppe", "Issue PPE", 1),
     ("site", "induction", "Site induction", 0),
 )
@@ -68,7 +66,7 @@ def next_mob_no(session: Session, year: int) -> str:
 
 
 def readiness_of(done_titles: set[str]) -> dict[str, bool]:
-    """The five readiness items, each true once its task is done."""
+    """The readiness items (documents, PPE, induction), each true once its task is done."""
     return {key: title in done_titles for title, key in _KEY_OF_TITLE.items()}
 
 

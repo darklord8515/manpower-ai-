@@ -41,7 +41,7 @@ system's rules, never from the AI; the AI explains and recommends, a person appr
   button) and to HR as a daily digest; escalation to the HR Manager and Operations if nobody acts.
 - **Planning**: when a project ends or starts, the system proposes who moves where and what to recruit and when
   (MOHRE quota, offer, entry permit, medical, residency), with owners and due dates.
-- **Readiness**: days before a mobilization, check people, documents, bed, transport and induction, and tell the right
+- **Readiness**: days before a mobilization, check people, documents, PPE and induction, and tell the right
   department.
 - **Reporting**: a weekly manpower brief and a monthly board pack, generated from the numbers; Excel in and out for payroll,
   attendance and recruitment agencies.

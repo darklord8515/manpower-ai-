@@ -286,8 +286,8 @@ logins); the MD/CEO can read everything and change nothing.
 - **Header:** the title, then one line from the data: "9 people being mobilized, 2 with an overdue
   task". Search (name, code, MOB number, project), project filter, "Overdue only".
 - **Checklist** (right-side `DetailSheet`, opened by a card or `?mob=MOB-2026-0107`): who, trade,
-  project, report day, progress, then the five tasks grouped by department (Human Resources,
-  Operations, Site workforce). Each task shows its due date and an "Overdue" chip, or "Done by
+  project, report day, progress, then the three tasks grouped by department (Human Resources,
+  Site workforce). Each task shows its due date and an "Overdue" chip, or "Done by
   Noura Demo, 4 Nov 2026". **Mark done** and **Reopen** are small buttons, server-confirmed with a
   pending state (never optimistic: the server can refuse); the answer is the whole checklist, so
   the progress bar, the stage chip in the header and the card behind the sheet move together.
