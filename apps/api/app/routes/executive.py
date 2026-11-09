@@ -254,11 +254,12 @@ def _reword(client: LLMClient, d: ExecutiveDashboard, fallback: list[str]) -> li
                 {"role": "user", "content": f"<facts>{facts}</facts>"},
             ],
             Wording,
-            max_tokens=900,
+            max_tokens=2500,  # a reasoning model spends most of its budget thinking first
         )
     except (LLMError, InvalidOutput, RedactionError):
         return None
-    allowed = allowed_tokens(d.model_dump(mode="json"), fallback)
+    # The 30 / 60 / 90 day windows are the Documents screen's own labels, not figures to check.
+    allowed = allowed_tokens(d.model_dump(mode="json"), fallback, "within 30, 60 and 90 days")
     for bullet in done.value.bullets:
         if unfaithful(bullet, allowed) or invented_names(
             bullet, d.model_dump(mode="json"), fallback

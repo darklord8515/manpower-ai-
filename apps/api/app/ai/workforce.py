@@ -495,7 +495,7 @@ def _explain(
         {"role": "user", "content": f"<forecast_data>\n{data}\n</forecast_data>"},
     ]
     try:
-        done = structured_call(client, messages, Explanation, max_tokens=500)
+        done = structured_call(client, messages, Explanation, max_tokens=2000)
     except RedactionError as error:
         return AgentResult("refused", f"LLM_REDACT: {error}", None, 0, 0)
     except LLMError as error:
