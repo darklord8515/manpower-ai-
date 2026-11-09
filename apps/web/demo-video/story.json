@@ -1,0 +1,63 @@
+{
+  "voice": "en-GB-RyanNeural",
+  "rate": "+0%",
+  "scenes": [
+    {
+      "id": "intro",
+      "narration": "Meet HAMRA AI, the AI workforce platform built for Alhamra Construction and Development."
+    },
+    {
+      "id": "home",
+      "caption": "One screen to start the day",
+      "narration": "HR starts every day on one screen: who is deployed, who is free, and which documents are about to expire."
+    },
+    {
+      "id": "staff",
+      "caption": "Every project, every person, by trade",
+      "narration": "Open any project to see its dates and every person on it, filtered by trade in one click."
+    },
+    {
+      "id": "lead",
+      "caption": "No lead? It tells you who is free, and when to recruit",
+      "narration": "When a project has no lead, HAMRA AI tells you who is free, who finishes first, and exactly when to recruit."
+    },
+    {
+      "id": "roles",
+      "caption": "Key roles worked out from the crew size",
+      "narration": "It also works out the key roles a crew needs, like site engineers and safety officers, from the crew size."
+    },
+    {
+      "id": "email",
+      "caption": "Excel list, previewed and emailed in one click",
+      "narration": "One click prepares the Excel list of people and emails it to the project lead, after a preview."
+    },
+    {
+      "id": "sent",
+      "caption": "Sent, logged and audited",
+      "narration": "Every email is logged, so nothing is lost."
+    },
+    {
+      "id": "profile",
+      "caption": "A profile for every worker",
+      "narration": "Every worker has a profile, with documents, expiry dates, and the projects they are on."
+    },
+    {
+      "id": "applicants",
+      "caption": "Applicants ranked by a transparent match score",
+      "narration": "Applicants are ranked by a transparent match score, and HR can invite them to an interview in one click."
+    },
+    {
+      "id": "chat",
+      "caption": "Virtual HR: ask in plain words",
+      "narration": "And Virtual HR answers questions in plain language, from the same trusted numbers."
+    },
+    {
+      "id": "future",
+      "narration": "And this is only the start. Coming next: projects managed even more easily, and processes automated with a click, that email and WhatsApp the right people. It will work on mobiles and laptops. AI will monitor attendance and report on it, and HAMRA AI will connect with your ERP and HRM systems."
+    },
+    {
+      "id": "outro",
+      "narration": "HAMRA AI. Your workforce, under control."
+    }
+  ]
+}

@@ -27,3 +27,4 @@ smarthr.dreamstechnologies.com/
 
 # Local file storage (worker photos)
 apps/api/uploads/
+apps/web/demo-video/out/
