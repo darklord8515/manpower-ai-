@@ -50,9 +50,6 @@ ROUTES: dict[str, dict[str, Any]] = {
     "Approve staffing request SR-2026-0001 and reserve the people now": {"intent": "requests"},
     "Show me the alerts": {"intent": "alerts"},
     "Who is stuck in mobilization?": {"intent": "mobilizations", "status": "stuck"},
-    "Show me the checklist for MOB-2026-0107 and tick the documents task": {
-        "intent": "mobilizations", "code": "MOB-2026-0107",
-    },
     "Which mobilizations are ready to report?": {"intent": "mobilizations", "status": "ready"},
 }  # fmt: skip
 

@@ -28,6 +28,23 @@ from app.schemas import ChatAction, ChatAnswer
 
 MAX_QUESTION = 1000
 
+# Asking the chat to change a mobilization: it only reads, and says so before any model is asked.
+_MOB_WRITE = re.compile(
+    r"\b(tick|untick|mark|approve|confirm|complete|cancel|reopen|close|finish)\b"
+    r".*\b(mob[-\s]?\d{4}[-\s]?\d{1,4}|mobili[sz]ations?|checklist|arrival|task)\b",
+    re.IGNORECASE,
+)
+_MOB_LATE = re.compile(r"\b(overdue|stuck|late|delayed|behind)\b", re.IGNORECASE)
+
+
+def mobilization_status_hint(message: str) -> str | None:
+    """The one filter a plain-words question about mobilizations can ask for. A model that sorts
+    the question may leave it out; Python adds it back so the table matches the question."""
+    if _MOB_LATE.search(message):
+        return "overdue"
+    return "ready" if re.search(r"\bready\b", message, re.IGNORECASE) else None
+
+
 _RESTRICTED = re.compile(
     r"\b(salar(?:y|ies)|wages?|pay\s?slips?|payroll"
     r"|how much (?:is|does|do) .{0,40}(?:paid|earn|make)"
@@ -115,6 +132,23 @@ def check(message: str, user: AuthUser) -> Gated:
     code = employee_code(stripped)
     if code and re.fullmatch(r"(?i)emp[-\s]?\d{1,4}", stripped):
         return Gated(route=Route(intent="worker", code=code), source="pattern")
+    if _MOB_WRITE.search(message):
+        found = mob_no(message)
+        return Gated(
+            ChatAnswer(
+                kind="info",
+                summary="I can only read mobilizations. I cannot tick a task, confirm an arrival "
+                "or approve anything: open the checklist and use its buttons.",
+                why="Changes are buttons on the Mobilization screen, so they are checked and "
+                "audited. The assistant never changes data.",
+                actions=[
+                    ChatAction(
+                        label="Open the checklist" if found else "Open Mobilization",
+                        href=f"/mobilization?mob={found}" if found else "/mobilization",
+                    )
+                ],
+            )
+        )
     number = mob_no(stripped)
     if number and re.fullmatch(r"(?i)mob[-\s]?\d{4}[-\s]?\d{1,4}", stripped):
         return Gated(route=Route(intent="mobilizations", code=number), source="pattern")
@@ -160,12 +194,11 @@ def keyword_route(session: Session, message: str) -> Route | None:
     if re.search(
         r"\b(mobili[sz]ations?|checklists?|report(?:s|ing)? to site|ready to report)\b", lower
     ):
-        late = re.search(r"\b(overdue|stuck|late|delayed|behind)\b", lower)
         return Route(
             intent="mobilizations",
             project=project,
             code=mob_no(message) or employee_code(message),
-            status="overdue" if late else "ready" if "ready" in lower else None,
+            status=mobilization_status_hint(message),
         )
     if re.search(r"\b(requests?|approvals?)\b", lower):
         return Route(intent="requests", project=project)

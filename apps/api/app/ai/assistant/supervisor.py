@@ -223,6 +223,9 @@ def answer_message(  # noqa: C901 - the pipeline reads best top to bottom
             input_tokens=tokens_in,
             output_tokens=tokens_out,
         )
+    if route.intent == "mobilizations" and route.status is None:
+        # "who is stuck" must filter to the stuck ones even if the model left the filter out
+        route = route.model_copy(update={"status": gate.mobilization_status_hint(message)})
     log_tool_call(
         session,
         run_id,

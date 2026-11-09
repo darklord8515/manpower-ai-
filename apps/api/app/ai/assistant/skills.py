@@ -794,7 +794,7 @@ _STAGE_LABEL = {
 class MobilizationsInput(BaseModel):
     project: str | None = None
     mob_no: str | None = None
-    worker: str | None = None  # an employee code
+    worker: str | None = None  # an employee code or part of a name
     overdue_only: bool = False
     stage: str | None = None
 

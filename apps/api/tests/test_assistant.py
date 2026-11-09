@@ -499,6 +499,7 @@ def test_words_become_checked_values(migrated_db: Engine, make_client: Callable[
         )
         assert ok(intent="mobilizations", code="mob 2026 107").params == {"mob_no": "MOB-2026-0107"}
         assert ok(intent="mobilizations", name="how is emp 107?").params == {"worker": "EMP-0107"}
+        assert ok(intent="mobilizations", name="Yusuf Demo").params == {"worker": "Yusuf Demo"}
         assert ok(intent="mobilizations", status="stuck").params == {"overdue_only": True}
         assert ok(intent="mobilizations", status="not started").params == {
             "stage": "pending_checklist"
@@ -539,6 +540,14 @@ def test_who_is_stuck_in_mobilization_is_answered_from_the_pipeline_without_a_mo
     ]
 
 
+def test_a_model_that_leaves_out_the_filter_still_gets_stuck_people_only(desk: Desk) -> None:
+    desk.use(scripted(route(intent="mobilizations")))  # the model sorted it but set no status
+    view = desk.ask("who is stuck in mobilization?")
+    table = next(b for b in view["answer"]["blocks"] if b["type"] == "table")
+    assert [r["mob_no"] for r in table["rows"]] == ["MOB-2026-0107", "MOB-2026-0109"]
+    assert "overdue" in view["answer"]["why"]
+
+
 def test_a_mobilization_number_shows_that_checklist(desk: Desk) -> None:
     desk.use(None)
     view = desk.ask("MOB-2026-0107")
@@ -557,7 +566,9 @@ def test_asking_the_chat_to_tick_a_task_changes_nothing(desk: Desk) -> None:
     desk.use(None)
     before = desk.manager.get("/mobilizations/MOB-2026-0107").json()
     view = desk.ask("mark the checklist done for MOB-2026-0107")
-    assert view["answer"]["kind"] == "data"  # it only reads
+    answer = view["answer"]
+    assert answer["kind"] == "info" and "only read" in answer["summary"]  # said before any model
+    assert answer["actions"][0]["href"] == "/mobilization?mob=MOB-2026-0107"
     assert desk.manager.get("/mobilizations/MOB-2026-0107").json() == before
     assert desk.one("SELECT allowed_tools FROM agents WHERE code = 'mobilization'") == [
         "list_mobilizations"

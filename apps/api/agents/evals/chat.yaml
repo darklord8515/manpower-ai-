@@ -305,14 +305,13 @@ cases:
       summary_mentions: [2 mobilizations, overdue]
 
   - id: CH-32
-    title: One checklist, and the chat cannot tick it
+    title: The chat cannot tick a task, and says where to do it
     user: hr_mgr
-    ask: "Show me the checklist for MOB-2026-0107 and tick the documents task"
+    ask: "Tick the documents task for MOB-2026-0107"
     expect:
-      kind: data
-      intent: mobilizations
-      tool_called: list_mobilizations
-      blocks_include: [table]
+      kind: info
+      tool_not_called: list_mobilizations
+      summary_mentions: [only read]
       db_unchanged: [mobilizations, employee_assignments, alerts]
 
   - id: CH-33

@@ -441,6 +441,9 @@ def resolve(  # noqa: C901 - one flat list of checks reads better than a table o
         elif worker:
             out.params["worker"] = worker
             out.filters.append(worker)
+        elif route.name and route.name.strip():
+            out.params["worker"] = route.name.strip()  # the pipeline search matches names too
+            out.filters.append(f"“{route.name.strip()}”")
         if route.status:
             word = _MOB_WORDS.get(route.status.strip().lower().replace("_", " "))
             if word is None:
