@@ -8,6 +8,7 @@ import {
   ListTodo,
   Truck,
   UserPlus,
+  UserSearch,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -100,6 +101,14 @@ export const NAV: NavItem[] = [
     icon: UserPlus,
     group: "Work",
     requires: "recruitment:read",
+  },
+  {
+    id: "applicants",
+    label: "Applicants",
+    href: "/applicants",
+    icon: UserSearch,
+    group: "Work",
+    requires: "staffing:read",
   },
 ];
 

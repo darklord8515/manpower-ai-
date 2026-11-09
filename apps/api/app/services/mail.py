@@ -65,26 +65,83 @@ def custom(first_name: str, sender: str, subject: str, message: str) -> tuple[st
     return subject.strip(), body
 
 
+def project_staff(
+    first_name: str, sender: str, project: str, dates: str, count: int
+) -> tuple[str, str]:
+    """The list of people planned or deployed on a project, for its lead (the Excel is attached)."""
+    subject = f"People on {project}"
+    body = (
+        f"Hello {first_name},\n\n"
+        f"Attached is the list of the {plural(count, 'person', 'people')} planned or deployed on "
+        f"{project} ({dates}): each person's trade, level, status, and dates on the project. It "
+        "holds no ID or phone numbers.\n\nPlease check it and reply to HR with any change you "
+        f"need.\n\nThank you,\n{sender}\nHR, {SIGN_OFF}"
+    )
+    return subject, body
+
+
+def recruitment_needs(
+    first_name: str, sender: str, project: str, lines: list[str]
+) -> tuple[str, str]:
+    """What still has to be recruited for a project, from the forecast (the Excel is attached)."""
+    subject = f"Recruitment needed for {project}"
+    body = (
+        f"Hello {first_name},\n\n"
+        f"For {project}, these roles still need recruiting. The numbers come from the manpower "
+        "forecast; the sheet attached has the detail.\n\n"
+        + "\n".join(f"- {line}" for line in lines)
+        + f"\n\nPlease tell HR which of these you can help with, or who you would select."
+        f"\n\nThank you,\n{sender}\nHR, {SIGN_OFF}"
+    )
+    return subject, body
+
+
+def interview(
+    first_name: str, sender: str, category: str, when: str, mode: str, venue: str, note: str | None
+) -> tuple[str, str]:
+    """An interview invitation to an applicant."""
+    where = "Online (link)" if mode == "online" else "In person (address)"
+    subject = f"Interview for the {category} position"
+    body = (
+        f"Hello {first_name},\n\n"
+        f"Thank you for applying for the {category} position at {SIGN_OFF}. We would like to "
+        f"invite you to an interview.\n\nWhen: {when} (UAE time)\n{where}: {venue}\n"
+        + (f"\n{note.strip()}\n" if note and note.strip() else "")
+        + f"\nPlease reply to this email to confirm that you can come.\n\n"
+        f"Thank you,\n{sender}\nHR, {SIGN_OFF}"
+    )
+    return subject, body
+
+
 def deliver(
     settings: Settings, message: Message, sender_name: str,
     transport: httpx.BaseTransport | None = None,
+    attachment: tuple[str, bytes, str] | None = None,
 ) -> None:  # fmt: skip
-    """Hand the message to n8n and wait for it to say it was sent. Raises MailError otherwise."""
+    """Hand the message to n8n and wait for it to say it was sent. Raises MailError otherwise.
+
+    An attachment is (file name, bytes, content type). With one, the message goes as a multipart
+    form so n8n receives the file as binary data to attach; without, it is the plain JSON as before.
+    """
     if not settings.n8n_hmac_secret:
         raise MailError("Email is not set up on this server (the n8n key is missing).")
+    fields = {
+        "to": message.to,
+        "subject": message.subject,
+        "text": message.body,
+        "from_name": "HAMRA AI",
+        "sent_by": sender_name,
+    }
     try:
         with httpx.Client(timeout=TIMEOUT_SECONDS, transport=transport) as client:
-            response = client.post(
-                f"{settings.n8n_base_url.rstrip('/')}{WEBHOOK}",
-                json={
-                    "to": message.to,
-                    "subject": message.subject,
-                    "text": message.body,
-                    "from_name": "HAMRA AI",
-                    "sent_by": sender_name,
-                },
-                headers={"X-Hamra-Key": settings.n8n_hmac_secret},
-            )
+            url = f"{settings.n8n_base_url.rstrip('/')}{WEBHOOK}"
+            headers = {"X-Hamra-Key": settings.n8n_hmac_secret}
+            if attachment is None:
+                response = client.post(url, json=fields, headers=headers)
+            else:
+                response = client.post(
+                    url, data=fields, files={"data": attachment}, headers=headers
+                )
     except httpx.HTTPError as error:
         raise MailError(
             "The mail service could not be reached. Check that n8n is running."

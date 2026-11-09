@@ -33,7 +33,9 @@
         "subject": "={{ $json.body.subject }}",
         "emailFormat": "text",
         "text": "={{ $json.body.text }}",
-        "options": {}
+        "options": {
+          "attachments": "={{ $binary && $binary.data ? 'data' : '' }}"
+        }
       },
       "credentials": { "smtp": { "id": "__SMTP_ID__", "name": "SMTP account" } }
     },

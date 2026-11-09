@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import { useUser } from "@/components/auth/AuthProvider";
+import { ProjectLeadership } from "./ProjectLeadership";
 import { Reveal } from "@/components/motion/Reveal";
 import { WorkerStatusChip } from "@/components/workers/WorkerStatusChip";
 import { BUTTON, FIELD, PRIMARY_BUTTON } from "@/components/ui/button-styles";
@@ -244,18 +245,26 @@ export function ProjectOverviewScreen({ code }: { code: string }) {
   const ai = useLoad(() => api.aiStatus(), "ai-status", canExplain);
   const [explain, setExplain] = useState(false);
   const [query, setQuery] = useState("");
+  const [trade, setTrade] = useState("");
 
   const o: ProjectOverview | null = overview.data;
+  // How many people each trade has on this project (the chips above the list).
+  const tradeCounts = useMemo(() => {
+    const found = new Map<string, number>();
+    for (const p of o?.staff ?? []) found.set(p.trade, (found.get(p.trade) ?? 0) + 1);
+    return [...found.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  }, [o]);
   const staff = useMemo(() => {
     const q = query.trim().toLowerCase();
     return (o?.staff ?? []).filter(
       (p) =>
-        !q ||
-        p.name.toLowerCase().includes(q) ||
-        p.code.toLowerCase().includes(q) ||
-        p.trade.toLowerCase().includes(q),
+        (!trade || p.trade === trade) &&
+        (!q ||
+          p.name.toLowerCase().includes(q) ||
+          p.code.toLowerCase().includes(q) ||
+          p.trade.toLowerCase().includes(q)),
     );
-  }, [o, query]);
+  }, [o, query, trade]);
 
   if (overview.loading)
     return <SkeletonLoader label="Loading the project" variant="rows" count={5} />;
@@ -450,6 +459,12 @@ export function ProjectOverviewScreen({ code }: { code: string }) {
         </Card>
       )}
 
+      <ProjectLeadership
+        code={o.code}
+        canForecast={canForecast}
+        canPeople={user.permissions.includes("employee:read")}
+      />
+
       <Card
         title="Staff on this project"
         subtitle={`${o.staff_total} ${o.staff_total === 1 ? "person" : "people"} planned or deployed`}
@@ -475,44 +490,75 @@ export function ProjectOverviewScreen({ code }: { code: string }) {
           <EmptyState icon={Users} title="Nobody is on this project yet" className="py-6">
             People appear here once a request for this project is approved.
           </EmptyState>
-        ) : staff.length === 0 ? (
-          <p className="m-0 text-sm text-muted">No one matches “{query}”.</p>
         ) : (
-          <div className="overflow-x-auto rounded-control border border-border">
-            <table className="w-full min-w-max border-collapse text-sm">
-              <caption className="sr-only">Staff on {o.name}</caption>
-              <thead>
-                <tr className="bg-sunken text-left text-xs text-muted">
-                  {["Code", "Name", "Trade", "Level", "Status", "From", "Until"].map((h) => (
-                    <th key={h} scope="col" className="px-3 py-2 font-medium">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {staff.map((p) => (
-                  <tr key={p.code} className="border-t border-border">
-                    <td className="px-3 py-2 font-mono text-xs">{p.code}</td>
-                    <td className="px-3 py-2">
-                      <Link
-                        href={`/workers?worker=${p.code}`}
-                        className="font-medium hover:underline"
-                      >
-                        {p.name}
-                      </Link>
-                    </td>
-                    <td className="px-3 py-2">{p.trade}</td>
-                    <td className="px-3 py-2 tabular-nums">{p.level ?? "—"}</td>
-                    <td className="px-3 py-2">
-                      <WorkerStatusChip status={p.status as never} />
-                    </td>
-                    <td className="px-3 py-2">{formatDate(p.starts)}</td>
-                    <td className="px-3 py-2">{p.ends ? formatDate(p.ends) : "Open"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="flex flex-col gap-3">
+            <div
+              role="group"
+              aria-label="Filter by trade"
+              className="flex gap-2 overflow-x-auto pb-1"
+            >
+              {[
+                ["", "All", o.staff.length] as const,
+                ...tradeCounts.map(([t, n]) => [t, t, n] as const),
+              ].map(([value, label, n]) => (
+                <button
+                  key={value || "all"}
+                  type="button"
+                  aria-pressed={trade === value}
+                  onClick={() => setTrade(value)}
+                  className={cn(
+                    "press inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-border-strong px-3 text-xs font-medium transition-colors",
+                    trade === value ? "bg-hover text-fg" : "bg-surface text-muted",
+                  )}
+                >
+                  {label}
+                  <span className="tabular-nums text-subtle">{n}</span>
+                </button>
+              ))}
+            </div>
+            {staff.length === 0 ? (
+              <p className="m-0 text-sm text-muted">
+                No one matches{query ? ` “${query}”` : ""}
+                {trade ? ` in ${trade}` : ""}.
+              </p>
+            ) : (
+              <div className="overflow-x-auto rounded-control border border-border">
+                <table className="w-full min-w-max border-collapse text-sm">
+                  <caption className="sr-only">Staff on {o.name}</caption>
+                  <thead>
+                    <tr className="bg-sunken text-left text-xs text-muted">
+                      {["Code", "Name", "Trade", "Level", "Status", "From", "Until"].map((h) => (
+                        <th key={h} scope="col" className="px-3 py-2 font-medium">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {staff.map((p) => (
+                      <tr key={p.code} className="border-t border-border">
+                        <td className="px-3 py-2 font-mono text-xs">{p.code}</td>
+                        <td className="px-3 py-2">
+                          <Link
+                            href={`/workers?worker=${p.code}`}
+                            className="font-medium hover:underline"
+                          >
+                            {p.name}
+                          </Link>
+                        </td>
+                        <td className="px-3 py-2">{p.trade}</td>
+                        <td className="px-3 py-2 tabular-nums">{p.level ?? "—"}</td>
+                        <td className="px-3 py-2">
+                          <WorkerStatusChip status={p.status as never} />
+                        </td>
+                        <td className="px-3 py-2">{formatDate(p.starts)}</td>
+                        <td className="px-3 py-2">{p.ends ? formatDate(p.ends) : "Open"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
       </Card>

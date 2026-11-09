@@ -124,6 +124,7 @@ export type WorkerDetail = WorkerRow & {
   contract_end_on?: string | null;
   exit_on?: string | null;
   exit_reason?: string | null;
+  has_photo?: boolean;
 };
 
 export type Facet = { value: string; count: number };
@@ -882,3 +883,89 @@ export type AgentRun = {
   started_at: string;
   finished_at: string | null;
 };
+
+// ------------------------------------------------------------ leadership, photos, applicants
+
+export type LeadPerson = { code: string; name: string; email: string | null };
+export type LeadCandidate = {
+  code: string;
+  name: string;
+  level: number | null;
+  busy_on: string | null;
+  busy_until: string | null;
+};
+export type KeyRoleRow = {
+  trade: string;
+  recommended: number;
+  planned: number;
+  people_free: number;
+  missing: number;
+};
+export type Leadership = {
+  lead: LeadPerson | null;
+  free: LeadCandidate[];
+  busy: LeadCandidate[];
+  advice: string;
+  crew: number;
+  key_roles: KeyRoleRow[];
+  can_edit: boolean;
+};
+export type KeyRolesAdded = { added: string[]; leadership: Leadership };
+export type ProjectEmailKind = "staff" | "recruitment";
+export type ProjectEmailPreview = {
+  to: string;
+  to_name: string;
+  subject: string;
+  body: string;
+  attachment: string;
+  rows: number;
+};
+
+export type ApplicantTier = "strong" | "good" | "partial";
+export type ApplicantRow = {
+  code: string;
+  name: string;
+  category: string;
+  years: number;
+  nationality: string | null;
+  location: string | null;
+  percent: number;
+  tier: ApplicantTier;
+  status: "new" | "shortlisted" | "interview_sent" | "rejected";
+};
+export type ApplicantList = {
+  items: ApplicantRow[];
+  categories: string[];
+  strong: number;
+  good: number;
+  summary: string;
+  demo: boolean;
+};
+export type ApplicantDetail = ApplicantRow & {
+  email: string | null;
+  skills: string[];
+  summary: string | null;
+  documents_ready: boolean;
+  available_from: string | null;
+  matched: string[];
+  missing: string[];
+  reasons: string[];
+  interviews: {
+    starts_at: string;
+    mode: "online" | "offline";
+    venue: string;
+    sent_to: string;
+    delivered: boolean;
+  }[];
+  can_invite: boolean;
+  demo: boolean;
+};
+export type InterviewBody = {
+  day: string;
+  at: string;
+  mode: "online" | "offline";
+  venue: string;
+  note?: string | null;
+  send_to?: string | null;
+};
+export type InterviewPreview = { to: string; subject: string; body: string };

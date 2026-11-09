@@ -404,10 +404,17 @@ def get_worker(code: str, session: SessionDep, clock: ClockDep, user: Reader) ->
     )
     if row is None:  # also when the worker exists but is outside the caller's scope
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Worker not found")
+    has_photo = bool(
+        session.execute(
+            text("SELECT photo_key IS NOT NULL FROM employees WHERE employee_code = :code"),
+            {"code": code},
+        ).scalar_one()
+    )
     if not full_profile(user):
         return WorkerDetail(
-            **_row(row, today, full=False).model_dump(), documents=[], assignments=[], risks=[]
-        )
+            **_row(row, today, full=False).model_dump(),
+            documents=[], assignments=[], risks=[], has_photo=has_photo,
+        )  # fmt: skip
     raw_documents = [
         dict(d)
         for d in session.execute(
@@ -497,6 +504,7 @@ def get_worker(code: str, session: SessionDep, clock: ClockDep, user: Reader) ->
         contract_end_on=employee["contract_end_on"],
         exit_on=employee["exit_on"],
         exit_reason=employee["exit_reason"],
+        has_photo=has_photo,
     )
 
 

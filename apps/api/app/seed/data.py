@@ -44,6 +44,14 @@ TRADE_GROUPS: dict[str, str] = {
     "General labour": "General",
     "Helper": "General",
     "Flagman": "General",
+    # Key roles of a project (staff, not crew). See services/leadership.py.
+    "Project manager": "Staff",
+    "Site engineer": "Staff",
+    "Supervisor": "Staff",
+    "Safety officer": "Staff",
+    "QA/QC inspector": "Staff",
+    "Surveyor": "Staff",
+    "Storekeeper": "Staff",
 }
 ALL_TRADES = list(TRADE_GROUPS)
 
@@ -257,3 +265,65 @@ MOBILIZATION_DONE: tuple[tuple[str, ...], ...] = (
 # Sites whose default shift ends later than the usual 12:30: (project, site number) -> end time.
 # RAK-01 site 2 works until 15:30, which runs into the (provisional) 2027 midday ban.
 SITE_SHIFT_ENDS: dict[tuple[str, int], str] = {("RAK-01", 2): "15:30"}
+
+
+# Project staff (key roles), all fictional. They sit outside the 150 generated workers, which a
+# test pins to the prototype. (code, name, trade, level, trade-specific note is not needed.)
+STAFF: tuple[tuple[str, str, str, int], ...] = (
+    ("EMP-0701", "Imran Qureshi", "Project manager", 5),
+    ("EMP-0702", "Vikram Nair", "Project manager", 5),
+    ("EMP-0703", "Hassan Suwaidi", "Project manager", 4),
+    ("EMP-0704", "Daniel Fernandes", "Project manager", 4),
+    ("EMP-0705", "Omar Haddad", "Project manager", 5),
+    ("EMP-0706", "Priya Menon", "Site engineer", 4),
+    ("EMP-0707", "Karthik Reddy", "Site engineer", 3),
+    ("EMP-0708", "Mustafa Rizvi", "Safety officer", 4),
+    ("EMP-0709", "Neha Kulkarni", "QA/QC inspector", 3),
+    ("EMP-0710", "Tariq Mahmood", "Surveyor", 3),
+    ("EMP-0711", "Joel Dsouza", "Supervisor", 3),
+    ("EMP-0712", "Sandeep Verma", "Storekeeper", 2),
+)
+# Who leads which project. RAK-06 has no lead yet and RAK-07 is not staffed, so HR can show
+# assigning one: RAK-02's and RAK-05's leads are free before RAK-07 starts, nobody is free for RAK-06.
+PROJECT_LEADS: dict[str, str] = {
+    "RAK-01": "EMP-0701",
+    "RAK-02": "EMP-0702",
+    "RAK-03": "EMP-0703",
+    "RAK-04": "EMP-0704",
+    "RAK-05": "EMP-0705",
+}
+
+# People who applied, for the demo page: (code, name, category, years, nationality, location,
+# skills, summary, documents ready, days until available). All fictional.
+APPLICANTS: tuple[tuple[str, str, str, int, str, str, tuple[str, ...], str, bool, int], ...] = (
+    ("APP-001", "Rafiq Ahmed", "Mason", 6, "Bangladesh", "Sharjah",
+     ("blockwork", "plastering", "tile setting", "reading drawings", "scaffold safety"),
+     "Six years on villa and tower finishes in the UAE.", True, 45),
+    ("APP-002", "Sunil Gurung", "Mason", 3, "Nepal", "Dubai",
+     ("blockwork", "plastering", "scaffold safety"),
+     "Three years of blockwork; documents still being renewed.", False, 10),
+    ("APP-003", "Mehmet Kaya", "Carpenter", 5, "Turkey", "Ajman",
+     ("formwork", "shuttering", "joinery", "power tools"),
+     "Formwork carpenter on two residential towers.", True, 7),
+    ("APP-004", "Arjun Pillai", "Carpenter", 3, "India", "Ras Al Khaimah",
+     ("formwork", "shuttering", "joinery", "reading drawings", "power tools"),
+     "Skilled in formwork and joinery; three years on site.", True, 14),
+    ("APP-005", "Sajid Hussain", "Steel fixer", 2, "Pakistan", "Abu Dhabi",
+     ("rebar cutting", "bar bending", "reading drawings", "tying", "crane signals"),
+     "Complete rebar skill set, two years since training.", True, 5),
+    ("APP-006", "Bijay Thapa", "Electrician", 6, "Nepal", "Dubai",
+     ("conduit", "cable pulling", "panel wiring", "testing"),
+     "Six years in MEP; documents need renewing.", False, 12),
+    ("APP-007", "Anwar Siddique", "Painter", 5, "Pakistan", "Sharjah",
+     ("surface preparation", "spray painting", "texture coating"),
+     "Interior and exterior painter; still learning waterproofing.", True, 9),
+    ("APP-008", "Rohan Mehta", "Project manager", 10, "India", "Dubai",
+     ("scheduling", "cost control", "client reporting", "HSE", "subcontractor management"),
+     "Ten years delivering residential and hospitality projects.", False, 20),
+    ("APP-009", "Lina Haddad", "Site engineer", 5, "Lebanon", "Ras Al Khaimah",
+     ("setting out", "quantity surveying", "quality inspection", "HSE"),
+     "Civil site engineer on two RAK projects.", True, 6),
+    ("APP-010", "Femi Adeyemi", "Safety officer", 3, "Nigeria", "Abu Dhabi",
+     ("HSE audits", "risk assessment", "toolbox talks"),
+     "Safety officer in training; NEBOSH certificate pending.", False, 15),
+)  # fmt: skip

@@ -13,6 +13,7 @@ from app.config import Settings, get_settings, validate_for_environment
 from app.routes import (
     agent,
     alerts,
+    applicants,
     assistant,
     auth,
     calendar,
@@ -22,12 +23,14 @@ from app.routes import (
     health,
     mobilizations,
     preferences,
+    project_leadership,
     project_overview,
     projects,
     recruitment,
     requests,
     reservations,
     worker_mail,
+    worker_photo,
     workers,
 )
 
@@ -95,6 +98,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(auth.router)
     app.include_router(workers.router)
     app.include_router(worker_mail.router)
+    app.include_router(worker_photo.router)
+    app.include_router(project_leadership.router)
+    app.include_router(applicants.router)
     app.include_router(executive.router)
     app.include_router(calendar.router)
     app.include_router(documents.router)

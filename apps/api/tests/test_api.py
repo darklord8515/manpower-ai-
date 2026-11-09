@@ -118,12 +118,12 @@ def test_the_demo_role_switcher_is_not_found_when_demo_mode_is_off(
 # --------------------------------------------------------------------------- workers and scope
 
 
-def test_hr_sees_all_150_workers_with_documents_counted_from_the_demo_date(
+def test_hr_sees_all_workers_with_documents_counted_from_the_demo_date(
     client: TestClient,
 ) -> None:
     sign_in(client, HR_MANAGER)
     page = client.get("/workers", params={"limit": 5, "sort": "docs"}).json()
-    assert page["total"] == 150 and len(page["items"]) == 5
+    assert page["total"] == 162 and len(page["items"]) == 5  # 150 workers and 12 staff
     # Two documents are already expired, then the first to run out is 3 days away (8 Nov 2026).
     assert [w["next_document"]["days_left"] for w in page["items"]][:3] == [-11, -4, 3]
     assert page["items"][2]["next_document"]["expiry"] == "2026-11-08"
@@ -132,7 +132,7 @@ def test_hr_sees_all_150_workers_with_documents_counted_from_the_demo_date(
 def test_workers_can_be_searched_filtered_and_sorted(client: TestClient) -> None:
     sign_in(client, HR_MANAGER)
     assert client.get("/workers", params={"q": "sanjeev"}).json()["total"] == 1
-    assert client.get("/workers", params={"status": "available"}).json()["total"] == 21
+    assert client.get("/workers", params={"status": "available"}).json()["total"] == 33
     assert client.get("/workers", params={"project": "RAK-03"}).json()["total"] == 19
     soon = client.get("/workers", params={"expiring_within": 30, "limit": 200}).json()
     assert soon["total"] >= 9 and all(w["next_document"]["days_left"] <= 30 for w in soon["items"])
@@ -153,7 +153,7 @@ def test_hostile_search_text_is_treated_as_plain_text(
         response = client.get("/workers", params={"q": attack, "trade": attack, "project": attack})
         assert response.status_code == 200 and response.json()["total"] == 0
     with migrated_db.connect() as c:
-        assert c.execute(text("SELECT count(*) FROM employees")).scalar_one() == 150
+        assert c.execute(text("SELECT count(*) FROM employees")).scalar_one() == 162
 
 
 def test_a_project_manager_only_sees_workers_on_their_projects(
@@ -210,7 +210,7 @@ def test_logistics_gets_only_name_code_trade_and_phone(
     add_user(migrated_db, "logistics@constructiq.test", "logistics_coordinator")
     sign_in(client, "logistics@constructiq.test")
     page = client.get("/workers", params={"limit": 3}).json()
-    assert page["total"] == 150
+    assert page["total"] == 162
     for worker in page["items"]:
         assert worker["name"] and worker["code"] and worker["trade"] and worker["phone"]
         assert worker["level"] is None and worker["status"] is None
@@ -274,8 +274,8 @@ def test_facets_count_the_directory_for_the_filter_chips(client: TestClient) -> 
     sign_in(client, HR_MANAGER)
     facets = client.get("/workers/facets").json()
     by_status = {f["value"]: f["count"] for f in facets["statuses"]}
-    assert by_status == {"deployed": 112, "available": 21, "mobilizing": 9, "unavailable": 8}
-    assert sum(f["count"] for f in facets["trades"]) == 150
+    assert by_status == {"deployed": 112, "available": 33, "mobilizing": 9, "unavailable": 8}
+    assert sum(f["count"] for f in facets["trades"]) == 162
     assert {f["value"] for f in facets["projects"]} >= {"RAK-01", "RAK-03"}
     assert facets["documents"]["expired"] == 2
 
@@ -286,7 +286,7 @@ def test_facets_for_a_narrow_projection_reveal_no_status_or_project(
     add_user(migrated_db, "logistics@constructiq.test", "logistics_coordinator")
     sign_in(client, "logistics@constructiq.test")
     facets = client.get("/workers/facets").json()
-    assert sum(f["count"] for f in facets["trades"]) == 150
+    assert sum(f["count"] for f in facets["trades"]) == 162
     assert facets["statuses"] == [] and facets["projects"] == []
     assert facets["documents"] == {"expired": 0, "expiring_30": 0}
 
@@ -373,7 +373,7 @@ def test_the_directory_can_be_exported_without_numbers_and_is_audited(
     body = response.content.decode("utf-8-sig")  # Excel needs the BOM; here we read past it
     lines = body.strip().splitlines()
     assert lines[0] == "Code,Name,Trade,Level,Status,Project,Phone,Next document,Expires"
-    assert len(lines) == 1 + 21
+    assert len(lines) == 1 + 33
     assert "784-" not in body
     with migrated_db.connect() as c:
         assert (
@@ -415,7 +415,7 @@ def test_projects_and_the_summary_match_the_ceo_dashboard(client: TestClient) ->
     summary = client.get("/summary").json()
     assert summary["today"] == SEED_TODAY.isoformat()
     assert summary["workforce"] == {
-        "total": 150, "deployed": 112, "mobilizing": 9, "available": 21, "unavailable": 8,
+        "total": 162, "deployed": 112, "mobilizing": 9, "available": 33, "unavailable": 8,
     }  # fmt: skip
     assert summary["documents"] == {"expired": 2, "d30": 8, "d60": 11, "d90": 17}
     projects = {p["code"]: p for p in summary["projects"]}

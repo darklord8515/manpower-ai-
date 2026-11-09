@@ -109,6 +109,7 @@ class WorkerDetail(WorkerRow):
     contract_end_on: date | None = None
     exit_on: date | None = None
     exit_reason: str | None = None
+    has_photo: bool = False  # the picture is at GET /workers/{code}/photo
 
 
 class WorkerNumber(BaseModel):

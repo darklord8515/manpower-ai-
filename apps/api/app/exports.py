@@ -31,3 +31,49 @@ def csv_download(
         media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+XLSX_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+
+def xlsx_bytes(sheets: Sequence[tuple[str, Sequence[str], Iterable[Sequence[object]]]]) -> bytes:
+    """An Excel file: one sheet per (title, header, rows). Bold frozen header, readable widths,
+    real dates, and every text cell made formula-safe like the CSV downloads."""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font
+    from openpyxl.utils import get_column_letter
+
+    book = Workbook()
+    for n, (title, header, rows) in enumerate(sheets):
+        sheet = book.active if n == 0 else book.create_sheet()
+        assert sheet is not None
+        sheet.title = title[:31]
+        sheet.append(list(header))
+        body = [[v if not isinstance(v, str) else csv_cell(v) for v in row] for row in rows]
+        widths = [len(h) for h in header]
+        for row in body:
+            sheet.append(["" if v is None else v for v in row])
+            for i, v in enumerate(row):
+                size = len(str(v)) if v is not None else 0
+                if i < len(widths):
+                    widths[i] = max(widths[i], size)
+                else:
+                    widths.append(size)
+        for cell in sheet[1]:
+            cell.font = Font(bold=True)
+        sheet.freeze_panes = "A2"
+        for i, width in enumerate(widths, start=1):
+            sheet.column_dimensions[get_column_letter(i)].width = min(max(width + 2, 10), 48)
+    out = io.BytesIO()
+    book.save(out)
+    return out.getvalue()
+
+
+def xlsx_download(
+    filename: str, sheets: Sequence[tuple[str, Sequence[str], Iterable[Sequence[object]]]]
+) -> Response:
+    return Response(
+        content=xlsx_bytes(sheets),
+        media_type=XLSX_TYPE,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

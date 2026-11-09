@@ -20,7 +20,9 @@ from app.config import ConfigError, Settings
 from app.seed.data import (
     ABSCONDED_ON,
     ALL_TRADES,
+    APPLICANTS,
     DOC_TYPE_CODE,
+    DOC_TYPES,
     EARLY_ENDS,
     GENERATED_CONTRACT_ENDS,
     GENERATED_EXITS,
@@ -29,11 +31,13 @@ from app.seed.data import (
     MOBILIZATION_FIRST_NUMBER,
     NAMED_CONTRACT_ENDS,
     NAMED_EXITS,
+    PROJECT_LEADS,
     PROJECTS,
     RECRUITMENT,
     REQUESTS,
     SEED_TODAY,
     SITE_SHIFT_ENDS,
+    STAFF,
     TRADE_GROUPS,
 )
 from app.seed.workers import WorkerSeed, build_workers
@@ -60,6 +64,8 @@ _RESET_ORDER = (
     "audit_log",
     "notifications",  # emails HR sent to workers point at employees
     "calendar_events",  # events HR typed in point at the person who added them
+    "applicant_interviews",  # invitations point at the user who sent them
+    "applicants",
     "mobilization_tasks",  # approving a line starts mobilizations; they point at assignments
     "mobilizations",
     "employee_assignments",
@@ -227,6 +233,7 @@ def seed_demo(connection: Connection, settings: Settings) -> dict[str, int]:
     )
 
     _load_workers(connection, workers, departments["site"], trades, projects)
+    _load_staff_and_applicants(connection, departments["site"], trades, projects)
     _raise_alerts(connection, settings)
     return {
         "workers": len(workers),
@@ -234,6 +241,83 @@ def seed_demo(connection: Connection, settings: Settings) -> dict[str, int]:
         "projects": len(PROJECTS),
         "users": len(DEMO_USERS),
     }
+
+
+def _load_staff_and_applicants(
+    connection: Connection,
+    department_id: uuid.UUID,
+    trades: dict[str, uuid.UUID],
+    projects: dict[str, uuid.UUID],
+) -> None:
+    """Project staff (key roles), who leads which project, and the demo applicants. They are added
+    after the 150 workers so that the prototype-matched list stays as it is."""
+    ids = {code: demo_id("employee", code) for code, _, _, _ in STAFF}
+    _insert(
+        connection,
+        """INSERT INTO employees
+               (id, employee_code, full_name, email, department_id, primary_trade_id,
+                employment_status, availability, joined_on, is_demo)
+           VALUES (:id, :code, :name, :email, :department_id, :trade_id,
+                   'active', 'available', :joined, true)""",
+        [
+            {
+                "id": ids[code], "code": code, "name": name,
+                "email": name.lower().replace(" ", ".") + "@example.test",
+                "department_id": department_id, "trade_id": trades[trade],
+                "joined": SEED_TODAY - timedelta(days=400 + i * 90),
+            }
+            for i, (code, name, trade, _level) in enumerate(STAFF)
+        ],
+    )  # fmt: skip
+    _insert(
+        connection,
+        """INSERT INTO employee_skills (employee_id, trade_id, level, verified)
+           VALUES (:employee_id, :trade_id, :level, true)""",
+        [
+            {"employee_id": ids[code], "trade_id": trades[trade], "level": level}
+            for code, _, trade, level in STAFF
+        ],
+    )
+    _insert(
+        connection,
+        """INSERT INTO employee_documents
+               (id, employee_id, doc_type, doc_number, expiry_date, status, is_current, is_demo)
+           VALUES (:id, :employee_id, CAST(:doc_type AS document_type), :number, :expiry,
+                   'verified', true, true)""",
+        [
+            {
+                "id": demo_id("document", f"{code}:{doc_type}"), "employee_id": ids[code],
+                "doc_type": DOC_TYPE_CODE[doc_type], "number": f"STAFF-{code[-3:]}-{k}",
+                "expiry": SEED_TODAY + timedelta(days=320 + i * 25 + k * 60),
+            }
+            for i, (code, _, _, _) in enumerate(STAFF)
+            for k, doc_type in enumerate(DOC_TYPES)
+        ],
+    )  # fmt: skip
+    for project, code in PROJECT_LEADS.items():
+        connection.execute(
+            text("UPDATE projects SET lead_employee_id = :e WHERE id = :p"),
+            {"e": ids[code], "p": projects[project]},
+        )
+    _insert(
+        connection,
+        """INSERT INTO applicants
+               (id, code, full_name, category, years_experience, nationality, location, email,
+                skills, summary, documents_ready, available_from, is_demo)
+           VALUES (:id, :code, :name, :category, :years, :nationality, :location, :email,
+                   :skills, :summary, :ready, :available, true)""",
+        [
+            {
+                "id": demo_id("applicant", code), "code": code, "name": name, "category": category,
+                "years": years, "nationality": nationality, "location": location,
+                "email": name.lower().replace(" ", ".") + "@example.test",
+                "skills": list(skills), "summary": summary, "ready": ready,
+                "available": SEED_TODAY + timedelta(days=days),
+            }
+            for code, name, category, years, nationality, location, skills, summary, ready, days
+            in APPLICANTS
+        ],
+    )  # fmt: skip
 
 
 def _raise_alerts(connection: Connection, settings: Settings) -> None:

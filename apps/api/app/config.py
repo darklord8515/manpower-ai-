@@ -88,6 +88,7 @@ class Settings(BaseSettings):
 
     # Storage adapter
     storage_backend: Literal["local", "s3"] = "local"
+    storage_local_dir: str = "uploads"  # where the local backend keeps files (git-ignored)
 
     # LLM tiers (provider + model come from config, never from code). *_free is true for
     # Groq / OpenRouter :free / Ollama and is refused in production. A tier with no model is off:

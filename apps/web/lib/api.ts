@@ -6,7 +6,15 @@ import type {
   AlertFilters,
   AlertList,
   AlertSummary,
+  ApplicantDetail,
+  ApplicantList,
   Assignee,
+  InterviewBody,
+  InterviewPreview,
+  KeyRolesAdded,
+  Leadership,
+  ProjectEmailKind,
+  ProjectEmailPreview,
   ChatRun,
   Brief,
   CalendarEntry,
@@ -348,6 +356,66 @@ export const api = {
   executiveBrief: () => request<Brief>("/executive/brief", { method: "POST" }),
   projectOverview: (code: string) =>
     request<ProjectOverview>(`/projects/${encodeURIComponent(code)}/overview`),
+  leadership: (code: string) =>
+    request<Leadership>(`/projects/${encodeURIComponent(code)}/leadership`),
+  assignLead: (code: string, employeeCode: string) =>
+    request<Leadership>(`/projects/${encodeURIComponent(code)}/lead`, {
+      method: "PUT",
+      body: JSON.stringify({ employee_code: employeeCode }),
+    }),
+  clearLead: (code: string) =>
+    request<Leadership>(`/projects/${encodeURIComponent(code)}/lead`, { method: "DELETE" }),
+  addKeyRoles: (code: string) =>
+    request<KeyRolesAdded>(`/projects/${encodeURIComponent(code)}/key-roles/add`, {
+      method: "POST",
+    }),
+  /** The Excel downloads are plain links: the browser sends the sign-in cookie. */
+  staffXlsxUrl: (code: string) => `/api/projects/${encodeURIComponent(code)}/staff.xlsx`,
+  recruitmentXlsxUrl: (code: string) =>
+    `/api/projects/${encodeURIComponent(code)}/recruitment.xlsx`,
+  previewProjectEmail: (code: string, kind: ProjectEmailKind) =>
+    request<ProjectEmailPreview>(`/projects/${encodeURIComponent(code)}/email/preview`, {
+      method: "POST",
+      body: JSON.stringify({ kind }),
+    }),
+  sendProjectEmail: (code: string, kind: ProjectEmailKind) =>
+    request<ProjectEmailPreview & { sent: boolean }>(
+      `/projects/${encodeURIComponent(code)}/email`,
+      { method: "POST", body: JSON.stringify({ kind }) },
+    ),
+  workerPhotoUrl: (code: string, version?: string | number) =>
+    `/api/workers/${encodeURIComponent(code)}/photo${version ? `?v=${version}` : ""}`,
+  uploadWorkerPhoto: (code: string, file: File) =>
+    request<void>(`/workers/${encodeURIComponent(code)}/photo`, {
+      method: "PUT",
+      body: file,
+      headers: { "Content-Type": file.type || "application/octet-stream" },
+    }),
+  removeWorkerPhoto: (code: string) =>
+    request<void>(`/workers/${encodeURIComponent(code)}/photo`, { method: "DELETE" }),
+  applicants: (category = "", minMatch = 0) => {
+    const params = new URLSearchParams();
+    if (category) params.set("category", category);
+    if (minMatch > 0) params.set("min_match", String(minMatch));
+    const query = params.toString();
+    return request<ApplicantList>(`/applicants${query ? `?${query}` : ""}`);
+  },
+  applicant: (code: string) => request<ApplicantDetail>(`/applicants/${encodeURIComponent(code)}`),
+  previewInterview: (code: string, body: InterviewBody) =>
+    request<InterviewPreview>(`/applicants/${encodeURIComponent(code)}/interview/preview`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  inviteApplicant: (code: string, body: InterviewBody) =>
+    request<InterviewPreview & { sent: boolean }>(
+      `/applicants/${encodeURIComponent(code)}/interview`,
+      { method: "POST", body: JSON.stringify(body) },
+    ),
+  setApplicantStatus: (code: string, status: "new" | "shortlisted" | "rejected") =>
+    request<ApplicantDetail>(`/applicants/${encodeURIComponent(code)}/status`, {
+      method: "POST",
+      body: JSON.stringify({ status }),
+    }),
   /** The exact email that would go to the worker. Nothing is sent. */
   previewWorkerEmail: (code: string, body: EmailBody) =>
     request<EmailPreview>(`/workers/${encodeURIComponent(code)}/email/preview`, {

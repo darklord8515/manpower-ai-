@@ -25,7 +25,7 @@ def _load(engine: Engine) -> None:
 
 def test_demo_data_matches_the_dashboards(migrated_db: Engine) -> None:
     _load(migrated_db)
-    assert _scalar(migrated_db, "SELECT count(*) FROM employees WHERE is_demo") == 150
+    assert _scalar(migrated_db, "SELECT count(*) FROM employees WHERE is_demo") == 162
     with migrated_db.connect() as connection:
         by_state = {
             row[0]: row[1]
@@ -44,7 +44,7 @@ def test_demo_data_matches_the_dashboards(migrated_db: Engine) -> None:
                 )
             )
         }
-    assert by_state == {"deployed": 112, "mobilizing": 9, "available": 21, "unavailable": 8}
+    assert by_state == {"deployed": 112, "mobilizing": 9, "available": 33, "unavailable": 8}
     assert deployed == {
         "RAK-01": 27, "RAK-02": 24, "RAK-03": 18, "RAK-04": 12, "RAK-05": 15, "RAK-06": 16,
     }  # fmt: skip
@@ -138,15 +138,15 @@ def test_reset_also_clears_mobilizations_started_by_approving_a_request(
         _scalar(migrated_db, "SELECT count(*) FROM mobilization_tasks WHERE title = 'Verify visa'")
         == 0
     )
-    assert _scalar(migrated_db, "SELECT count(*) FROM employees") == 150
+    assert _scalar(migrated_db, "SELECT count(*) FROM employees") == 162
 
 
 def test_seeding_twice_gives_the_same_database(migrated_db: Engine) -> None:
     _load(migrated_db)
     first = _scalar(migrated_db, "SELECT count(*) FROM employee_documents")
     _load(migrated_db)
-    assert _scalar(migrated_db, "SELECT count(*) FROM employees") == 150
-    assert _scalar(migrated_db, "SELECT count(*) FROM employee_documents") == first == 450
+    assert _scalar(migrated_db, "SELECT count(*) FROM employees") == 162
+    assert _scalar(migrated_db, "SELECT count(*) FROM employee_documents") == first == 486
 
 
 def test_seed_and_reset_refuse_to_run_in_production(migrated_db: Engine) -> None:

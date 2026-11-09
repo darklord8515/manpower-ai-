@@ -3,6 +3,7 @@
 import {
   ArrowRightLeft,
   CalendarClock,
+  Camera,
   CircleAlert,
   Mail,
   Pencil,
@@ -10,7 +11,7 @@ import {
   UserX,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useUser } from "@/components/auth/AuthProvider";
 import { SlidingTabs } from "@/components/motion/SlidingTabs";
 import { BUTTON, FIELD, PRIMARY_BUTTON, SMALL_BUTTON } from "@/components/ui/button-styles";
@@ -27,6 +28,7 @@ import { EditWorker } from "./EditWorker";
 import { EmailWorker } from "./EmailWorker";
 import { RevealNumber } from "./RevealNumber";
 import { useWorkerDetail } from "./useWorkers";
+import { WorkerAvatar } from "./WorkerAvatar";
 import { WorkerStatusChip } from "./WorkerStatusChip";
 
 export type TabId = "overview" | "documents" | "assignments";
@@ -325,7 +327,46 @@ function Profile({
   const [tab, setTab] = useState<TabId>(initialTab);
   const [editing, setEditing] = useState(false);
   const [emailing, setEmailing] = useState(false);
+  const [photoVersion, setPhotoVersion] = useState(0);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoProblem, setPhotoProblem] = useState<string | null>(null);
+  const picker = useRef<HTMLInputElement>(null);
   const full = worker.status !== null; // the narrow projection has nothing but the overview
+
+  async function changePhoto(file: File | undefined) {
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setPhotoProblem("The photo is too big. Use one under 2 MB.");
+      return;
+    }
+    setPhotoBusy(true);
+    setPhotoProblem(null);
+    try {
+      await api.uploadWorkerPhoto(worker.code, file);
+      setPhotoVersion(Date.now());
+      onChanged("Photo saved.");
+    } catch (e) {
+      setPhotoProblem(e instanceof ApiError ? e.message : "The photo could not be saved.");
+    } finally {
+      setPhotoBusy(false);
+      if (picker.current) picker.current.value = "";
+    }
+  }
+
+  async function removePhoto() {
+    setPhotoBusy(true);
+    setPhotoProblem(null);
+    try {
+      await api.removeWorkerPhoto(worker.code);
+      setPhotoVersion(Date.now());
+      onChanged("Photo removed.");
+    } catch (e) {
+      setPhotoProblem(e instanceof ApiError ? e.message : "The photo could not be removed.");
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
   if (emailing)
     return (
       <EmailWorker
@@ -350,6 +391,64 @@ function Profile({
     );
   return (
     <>
+      {full && (
+        <div className="flex flex-wrap items-center gap-3">
+          <WorkerAvatar
+            code={worker.code}
+            name={worker.name}
+            hasPhoto={worker.has_photo}
+            version={photoVersion || undefined}
+            className="size-16 text-lg"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="m-0 truncate font-semibold">{worker.designation ?? worker.trade}</p>
+            <p className="m-0 truncate text-xs text-muted">
+              {worker.project ? `On ${worker.project}` : "Not on a project"}
+              {worker.email ? ` · ${worker.email}` : ""}
+            </p>
+          </div>
+          {canEdit && (
+            <div className="flex gap-2">
+              <input
+                ref={picker}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                aria-label={`Choose a photo for ${worker.name}`}
+                tabIndex={-1}
+                onChange={(e) => void changePhoto(e.target.files?.[0])}
+              />
+              <button
+                type="button"
+                className={BUTTON}
+                disabled={photoBusy}
+                onClick={() => picker.current?.click()}
+              >
+                <Camera className="size-4" aria-hidden="true" />
+                {photoBusy ? "Saving…" : worker.has_photo ? "Change photo" : "Add photo"}
+              </button>
+              {worker.has_photo && (
+                <button
+                  type="button"
+                  className={BUTTON}
+                  disabled={photoBusy}
+                  onClick={() => void removePhoto()}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+      {photoProblem && (
+        <p
+          role="alert"
+          className="m-0 rounded-control bg-danger-soft px-3 py-2 text-sm text-danger-text"
+        >
+          {photoProblem}
+        </p>
+      )}
       {canEdit && full && (
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => setEditing(true)} className={BUTTON}>

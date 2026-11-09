@@ -146,7 +146,9 @@ CREATE TABLE employees (
     is_demo           boolean NOT NULL DEFAULT false,
     created_at        timestamptz NOT NULL DEFAULT now(),
     updated_at        timestamptz NOT NULL DEFAULT now(),
-    email             text                       -- optional; edited by HR (migration 0012)
+    email             text,                      -- optional; edited by HR (migration 0012)
+    photo_key         text,                      -- where the photo is kept (migration 0015)
+    photo_type        text
 );
 CREATE INDEX employees_trade_idx  ON employees (primary_trade_id, availability);
 CREATE INDEX employees_status_idx ON employees (employment_status);
@@ -195,6 +197,40 @@ CREATE TABLE leave_records (
     EXCLUDE USING gist (employee_id WITH =, period WITH &&)
 );
 
+-- People who applied (demo data for now) and the interview invitations HR sends (migration 0015).
+CREATE TABLE applicants (
+    id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    code             text NOT NULL UNIQUE,
+    full_name        text NOT NULL,
+    category         text NOT NULL,
+    years_experience integer NOT NULL CHECK (years_experience >= 0),
+    nationality      text,
+    location         text,
+    email            text,
+    skills           text[] NOT NULL DEFAULT '{}',
+    summary          text,
+    documents_ready  boolean NOT NULL DEFAULT false,
+    available_from   date,
+    status           text NOT NULL DEFAULT 'new'
+                     CHECK (status IN ('new', 'shortlisted', 'interview_sent', 'rejected')),
+    is_demo          boolean NOT NULL DEFAULT false,
+    created_at       timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE applicant_interviews (
+    id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    applicant_id uuid NOT NULL REFERENCES applicants(id) ON DELETE CASCADE,
+    starts_at    timestamptz NOT NULL,
+    mode         text NOT NULL CHECK (mode IN ('online', 'offline')),
+    venue        text NOT NULL,
+    note         text,
+    sent_to      text NOT NULL,
+    sent_by      uuid REFERENCES users(id),
+    delivered    boolean NOT NULL DEFAULT false,
+    created_at   timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX applicant_interviews_idx ON applicant_interviews (applicant_id, created_at);
+
 -- Events HR types into the calendar (migration 0013). Leaves, holidays and project dates are read
 -- from where they live; this holds only what a person adds by hand.
 CREATE TABLE calendar_events (
@@ -233,6 +269,7 @@ CREATE TABLE projects (
     description        text,
     is_demo            boolean NOT NULL DEFAULT false,
     created_at         timestamptz NOT NULL DEFAULT now(),
+    lead_employee_id   uuid REFERENCES employees(id),  -- the employee leading delivery (migration 0015)
     CHECK (ends_on IS NULL OR starts_on IS NULL OR ends_on >= starts_on)
 );
 

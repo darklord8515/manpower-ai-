@@ -98,7 +98,7 @@ def test_by_trade_numbers_add_up_to_the_workforce(client: TestClient) -> None:
     sign_in(client, HR_MANAGER)
     rows = client.get("/summary/trades").json()
     summary = client.get("/summary").json()
-    assert sum(r["total"] for r in rows) == summary["workforce"]["total"] == 150
+    assert sum(r["total"] for r in rows) == summary["workforce"]["total"] == 162
     for key in ("deployed", "mobilizing", "available", "unavailable"):
         assert sum(r[key] for r in rows) == summary["workforce"][key]
     by_name = {r["trade"]: r for r in rows}
