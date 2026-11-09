@@ -58,14 +58,14 @@ type Fake = {
 };
 
 const PEOPLE: [string, string, string, string, string, Key[]][] = [
-  ["Aamir Siddiqui", "EMP-0501", "Steel fixer", "RAK-03", "Coral Bay Residences, Block B", ALL],
-  ["Basil Thomas", "EMP-0502", "Carpenter", "RAK-06", "Dhayah Warehouse Units", ALL],
+  ["Aamir Siddiqui", "EMP-0501", "Steel fixer", "RAK-03", "Greens", ALL],
+  ["Basil Thomas", "EMP-0502", "Carpenter", "RAK-06", "Saij", ALL],
   [
     "Chandan Roy",
     "EMP-0503",
     "Mason",
     "RAK-01",
-    "Jebel Approach Road, Package 2",
+    "Marina Waterfront",
     ["documents", "bed", "transport", "ppe"],
   ],
   [
@@ -73,28 +73,14 @@ const PEOPLE: [string, string, string, string, string, Key[]][] = [
     "EMP-0504",
     "Steel fixer",
     "RAK-03",
-    "Coral Bay Residences, Block B",
+    "Greens",
     ["documents", "bed", "transport"],
   ],
-  [
-    "Elias Mathew",
-    "EMP-0505",
-    "General labour",
-    "RAK-02",
-    "Saqr Business Park",
-    ["documents", "bed"],
-  ],
-  ["Faisal Noor", "EMP-0506", "Electrician", "RAK-05", "Ghalilah School Extension", ["documents"]],
-  [
-    "Girish Nair",
-    "EMP-0507",
-    "Mason",
-    "RAK-01",
-    "Jebel Approach Road, Package 2",
-    ["bed", "transport", "ppe"],
-  ],
-  ["Hassan Javed", "EMP-0508", "Carpenter", "RAK-06", "Dhayah Warehouse Units", ["documents"]],
-  ["Ismail Qadir", "EMP-0509", "Steel fixer", "RAK-03", "Coral Bay Residences, Block B", []],
+  ["Elias Mathew", "EMP-0505", "General labour", "RAK-02", "Aila Homes", ["documents", "bed"]],
+  ["Faisal Noor", "EMP-0506", "Electrician", "RAK-05", "Beach Club", ["documents"]],
+  ["Girish Nair", "EMP-0507", "Mason", "RAK-01", "Marina Waterfront", ["bed", "transport", "ppe"]],
+  ["Hassan Javed", "EMP-0508", "Carpenter", "RAK-06", "Saij", ["documents"]],
+  ["Ismail Qadir", "EMP-0509", "Steel fixer", "RAK-03", "Greens", []],
 ];
 
 function fresh(): Fake[] {

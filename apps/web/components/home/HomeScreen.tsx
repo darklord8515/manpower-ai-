@@ -6,6 +6,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { KpiTile } from "@/components/ui/KpiTile";
 import { SkeletonLoader } from "@/components/ui/SkeletonLoader";
 import type { Summary } from "@/lib/api-types";
+import { Briefing, ExecutiveSections } from "./ExecutiveSections";
 import { HomeGrid } from "./HomeGrid";
 import { Hero } from "./Hero";
 import { useHomeData } from "./useHomeData";
@@ -140,6 +141,7 @@ export function HomeScreen() {
     <div className="flex flex-col gap-4">
       <Hero fullName={user.full_name} roleLabel={roleLabel} insight={summary.insight} />
       {isCeo ? <CeoKpis summary={summary} /> : <HrKpis summary={summary} />}
+      {isCeo ? <ExecutiveSections /> : <Briefing />}
       <HomeGrid kind={isCeo ? "executive" : "hr"} summary={summary} due={due} />
     </div>
   );

@@ -8,6 +8,15 @@ import type {
   AlertSummary,
   Assignee,
   ChatRun,
+  Brief,
+  CalendarEntry,
+  CalendarView,
+  EmailBody,
+  NewEvent,
+  NewLeave,
+  EmailPreview,
+  ExecutiveDashboard,
+  ProjectOverview,
   ChatStarted,
   ChatSuggestions,
   Conversation,
@@ -323,6 +332,31 @@ export const api = {
   editWorker: (code: string, body: WorkerEditBody) =>
     request<WorkerDetail>(`/workers/${encodeURIComponent(code)}`, {
       method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  calendar: (start: string, end: string) =>
+    request<CalendarView>(`/calendar?start=${start}&end=${end}`),
+  addCalendarEvent: (body: NewEvent) =>
+    request<CalendarEntry>("/calendar/events", { method: "POST", body: JSON.stringify(body) }),
+  removeCalendarEvent: (id: string) =>
+    request<void>(`/calendar/events/${id}`, { method: "DELETE" }),
+  addLeave: (body: NewLeave) =>
+    request<CalendarEntry>("/calendar/leaves", { method: "POST", body: JSON.stringify(body) }),
+  removeLeave: (id: string) => request<void>(`/calendar/leaves/${id}`, { method: "DELETE" }),
+  executiveDashboard: () => request<ExecutiveDashboard>("/executive/dashboard"),
+  /** A few lines on where the company stands, worded by AI from the numbers (or by Python). */
+  executiveBrief: () => request<Brief>("/executive/brief", { method: "POST" }),
+  projectOverview: (code: string) =>
+    request<ProjectOverview>(`/projects/${encodeURIComponent(code)}/overview`),
+  /** The exact email that would go to the worker. Nothing is sent. */
+  previewWorkerEmail: (code: string, body: EmailBody) =>
+    request<EmailPreview>(`/workers/${encodeURIComponent(code)}/email/preview`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  sendWorkerEmail: (code: string, body: EmailBody) =>
+    request<EmailPreview & { sent: boolean }>(`/workers/${encodeURIComponent(code)}/email`, {
+      method: "POST",
       body: JSON.stringify(body),
     }),
   editDocumentExpiry: (code: string, documentType: string, expiryDate: string) =>

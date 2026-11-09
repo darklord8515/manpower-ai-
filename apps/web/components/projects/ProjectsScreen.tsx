@@ -71,9 +71,13 @@ export function ProjectsScreen() {
       key: "project",
       header: "Project",
       cell: (p) => (
-        <span className="font-medium">
+        <Link
+          href={`/projects/${p.code}`}
+          className="font-medium underline-offset-2 hover:underline"
+          aria-label={`Open the ${p.name} overview`}
+        >
           <span className="font-mono text-xs text-subtle">{p.code}</span> {p.name}
-        </span>
+        </Link>
       ),
     },
     { key: "status", header: "Status", cell: (p) => <ProjectStatus status={p.status} /> },

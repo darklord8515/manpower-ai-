@@ -55,7 +55,7 @@ function detail(done: number, changes: Partial<MobilizationDetail> = {}): Mobili
     worker_name: "Girish Nair",
     trade: "Mason",
     project_code: "RAK-01",
-    project_name: "Jebel Approach Road",
+    project_name: "Marina Waterfront",
     report_on: "2026-11-08",
     tasks_done: done,
     tasks_total: 5,

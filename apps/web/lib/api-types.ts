@@ -119,6 +119,8 @@ export type WorkerDetail = WorkerRow & {
   risks: WorkerRisk[];
   employment_status?: string | null;
   designation?: string | null;
+  /** Only HR who may edit workers get this. */
+  email?: string | null;
   contract_end_on?: string | null;
   exit_on?: string | null;
   exit_reason?: string | null;
@@ -621,7 +623,139 @@ export type ProjectDatesBody = { starts_on?: string; ends_on?: string };
 /** Which model tiers are switched on, so a screen can disable its AI buttons with a reason. */
 export type AiStatus = { light: boolean; mid: boolean };
 
+export type ProjectOverview = {
+  code: string;
+  name: string;
+  status: string;
+  description: string | null;
+  client: string | null;
+  starts: string | null;
+  ends: string | null;
+  /** Percent of the planned period that has passed. */
+  progress: number | null;
+  days_left: number | null;
+  planned: number;
+  deployed: number;
+  mobilizing: number;
+  gap: number;
+  sites: {
+    name: string;
+    emirate: string;
+    latitude: number | null;
+    longitude: number | null;
+    outdoor: boolean;
+  }[];
+  trades: { trade: string; planned: number; deployed: number; mobilizing: number; gap: number }[];
+  staff: {
+    code: string;
+    name: string;
+    trade: string;
+    level: number | null;
+    status: string;
+    starts: string;
+    ends: string | null;
+    site: string | null;
+  }[];
+  staff_total: number;
+};
+
+export type CalendarKind =
+  | "leave"
+  | "holiday"
+  | "project_start"
+  | "project_end"
+  | "documents"
+  | "contract"
+  | "leaving"
+  | "mobilization"
+  | "event"
+  | "meeting"
+  | "deadline";
+
+export type CalendarEntry = {
+  id: string;
+  kind: CalendarKind;
+  title: string;
+  detail: string | null;
+  starts: string;
+  ends: string;
+  href: string | null;
+  editable: boolean;
+  /** A holiday whose dates are the usual ones, not yet announced. */
+  expected: boolean;
+};
+
+export type CalendarView = {
+  start: string;
+  end: string;
+  today: string;
+  can_edit: boolean;
+  entries: CalendarEntry[];
+};
+
+export type NewEvent = {
+  title: string;
+  starts_on: string;
+  ends_on?: string;
+  kind: "event" | "meeting" | "deadline";
+  note?: string;
+};
+
+export type NewLeave = {
+  employee_code: string;
+  leave_type: "annual" | "sick" | "emergency" | "unpaid";
+  starts_on: string;
+  ends_on: string;
+};
+
+export type ExecProject = {
+  code: string;
+  name: string;
+  status: string;
+  starts: string | null;
+  ends: string | null;
+  progress: number | null;
+  planned: number;
+  deployed: number;
+  gap: number;
+  health: "on_track" | "needs_people" | "at_risk" | "planning" | "done";
+};
+
+export type ExecutiveDashboard = {
+  today: string;
+  people: {
+    total: number;
+    deployed: number;
+    mobilizing: number;
+    available: number;
+    unavailable: number;
+  };
+  projects: ExecProject[];
+  hr: {
+    critical: number;
+    action_needed: number;
+    info: number;
+    approvals_waiting: number;
+    oldest_wait_days: number | null;
+    recruitment_open: number;
+    recruitment_people: number;
+    stages: { stage: string; label: string; count: number }[];
+    documents: { expired: number; d30: number; d60: number; d90: number };
+    leaving_soon: number;
+  };
+};
+
+export type Brief = { bullets: string[]; ai_worded: boolean; as_of: string };
+
+export type EmailBody = {
+  template: "document_renewal" | "custom";
+  subject?: string;
+  message?: string;
+};
+export type EmailPreview = { to: string; subject: string; body: string };
+
 export type WorkerEditBody = {
+  email?: string | null;
   full_name?: string;
   trade?: string;
   level?: number;

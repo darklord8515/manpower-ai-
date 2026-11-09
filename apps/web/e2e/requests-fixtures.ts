@@ -343,7 +343,7 @@ export async function mockRequests(page: Page, options: RequestsOptions = {}) {
         const created: FakeRequest = {
           request_no: `SR-2026-${String(nextRequest++).padStart(4, "0")}`,
           project_code: sent.project,
-          project_name: "Shamal Logistics Hub",
+          project_name: "Falcon Villas",
           needed_from: sent.needed_from,
           needed_until: sent.needed_until,
           priority: sent.priority,

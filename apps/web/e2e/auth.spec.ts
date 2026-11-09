@@ -124,6 +124,7 @@ test.describe("the app", () => {
     await expect(page.getByRole("navigation", { name: "Main" }).getByRole("link")).toHaveText([
       "Home",
       "To-do",
+      "Calendar",
       "Virtual HR",
       "Workers",
       "Documents",

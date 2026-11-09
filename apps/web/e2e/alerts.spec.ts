@@ -263,7 +263,7 @@ test("an alert that cannot be opened shows the reason and a Retry", async ({ pag
 
 test("a link with ?alert= opens that alert straight away", async ({ page }) => {
   await open(page, {}, undefined, "/todo?alert=alert-short");
-  await expect(sheet(page).getByText(/Shamal Logistics Hub needs 12 general labour/)).toBeVisible();
+  await expect(sheet(page).getByText(/Falcon Villas needs 12 general labour/)).toBeVisible();
   await expect(sheet(page).getByRole("link", { name: "Open forecast" })).toHaveAttribute(
     "href",
     "/projects/RAK-07/forecast",

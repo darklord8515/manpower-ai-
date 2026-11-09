@@ -121,6 +121,8 @@ class Settings(BaseSettings):
     llm_paid_providers: str = ""
     # Sent to OpenRouter so it can label the app in its dashboard.
     web_base_url: str = "http://localhost:3000"
+    # Where n8n is. Emails and schedules go through it; the mail account's login lives in n8n.
+    n8n_base_url: str = "http://localhost:5678"
 
     # Business config
     doc_check_default_horizon_days: int = Field(default=90, ge=1, le=365)

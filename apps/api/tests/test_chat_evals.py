@@ -35,8 +35,8 @@ ROUTES: dict[str, dict[str, Any]] = {
     },
     "Can we staff the new project?": {"intent": "forecast"},
     "Show me the staffing requests": {"intent": "requests"},
-    "Who is working on Shamal Logistics Hub?": {
-        "intent": "workers", "project": "Shamal Logistics Hub",
+    "Who is working on Falcon Villas?": {
+        "intent": "workers", "project": "Falcon Villas",
     },
     "wat docs r expiring soon pls": {"intent": "documents", "window": "d30"},
     "and next month?": {"intent": "forecast", "project": "RAK-07", "when": "next_month"},

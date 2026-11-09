@@ -18,7 +18,7 @@ import { NewRequestSheet } from "./NewRequestSheet";
 const PROJECTS = [
   {
     code: "RAK-07",
-    name: "Shamal Logistics Hub",
+    name: "Falcon Villas",
     status: "planning",
     starts: "2027-02-12",
     ends: "2027-12-31",
@@ -27,7 +27,7 @@ const PROJECTS = [
   },
   {
     code: "RAK-02",
-    name: "Saqr Business Park",
+    name: "Aila Homes",
     status: "completed",
     starts: "2025-01-01",
     ends: "2026-06-30",

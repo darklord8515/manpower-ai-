@@ -46,6 +46,9 @@ services:
       WEBHOOK_URL: ${N8N_WEBHOOK_URL:-http://localhost:5678/}
       GENERIC_TIMEZONE: Asia/Dubai
       TZ: Asia/Dubai
+      # Docker Desktop containers have no IPv6, and mail hosts such as smtp.gmail.com answer with an
+      # IPv6 address first ("connection refused"). Ask Node to try IPv4 first.
+      NODE_OPTIONS: --dns-result-order=ipv4first
       N8N_DIAGNOSTICS_ENABLED: "false"
       N8N_PERSONALIZATION_ENABLED: "false"
     ports:

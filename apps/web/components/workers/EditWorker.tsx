@@ -44,6 +44,7 @@ export function EditWorker({ worker, onSaved, onCancel }: Props) {
     designation: worker.designation ?? "",
     phone: worker.phone ?? "",
     whatsapp: "",
+    email: worker.email ?? "",
     contract_end_on: worker.contract_end_on ?? "",
     exit_on: worker.exit_on ?? "",
     exit_reason: worker.exit_reason ?? "",
@@ -62,6 +63,7 @@ export function EditWorker({ worker, onSaved, onCancel }: Props) {
       body.designation = form.designation || null;
     if (form.phone !== (worker.phone ?? "")) body.phone = form.phone || null;
     if (form.whatsapp.trim()) body.whatsapp_number = form.whatsapp.trim();
+    if (form.email.trim() !== (worker.email ?? "")) body.email = form.email.trim() || null;
     if (form.contract_end_on !== (worker.contract_end_on ?? ""))
       body.contract_end_on = form.contract_end_on || null;
     if (form.exit_on !== (worker.exit_on ?? "")) body.exit_on = form.exit_on || null;
@@ -158,6 +160,16 @@ export function EditWorker({ worker, onSaved, onCancel }: Props) {
           />
         </Label>
       </div>
+      <Label id="ew-email" text="Email">
+        <input
+          id="ew-email"
+          type="email"
+          className={FIELD}
+          placeholder="worker@example.com"
+          value={form.email}
+          onChange={(e) => set("email")(e.target.value)}
+        />
+      </Label>
       <Label id="ew-contract" text="Contract ends">
         <input
           id="ew-contract"

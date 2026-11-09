@@ -489,7 +489,7 @@ def test_words_become_checked_values(migrated_db: Engine, make_client: Callable[
 
         assert ok(intent="workers", trade="steel fixers").params["trade"] == "Steel fixer"
         assert ok(intent="workers", project="rak 7").params["project"] == "RAK-07"
-        assert ok(intent="workers", project="shamal logistics").params["project"] == "RAK-07"
+        assert ok(intent="workers", project="falcon villas").params["project"] == "RAK-07"
         assert ok(intent="worker", name="emp 142").params["code"] == "EMP-0142"
         assert ok(intent="workers", status="on leave").params["status"] == "unavailable"
         assert ok(intent="documents", doc_type="visa").params["doc_type"] == "residency_visa"

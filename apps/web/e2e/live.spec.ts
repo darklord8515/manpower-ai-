@@ -149,7 +149,7 @@ test("Projects: the real list and the seeded RAK-07 forecast", async ({ page }) 
   const row = page.locator("table tbody tr").filter({ hasText: "RAK-07" });
   await expect(row.getByText("Planning")).toBeVisible();
   await row.getByRole("link", { name: "Forecast" }).click();
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Shamal Logistics Hub");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Falcon Villas");
   await expect(
     page.getByText("Covered, but 8 still depend on other projects finishing by 5 Feb 2027."),
   ).toBeVisible();

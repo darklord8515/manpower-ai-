@@ -105,6 +105,7 @@ class WorkerDetail(WorkerRow):
     risks: list[Risk]
     employment_status: str | None = None
     designation: str | None = None
+    email: str | None = None
     contract_end_on: date | None = None
     exit_on: date | None = None
     exit_reason: str | None = None
@@ -114,6 +115,7 @@ class WorkerNumber(BaseModel):
     number: str
 
 
+_EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$")
 _PHONE = re.compile(r"^\+?[0-9][0-9 ()-]{6,19}$")
 
 
@@ -126,11 +128,22 @@ class WorkerEdit(BaseModel):
     designation: str | None = Field(default=None, max_length=80)
     phone: str | None = Field(default=None, max_length=25)
     whatsapp_number: str | None = Field(default=None, max_length=25)
+    email: str | None = Field(default=None, max_length=120)
     contract_end_on: date | None = None
     exit_on: date | None = None
     exit_reason: (
         Literal["resigned", "terminated", "absconded", "contract_ended", "other"] | None
     ) = None
+
+    @field_validator("email")
+    @classmethod
+    def _email(cls, value: str | None) -> str | None:
+        if value is None or not value.strip():
+            return None
+        value = value.strip().lower()
+        if not _EMAIL.match(value):
+            raise ValueError("Enter an email address such as name@company.com")
+        return value
 
     @field_validator("phone", "whatsapp_number")
     @classmethod
@@ -194,6 +207,55 @@ class ExpiryCounts(BaseModel):
 class ExpiringList(BaseModel):
     counts: ExpiryCounts
     items: list[ExpiringDocument]
+
+
+class OverviewSite(BaseModel):
+    name: str
+    emirate: str
+    latitude: float | None
+    longitude: float | None
+    outdoor: bool
+
+
+class OverviewTrade(BaseModel):
+    trade: str
+    planned: int
+    deployed: int
+    mobilizing: int
+    gap: int  # planned minus deployed, never below zero
+
+
+class OverviewPerson(BaseModel):
+    code: str
+    name: str
+    trade: str
+    level: int | None
+    status: str  # the worker's availability: deployed, mobilizing, available...
+    starts: date
+    ends: date | None
+    site: str | None
+
+
+class ProjectOverview(BaseModel):
+    """One project at a glance: where, when, how staffed, and who is on it. Counts are Python's."""
+
+    code: str
+    name: str
+    status: str
+    description: str | None
+    client: str | None
+    starts: date | None
+    ends: date | None
+    progress: int | None  # percent of the planned period that has passed; None without dates
+    days_left: int | None
+    planned: int
+    deployed: int
+    mobilizing: int
+    gap: int
+    sites: list[OverviewSite]
+    trades: list[OverviewTrade]
+    staff: list[OverviewPerson]
+    staff_total: int
 
 
 class ProjectRow(BaseModel):

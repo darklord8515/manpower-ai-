@@ -128,7 +128,7 @@ cases:
   - id: CH-13
     title: A project named in words, not by code
     user: hr_mgr
-    ask: "Who is working on Shamal Logistics Hub?"
+    ask: "Who is working on Falcon Villas?"
     expect:
       kind: [data, info]
       intent: workers

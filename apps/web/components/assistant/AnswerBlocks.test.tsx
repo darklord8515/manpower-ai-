@@ -77,7 +77,7 @@ describe("AnswerBlocks", () => {
         type: "bars",
         title: "Deployed against planned",
         items: [
-          { label: "RAK-02", value: 8, of: 8, detail: "Saqr Business Park" },
+          { label: "RAK-02", value: 8, of: 8, detail: "Aila Homes" },
           { label: "RAK-03", value: 12, of: 10, detail: null },
           { label: "RAK-04", value: 3, of: null, detail: null },
         ],

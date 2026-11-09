@@ -1,6 +1,14 @@
 "use client";
 
-import { ArrowRightLeft, CalendarClock, CircleAlert, Pencil, Phone, UserX } from "lucide-react";
+import {
+  ArrowRightLeft,
+  CalendarClock,
+  CircleAlert,
+  Mail,
+  Pencil,
+  Phone,
+  UserX,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useUser } from "@/components/auth/AuthProvider";
@@ -16,6 +24,7 @@ import type { WorkerDetail, WorkerRisk } from "@/lib/api-types";
 import { DOCUMENT_NAME, NUMBER_NAME, timeLeft } from "@/lib/documents";
 import { formatDate } from "@/lib/format";
 import { EditWorker } from "./EditWorker";
+import { EmailWorker } from "./EmailWorker";
 import { RevealNumber } from "./RevealNumber";
 import { useWorkerDetail } from "./useWorkers";
 import { WorkerStatusChip } from "./WorkerStatusChip";
@@ -315,7 +324,19 @@ function Profile({
 }) {
   const [tab, setTab] = useState<TabId>(initialTab);
   const [editing, setEditing] = useState(false);
+  const [emailing, setEmailing] = useState(false);
   const full = worker.status !== null; // the narrow projection has nothing but the overview
+  if (emailing)
+    return (
+      <EmailWorker
+        worker={worker}
+        onCancel={() => setEmailing(false)}
+        onDone={(notice) => {
+          setEmailing(false);
+          onChanged(notice);
+        }}
+      />
+    );
   if (editing)
     return (
       <EditWorker
@@ -330,10 +351,16 @@ function Profile({
   return (
     <>
       {canEdit && full && (
-        <button type="button" onClick={() => setEditing(true)} className={`${BUTTON} self-start`}>
-          <Pencil className="size-4" aria-hidden="true" />
-          Edit details
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={() => setEditing(true)} className={BUTTON}>
+            <Pencil className="size-4" aria-hidden="true" />
+            Edit details
+          </button>
+          <button type="button" onClick={() => setEmailing(true)} className={BUTTON}>
+            <Mail className="size-4" aria-hidden="true" />
+            Email worker
+          </button>
+        </div>
       )}
       {full && (
         <SlidingTabs

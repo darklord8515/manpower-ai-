@@ -1,6 +1,7 @@
 import {
   Bot,
   Building2,
+  CalendarDays,
   ClipboardList,
   FileText,
   LayoutDashboard,
@@ -35,6 +36,14 @@ export const NAV: NavItem[] = [
     icon: ListTodo,
     group: "",
     requires: "alert:read",
+  },
+  {
+    id: "calendar",
+    label: "Calendar",
+    href: "/calendar",
+    icon: CalendarDays,
+    group: "",
+    requires: "project:read",
   },
   {
     id: "assistant",

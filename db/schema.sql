@@ -145,7 +145,8 @@ CREATE TABLE employees (
     -- employee_documents.doc_number (passport numbers and the Emirates ID number held on the residency visa).
     is_demo           boolean NOT NULL DEFAULT false,
     created_at        timestamptz NOT NULL DEFAULT now(),
-    updated_at        timestamptz NOT NULL DEFAULT now()
+    updated_at        timestamptz NOT NULL DEFAULT now(),
+    email             text                       -- optional; edited by HR (migration 0012)
 );
 CREATE INDEX employees_trade_idx  ON employees (primary_trade_id, availability);
 CREATE INDEX employees_status_idx ON employees (employment_status);
@@ -193,6 +194,21 @@ CREATE TABLE leave_records (
     is_demo     boolean NOT NULL DEFAULT false,
     EXCLUDE USING gist (employee_id WITH =, period WITH &&)
 );
+
+-- Events HR types into the calendar (migration 0013). Leaves, holidays and project dates are read
+-- from where they live; this holds only what a person adds by hand.
+CREATE TABLE calendar_events (
+    id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    title      text NOT NULL CHECK (length(btrim(title)) BETWEEN 2 AND 120),
+    starts_on  date NOT NULL,
+    ends_on    date NOT NULL CHECK (ends_on >= starts_on),
+    kind       text NOT NULL DEFAULT 'event' CHECK (kind IN ('event', 'meeting', 'deadline')),
+    note       text,
+    created_by uuid REFERENCES users(id),
+    is_demo    boolean NOT NULL DEFAULT false,
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX calendar_events_dates_idx ON calendar_events (starts_on, ends_on);
 
 -- ---------------------------------------------------------------------
 -- 3. PROJECTS (4) + user_project_access

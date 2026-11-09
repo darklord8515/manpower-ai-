@@ -475,7 +475,7 @@ def get_worker(code: str, session: SessionDep, clock: ClockDep, user: Reader) ->
     employee = (
         session.execute(
             text(
-                """SELECT employment_status::text AS employment_status, designation,
+                """SELECT employment_status::text AS employment_status, designation, email,
                           contract_end_on, exit_on, exit_reason::text AS exit_reason
                    FROM employees WHERE employee_code = :code"""
             ),
@@ -493,6 +493,7 @@ def get_worker(code: str, session: SessionDep, clock: ClockDep, user: Reader) ->
         + _people_risks(dict(employee), raw_assignments, today),
         employment_status=employee["employment_status"],
         designation=employee["designation"],
+        email=employee["email"] if user.can("employee:write") else None,
         contract_end_on=employee["contract_end_on"],
         exit_on=employee["exit_on"],
         exit_reason=employee["exit_reason"],
@@ -521,7 +522,7 @@ def edit_worker(  # noqa: C901 - one list of checks, then one update
     row = (
         session.execute(
             text(
-                f"""SELECT e.id, e.full_name, e.designation, e.phone, e.whatsapp_number,
+                f"""SELECT e.id, e.full_name, e.designation, e.phone, e.whatsapp_number, e.email,
                            e.joined_on, e.contract_end_on, e.exit_on,
                            e.exit_reason::text AS exit_reason, e.primary_trade_id,
                            t.name AS trade, es.level
@@ -557,7 +558,8 @@ def edit_worker(  # noqa: C901 - one list of checks, then one update
         trade_id = found.id
 
     changes: dict[str, Any] = {}
-    for field in ("full_name", "designation", "phone", "whatsapp_number", "contract_end_on",
+    for field in ("full_name", "designation", "phone", "whatsapp_number", "email",
+                  "contract_end_on",
                   "exit_on"):  # fmt: skip
         if field in sent:
             changes[field] = getattr(body, field)

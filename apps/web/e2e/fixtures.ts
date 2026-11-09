@@ -93,12 +93,12 @@ export const SUMMARY = {
   expiry_by_week: weeks,
   short_total: 18,
   projects: [
-    ["RAK-01", "Jebel Approach Road, Package 2", 30, 27],
-    ["RAK-02", "Saqr Business Park", 24, 24],
-    ["RAK-03", "Coral Bay Residences, Block B", 26, 18],
-    ["RAK-04", "Khatt Clinic Fit-out", 12, 12],
-    ["RAK-05", "Ghalilah School Extension", 16, 15],
-    ["RAK-06", "Dhayah Warehouse Units", 22, 16],
+    ["RAK-01", "Marina Waterfront", 30, 27],
+    ["RAK-02", "Aila Homes", 24, 24],
+    ["RAK-03", "Greens", 26, 18],
+    ["RAK-04", "Rak Court", 12, 12],
+    ["RAK-05", "Beach Club", 16, 15],
+    ["RAK-06", "Saij", 22, 16],
   ].map(([code, name, planned, deployed]) => ({
     code,
     name,
@@ -180,6 +180,90 @@ const UNAVAILABLE = ["Kiran Jha", "Rohit Verma", "Omar Ali"].map((name, i) => ({
   next_document: null,
 }));
 
+/** The MD's company view and the briefing lines (Python's wording, no model). */
+export const EXECUTIVE = {
+  today: "2026-11-05",
+  people: { total: 150, deployed: 112, mobilizing: 9, available: 21, unavailable: 8 },
+  projects: [
+    {
+      code: "RAK-01",
+      name: "Marina Waterfront",
+      status: "active",
+      starts: "2026-03-01",
+      ends: "2027-01-31",
+      progress: 62,
+      planned: 32,
+      deployed: 27,
+      gap: 5,
+      health: "at_risk",
+    },
+    {
+      code: "RAK-02",
+      name: "Aila Homes",
+      status: "active",
+      starts: "2026-05-01",
+      ends: "2027-01-31",
+      progress: 52,
+      planned: 24,
+      deployed: 24,
+      gap: 0,
+      health: "on_track",
+    },
+    {
+      code: "RAK-03",
+      name: "Greens",
+      status: "active",
+      starts: "2026-07-01",
+      ends: "2027-04-30",
+      progress: 32,
+      planned: 26,
+      deployed: 18,
+      gap: 8,
+      health: "needs_people",
+    },
+    {
+      code: "RAK-07",
+      name: "Falcon Villas",
+      status: "planning",
+      starts: "2027-02-12",
+      ends: "2027-11-30",
+      progress: 0,
+      planned: 24,
+      deployed: 0,
+      gap: 24,
+      health: "planning",
+    },
+  ],
+  hr: {
+    critical: 2,
+    action_needed: 16,
+    info: 29,
+    approvals_waiting: 3,
+    oldest_wait_days: 4,
+    recruitment_open: 4,
+    recruitment_people: 7,
+    stages: [
+      { stage: "sourcing", label: "Under recruitment", count: 1 },
+      { stage: "offer_issued", label: "Offer issued", count: 2 },
+      { stage: "visa_processing", label: "Visa processing", count: 1 },
+      { stage: "arrived", label: "Arrived, pending deployment", count: 3 },
+    ],
+    documents: { expired: 1, d30: 3, d60: 4, d90: 5 },
+    leaving_soon: 2,
+  },
+};
+
+export const BRIEF = {
+  bullets: [
+    "112 of 150 people are deployed, 9 are mobilizing and 21 are available now.",
+    "2 active projects still need people: Greens (RAK-03) is 8 short.",
+    "HR has 2 critical and 16 action-needed alerts open, and 3 staffing requests waiting for approval.",
+    "1 documents have expired and 3 more run out in the next 30 days.",
+  ],
+  ai_worded: false,
+  as_of: "5 Nov 2026",
+};
+
 /**
  * Pretend to be the API. `user: null` means nobody is signed in. Returns what the page saved, so a
  * test can check it: `saved` holds every layout the page sent, `reads` counts requests per widget feed.
@@ -236,6 +320,8 @@ export async function mockApi(
       can_act: quiet.can_act,
     }),
   );
+  await page.route("**/api/executive/dashboard", (r) => json(r, EXECUTIVE));
+  await page.route("**/api/executive/brief", (r) => json(r, BRIEF));
   // No model by default: the AI buttons stay out of the way. agent.spec.ts switches them on.
   await page.route("**/api/ai/status", (r) => json(r, { detail: "Not found" }, 404));
   await page.route("**/api/summary/trades", (r) => {
@@ -319,7 +405,7 @@ export const WORKER_DETAIL = {
   assignments: [
     {
       project_code: "RAK-01",
-      project_name: "Jebel Approach Road, Package 2",
+      project_name: "Marina Waterfront",
       starts: "2026-03-01",
       ends: "2027-01-31",
       status: "active",
@@ -392,7 +478,7 @@ const PROJECT_LIST = [
   ...SUMMARY.projects,
   {
     code: "RAK-07",
-    name: "Shamal Logistics Hub",
+    name: "Falcon Villas",
     status: "planning",
     starts: "2027-02-12",
     ends: "2027-12-31",
@@ -413,7 +499,7 @@ export function forecastFor(code: string, start = "2027-02-12") {
   return {
     project: {
       code,
-      name: code === "RAK-07" ? "Shamal Logistics Hub" : "Al Hamra Marina Towers",
+      name: code === "RAK-07" ? "Falcon Villas" : "Al Hamra Marina Towers",
       status: "planning",
       starts_on: "2027-02-12",
       ends_on: "2027-12-31",
@@ -622,7 +708,7 @@ const request = (n: number, changes: Record<string, unknown> = {}) => ({
   id: `00000000-0000-4000-8000-00000000000${n}`,
   request_no: `RR-2026-000${n}`,
   project_code: "RAK-07",
-  project_name: "Shamal Logistics Hub",
+  project_name: "Falcon Villas",
   project_starts_on: "2027-02-12",
   trade_code: "general_labour",
   trade: "General labour",
@@ -660,7 +746,7 @@ export const RECRUITMENT = {
     }),
     request(3, {
       project_code: "RAK-01",
-      project_name: "Jebel Approach Road",
+      project_name: "Marina Waterfront",
       project_starts_on: "2026-03-01",
       trade_code: "steel_fixer",
       trade: "Steel fixer",

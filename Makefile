@@ -2,7 +2,7 @@
 COMPOSE = docker compose --env-file .env -f infra/docker-compose.yml
 API = uv --directory apps/api
 
-.PHONY: help env dev db db-down db-logs db-shell migrate api-dev web-dev test test-api test-web lint lint-api lint-web fmt seed reset-demo ai-smoke ai-check eval eval-chat
+.PHONY: help env dev db db-down db-logs db-shell migrate api-dev web-dev test test-api test-web lint lint-api lint-web fmt seed reset-demo ai-smoke ai-check n8n-setup eval eval-chat
 
 help:
 	@echo make env        - create .env with random secrets (first time only)
@@ -39,7 +39,7 @@ api-dev:
 web-dev:
 	npm --prefix apps/web run dev
 
-dev: db
+dev: db migrate
 	$(MAKE) -j2 api-dev web-dev
 
 test-api:
@@ -73,6 +73,9 @@ reset-demo: seed
 
 ai-smoke:
 	$(API) run python -m app.ai.smoke
+
+n8n-setup:
+	$(API) run python -m app.n8n_setup
 
 ai-check:
 	$(API) run python -m app.ai.check $(MODELS)

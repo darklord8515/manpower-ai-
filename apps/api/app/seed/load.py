@@ -58,6 +58,8 @@ DEPARTMENTS = (("hr", "Human Resources"), ("operations", "Operations"), ("site",
 # Everything below is deleted by reset_demo, children before parents.
 _RESET_ORDER = (
     "audit_log",
+    "notifications",  # emails HR sent to workers point at employees
+    "calendar_events",  # events HR typed in point at the person who added them
     "mobilization_tasks",  # approving a line starts mobilizations; they point at assignments
     "mobilizations",
     "employee_assignments",
@@ -241,6 +243,57 @@ def _raise_alerts(connection: Connection, settings: Settings) -> None:
         session.commit()
 
 
+EMAIL_WORKERS = ("EMP-0088", "EMP-0094", "EMP-0107", "EMP-0118", "EMP-0125", "EMP-0142")
+# Upcoming leaves for named workers, and what HR has put in the calendar by hand (all fictional).
+DEMO_LEAVES = (
+    # Not the steel fixers: they are the free pool the RAK-03 / RAK-07 stories count.
+    ("EMP-0161", "annual", date(2026, 11, 16), date(2026, 11, 22)),
+    ("EMP-0163", "sick", date(2026, 11, 9), date(2026, 11, 11)),
+    ("EMP-0171", "annual", date(2026, 12, 14), date(2026, 12, 28)),
+)
+DEMO_EVENTS = (
+    ("Safety induction at Marina Waterfront", date(2026, 11, 12), date(2026, 11, 12), "meeting"),
+    ("MoHRE quota submission deadline", date(2026, 11, 19), date(2026, 11, 19), "deadline"),
+    ("Monthly HR review with the MD", date(2026, 11, 26), date(2026, 11, 26), "meeting"),
+    ("Labour card renewal batch", date(2026, 12, 8), date(2026, 12, 10), "event"),
+)
+
+
+def _load_calendar_and_emails(connection: Connection, ids: dict[str, uuid.UUID]) -> None:
+    """Fictional extras so the calendar and the email demo have something to show on day one."""
+    for code in EMAIL_WORKERS:
+        if code in ids:
+            connection.execute(
+                text(
+                    """UPDATE employees SET email = lower(replace(full_name, ' ', '.'))
+                              || '@example.test' WHERE id = :id"""
+                ),
+                {"id": ids[code]},
+            )
+    for code, kind, first, last in DEMO_LEAVES:
+        if code in ids:
+            connection.execute(
+                text(
+                    """INSERT INTO leave_records
+                           (employee_id, leave_type, period, approved, is_demo)
+                       VALUES (:e, :k, daterange(:f, :l, '[]'), true, true)
+                       ON CONFLICT DO NOTHING"""
+                ),
+                {"e": ids[code], "k": kind, "f": first, "l": last},
+            )
+    manager = demo_id("user", "hr_manager")
+    _insert(
+        connection,
+        """INSERT INTO calendar_events (id, title, starts_on, ends_on, kind, created_by, is_demo)
+           VALUES (:id, :title, :first, :last, :kind, :by, true)""",
+        [
+            {"id": demo_id("event", title), "title": title, "first": first, "last": last,
+             "kind": kind, "by": manager}
+            for title, first, last, kind in DEMO_EVENTS
+        ],
+    )  # fmt: skip
+
+
 def _load_workers(
     connection: Connection,
     workers: list[WorkerSeed],
@@ -351,6 +404,7 @@ def _load_workers(
            VALUES (:id, :employee_id, 'annual', daterange(:first, :last, '[]'), true, true)""",
         leave_rows,
     )
+    _load_calendar_and_emails(connection, ids)
     starts = {p.code: p.starts for p in PROJECTS}
     requester = demo_id("user", "hr_manager")
     _insert(

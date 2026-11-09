@@ -11,6 +11,8 @@ const revealNumber = vi.fn();
 const editWorker = vi.fn();
 const editDocumentExpiry = vi.fn();
 const trades = vi.fn();
+const previewWorkerEmail = vi.fn();
+const sendWorkerEmail = vi.fn();
 let permissions = ["employee:read", "employee:write"];
 
 vi.mock("@/components/auth/AuthProvider", () => ({ useUser: () => ({ permissions }) }));
@@ -28,6 +30,8 @@ vi.mock("@/lib/api", async (importOriginal) => {
       editDocumentExpiry: (code: string, type: string, date: string) =>
         editDocumentExpiry(code, type, date),
       trades: () => trades(),
+      previewWorkerEmail: (code: string, body: unknown) => previewWorkerEmail(code, body),
+      sendWorkerEmail: (code: string, body: unknown) => sendWorkerEmail(code, body),
       workersCsvUrl: () => "/api/workers/export.csv?sort=name",
     },
   };
@@ -85,7 +89,7 @@ const DETAIL: WorkerDetail = {
   assignments: [
     {
       project_code: "RAK-01",
-      project_name: "Jebel Approach Road",
+      project_name: "Marina Waterfront",
       starts: "2026-03-01",
       ends: "2027-01-31",
       status: "active",
@@ -116,6 +120,14 @@ beforeEach(() => {
   editWorker.mockReset().mockResolvedValue({ ...DETAIL, designation: "Foreman" });
   editDocumentExpiry.mockReset().mockResolvedValue(DETAIL);
   trades.mockReset().mockResolvedValue([{ name: "Mason" }, { name: "Painter" }]);
+  previewWorkerEmail.mockReset().mockResolvedValue({
+    to: "worker@example.test",
+    subject: "Please renew your document",
+    body: "Hello Sanjeev,\n\n- Residency visa: 12 Nov 2026 (expires in 7 days)",
+  });
+  sendWorkerEmail
+    .mockReset()
+    .mockResolvedValue({ to: "worker@example.test", subject: "x", body: "y", sent: true });
   permissions = ["employee:read", "employee:write"];
   window.history.replaceState(null, "", "/workers");
 });
@@ -258,6 +270,74 @@ describe("Workers", () => {
     await user.click(within(sheet).getByRole("button", { name: "Save" }));
     expect(editDocumentExpiry).toHaveBeenCalledWith("EMP-0088", "residency_visa", "2028-02-01");
     expect(await within(sheet).findByText(/runs out on 1 Feb 2028/)).toBeInTheDocument();
+  });
+
+  it("shows the exact email, then sends it and says to whom", async () => {
+    worker.mockResolvedValue({ ...DETAIL, email: "worker@example.test" });
+    window.history.replaceState(null, "", "/workers?worker=EMP-0088");
+    render(<WorkersScreen />);
+    const user = userEvent.setup();
+    const sheet = await screen.findByRole("dialog");
+    await user.click(await within(sheet).findByRole("button", { name: "Email worker" }));
+    expect(await within(sheet).findByText(/expires in 7 days/)).toBeInTheDocument();
+    expect(within(sheet).getByText("worker@example.test", { selector: "b" })).toBeInTheDocument();
+    expect(previewWorkerEmail).toHaveBeenCalledWith("EMP-0088", { template: "document_renewal" });
+    await user.click(within(sheet).getByRole("button", { name: "Send email" }));
+    expect(sendWorkerEmail).toHaveBeenCalledWith("EMP-0088", { template: "document_renewal" });
+    expect(
+      await within(sheet).findByText("Email sent to worker@example.test."),
+    ).toBeInTheDocument();
+  });
+
+  it("asks for an address first, saves it, and then offers the email", async () => {
+    window.history.replaceState(null, "", "/workers?worker=EMP-0088");
+    render(<WorkersScreen />);
+    const user = userEvent.setup();
+    const sheet = await screen.findByRole("dialog");
+    await user.click(await within(sheet).findByRole("button", { name: "Email worker" }));
+    expect(within(sheet).getByText(/has no email address yet/)).toBeInTheDocument();
+    expect(within(sheet).getByRole("button", { name: "Send email" })).toBeDisabled();
+    await user.type(within(sheet).getByLabelText("Send to"), "New@Example.test");
+    await user.click(within(sheet).getByRole("button", { name: "Save address" }));
+    expect(editWorker).toHaveBeenCalledWith("EMP-0088", { email: "New@Example.test" });
+    expect(await within(sheet).findByText(/expires in 7 days/)).toBeInTheDocument();
+    expect(within(sheet).getByRole("button", { name: "Send email" })).toBeEnabled();
+  });
+
+  it("shows why an email could not be sent", async () => {
+    worker.mockResolvedValue({ ...DETAIL, email: "worker@example.test" });
+    sendWorkerEmail.mockRejectedValue(
+      new ApiError(502, "The mail service could not be reached. Check that n8n is running."),
+    );
+    window.history.replaceState(null, "", "/workers?worker=EMP-0088");
+    render(<WorkersScreen />);
+    const user = userEvent.setup();
+    const sheet = await screen.findByRole("dialog");
+    await user.click(await within(sheet).findByRole("button", { name: "Email worker" }));
+    await within(sheet).findByText(/expires in 7 days/); // the email is shown, so Send is ready
+    await user.click(within(sheet).getByRole("button", { name: "Send email" }));
+    expect(await within(sheet).findByRole("alert")).toHaveTextContent("Check that n8n is running");
+    expect(within(sheet).getByRole("button", { name: "Send email" })).toBeEnabled(); // can try again
+  });
+
+  it("lets HR write their own message", async () => {
+    worker.mockResolvedValue({ ...DETAIL, email: "worker@example.test" });
+    window.history.replaceState(null, "", "/workers?worker=EMP-0088");
+    render(<WorkersScreen />);
+    const user = userEvent.setup();
+    const sheet = await screen.findByRole("dialog");
+    await user.click(await within(sheet).findByRole("button", { name: "Email worker" }));
+    await user.click(within(sheet).getByLabelText("Write my own"));
+    expect(within(sheet).getByRole("button", { name: "Send email" })).toBeDisabled();
+    await user.type(within(sheet).getByLabelText("Subject"), "Site meeting");
+    await user.type(within(sheet).getByLabelText("Message"), "Please come at 7.");
+    await waitFor(() =>
+      expect(previewWorkerEmail).toHaveBeenLastCalledWith("EMP-0088", {
+        template: "custom",
+        subject: "Site meeting",
+        message: "Please come at 7.",
+      }),
+    );
   });
 
   it("offers no editing to someone who may only read", async () => {

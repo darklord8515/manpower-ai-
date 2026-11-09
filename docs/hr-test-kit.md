@@ -17,7 +17,7 @@ demo role switcher. Fictional data only.
 ## The five tasks (read each one aloud; do not name screens or buttons)
 1. **Start of the day.** "You just arrived. What needs your attention today? Deal with the most urgent
    thing." *(Expect: To-do on Home, opens the item, uses a suggested action or "I'll handle this".)*
-2. **Fill a request.** "The project manager for the Saqr Business Park asked for 4 electricians and
+2. **Fill a request.** "The project manager for the Aila Homes asked for 4 electricians and
    2 plumbers from 1 December. Get this sorted." *(Requests, Suggest workers, review, approve. Watch the
    confirm box.)*
 3. **Look ahead.** "Will any trade be short when the new Shamal project starts in February? What would you do?"

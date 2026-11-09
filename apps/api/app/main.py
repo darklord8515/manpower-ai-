@@ -15,15 +15,19 @@ from app.routes import (
     alerts,
     assistant,
     auth,
+    calendar,
     documents,
+    executive,
     forecast,
     health,
     mobilizations,
     preferences,
+    project_overview,
     projects,
     recruitment,
     requests,
     reservations,
+    worker_mail,
     workers,
 )
 
@@ -90,8 +94,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(health.router)
     app.include_router(auth.router)
     app.include_router(workers.router)
+    app.include_router(worker_mail.router)
+    app.include_router(executive.router)
+    app.include_router(calendar.router)
     app.include_router(documents.router)
     app.include_router(projects.router)
+    app.include_router(project_overview.router)
     app.include_router(forecast.router)
     app.include_router(preferences.router)
     app.include_router(reservations.router)

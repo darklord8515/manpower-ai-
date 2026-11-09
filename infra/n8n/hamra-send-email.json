@@ -1,0 +1,58 @@
+{
+  "id": "hamraSendEmail01",
+  "name": "HAMRA AI: send an email",
+  "active": false,
+  "nodes": [
+    {
+      "id": "b1f0c0de-0000-4000-8000-000000000001",
+      "name": "Email request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "hamra-send-email",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hamra-send-email",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": { "id": "hamraHeaderAuth01", "name": "HAMRA AI webhook key" }
+      }
+    },
+    {
+      "id": "b1f0c0de-0000-4000-8000-000000000002",
+      "name": "Send the email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [260, 0],
+      "parameters": {
+        "fromEmail": "={{ $json.body.from_name }} <doomtechbusiness8@gmail.com>",
+        "toEmail": "={{ $json.body.to }}",
+        "subject": "={{ $json.body.subject }}",
+        "emailFormat": "text",
+        "text": "={{ $json.body.text }}",
+        "options": {}
+      },
+      "credentials": { "smtp": { "id": "__SMTP_ID__", "name": "SMTP account" } }
+    },
+    {
+      "id": "b1f0c0de-0000-4000-8000-000000000003",
+      "name": "Say it was sent",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [520, 0],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"ok\": true}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Email request": { "main": [[{ "node": "Send the email", "type": "main", "index": 0 }]] },
+    "Send the email": { "main": [[{ "node": "Say it was sent", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

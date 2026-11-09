@@ -148,7 +148,7 @@ function fresh(): Fake[] {
       resolved_at: null,
       resolution_note: null,
       explanation:
-        "Shamal Logistics Hub needs 12 general labour from 12 Feb 2027. 8 are already assigned and 3 more can be deployed. That leaves 1 uncovered, 99 days before the start.",
+        "Falcon Villas needs 12 general labour from 12 Feb 2027. 8 are already assigned and 3 more can be deployed. That leaves 1 uncovered, 99 days before the start.",
       facts: {
         project: "RAK-07",
         trade: "General labour",
@@ -259,7 +259,7 @@ function fresh(): Fake[] {
       resolved_at: null,
       resolution_note: null,
       explanation:
-        "2 people on Saqr Business Park reach their last day on 25 Nov 2026, in 20 days, and nothing is planned for them afterwards.",
+        "2 people on Aila Homes reach their last day on 25 Nov 2026, in 20 days, and nothing is planned for them afterwards.",
       facts: {
         project: "RAK-02",
         end_date: "2026-11-25",

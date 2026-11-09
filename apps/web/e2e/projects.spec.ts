@@ -35,7 +35,7 @@ test("a project's forecast opens from its row", async ({ page }) => {
   await open(page);
   await rows(page).filter({ hasText: "RAK-07" }).getByRole("link", { name: "Forecast" }).click();
   await expect(page).toHaveURL(/\/projects\/RAK-07\/forecast$/);
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Shamal Logistics Hub");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Falcon Villas");
 });
 
 test("the forecast says what to do for each trade, in words made from the numbers", async ({
@@ -206,9 +206,7 @@ for (const viewport of [
 
       test("list, add form and forecast", async ({ page }) => {
         await open(page);
-        await expect(
-          page.getByText("Shamal Logistics Hub").locator("visible=true").first(),
-        ).toBeVisible();
+        await expect(page.getByText("Falcon Villas").locator("visible=true").first()).toBeVisible();
         await page.waitForTimeout(500);
         await noSidewaysScroll(page);
         await page.screenshot({ path: `e2e/screenshots/projects-${viewport.name}-${theme}.png` });
