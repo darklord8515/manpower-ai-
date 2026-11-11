@@ -268,7 +268,17 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
-        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+        listed = [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+        if self.app_env is not AppEnv.LOCAL:
+            return listed
+        # On a developer machine another program may already hold port 3000, so Next moves to 3001,
+        # and people open the site as 127.0.0.1. Both are still this machine, so both are allowed.
+        extra = [
+            f"http://{host}:{port}"
+            for host in ("localhost", "127.0.0.1")
+            for port in range(3000, 3010)
+        ]
+        return listed + [o for o in extra if o not in listed]
 
 
 class ConfigError(RuntimeError):

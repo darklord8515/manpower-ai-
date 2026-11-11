@@ -10,6 +10,7 @@ from typing import Any
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine, text
 
+from app.config import AppEnv
 from app.exports import csv_cell
 from app.seed.data import SEED_TODAY
 from tests.support import CEO, HR_EXECUTIVE, HR_MANAGER, PASSWORD, add_user, sign_in
@@ -468,3 +469,21 @@ def test_the_shortfall_is_zero_for_a_narrow_projection(
     sign_in(client, "logistics2@constructiq.test")
     weeks = client.get("/summary").json()["expiry_by_week"]
     assert all(w["count"] == 0 for w in weeks)
+
+
+def test_a_local_dev_server_on_another_port_may_sign_in_but_a_stranger_may_not(
+    make_client: Callable[..., TestClient],
+) -> None:
+    client = make_client(app_env=AppEnv.LOCAL)
+    ok = client.post(
+        "/auth/demo-login", json={"role": "ceo"}, headers={"Origin": "http://localhost:3001"}
+    )
+    assert ok.status_code == 200
+    same_machine = client.post(
+        "/auth/demo-login", json={"role": "ceo"}, headers={"Origin": "http://127.0.0.1:3000"}
+    )
+    assert same_machine.status_code == 200
+    stranger = client.post(
+        "/auth/demo-login", json={"role": "ceo"}, headers={"Origin": "https://evil.example"}
+    )
+    assert stranger.status_code == 403
