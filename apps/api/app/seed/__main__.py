@@ -13,15 +13,23 @@ from sqlalchemy.orm import Session
 from app.ai.llm import client_for
 from app.config import ConfigError, get_settings
 from app.seed.load import reset_demo, seed_demo
+from app.seed.trackers import load_trackers
 from app.services.alerts.narrator import narrate_pending
 
 
 def main(argv: list[str]) -> int:
     command = argv[1] if len(argv) > 1 else ""
-    if command not in {"seed", "reset"}:
-        print("usage: python -m app.seed [seed|reset]  (seed = reset, then load)")  # noqa: T201
+    if command not in {"seed", "reset", "load-trackers"}:
+        print("usage: python -m app.seed [seed|reset|load-trackers]")  # noqa: T201
         return 2
     settings = get_settings()
+    if command == "load-trackers":
+        try:
+            print("Loaded the trackers:", load_trackers(settings))  # noqa: T201
+        except ConfigError as error:
+            print(f"Refused: {error}")  # noqa: T201
+            return 1
+        return 0
     try:
         engine = create_engine(settings.migration_url)
         with engine.begin() as connection:

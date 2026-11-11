@@ -2,7 +2,7 @@
 COMPOSE = docker compose --env-file .env -f infra/docker-compose.yml
 API = uv --directory apps/api
 
-.PHONY: help env dev db db-down db-logs db-shell migrate api-dev web-dev test test-api test-web lint lint-api lint-web fmt seed reset-demo ai-smoke ai-check n8n-setup eval eval-chat
+.PHONY: help env dev db db-down db-logs db-shell migrate api-dev web-dev test test-api test-web lint lint-api lint-web fmt seed reset-demo ai-smoke ai-check n8n-setup eval eval-chat load-trackers
 
 help:
 	@echo make env        - create .env with random secrets (first time only)
@@ -70,6 +70,10 @@ seed: migrate
 	$(API) run python -m app.seed seed
 
 reset-demo: seed
+
+# Loads the two real trackers from private-data/ into the LOCAL database (removes the demo data first).
+load-trackers: migrate
+	$(API) run python -m app.seed load-trackers
 
 ai-smoke:
 	$(API) run python -m app.ai.smoke

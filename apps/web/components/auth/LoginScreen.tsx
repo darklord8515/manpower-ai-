@@ -162,7 +162,6 @@ export function LoginScreen() {
         />
         <div className="relative z-10 flex flex-col gap-3">
           <AlhamraWordmark className="h-12 w-auto max-w-72 lg:h-16" />
-          <p className="text-sm font-semibold tracking-[0.24em]">HAMRA AI</p>
           <p className="hidden max-w-sm text-base text-(--sb-muted) lg:block">
             Workforce operations for Alhamra Construction &amp; Development.
           </p>

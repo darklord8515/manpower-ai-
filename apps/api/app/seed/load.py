@@ -62,6 +62,8 @@ DEPARTMENTS = (("hr", "Human Resources"), ("operations", "Operations"), ("site",
 # Everything below is deleted by reset_demo, children before parents.
 _RESET_ORDER = (
     "audit_log",
+    "workforce_events",  # the history points at people and projects
+    "plan_lines",
     "notifications",  # emails HR sent to workers point at employees
     "calendar_events",  # events HR typed in point at the person who added them
     "applicant_interviews",  # invitations point at the user who sent them
@@ -105,6 +107,7 @@ def require_not_production(settings: Settings) -> None:
 def reset_demo(connection: Connection, settings: Settings) -> None:
     require_not_production(settings)
     connection.execute(text("UPDATE work_rules SET updated_by = NULL"))
+    connection.execute(text("UPDATE employees SET project_id = NULL"))  # people point at projects
     # The provisional 2027 ban is a demo assumption (the seed adds it); the schema's own rows stay.
     connection.execute(
         text("DELETE FROM work_rules WHERE code = 'midday_ban' AND year = 2027 AND is_provisional")
@@ -234,6 +237,7 @@ def seed_demo(connection: Connection, settings: Settings) -> dict[str, int]:
 
     _load_workers(connection, workers, departments["site"], trades, projects)
     _load_staff_and_applicants(connection, departments["site"], trades, projects)
+    _backfill_workforce(connection)
     _raise_alerts(connection, settings)
     return {
         "workers": len(workers),
@@ -318,6 +322,25 @@ def _load_staff_and_applicants(
             in APPLICANTS
         ],
     )  # fmt: skip
+
+
+def _backfill_workforce(connection: Connection) -> None:
+    """Give the fictional demo the workforce-planning shape: where each person is placed, and how
+    many each project plans per designation (from the planned manpower lines)."""
+    connection.execute(
+        text(
+            """UPDATE employees e SET project_id = a.project_id
+               FROM employee_assignments a
+               WHERE a.employee_id = e.id AND a.status IN ('planned', 'active')"""
+        )
+    )
+    connection.execute(
+        text(
+            """INSERT INTO plan_lines (project_id, trade_id, planned)
+               SELECT project_id, trade_id, max(headcount) FROM manpower_requirements
+               GROUP BY project_id, trade_id"""
+        )
+    )
 
 
 def _raise_alerts(connection: Connection, settings: Settings) -> None:

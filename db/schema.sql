@@ -26,14 +26,15 @@ CREATE EXTENSION IF NOT EXISTS citext;       -- case-insensitive emails
 -- Enums
 -- ---------------------------------------------------------------------
 CREATE TYPE employment_status  AS ENUM ('active', 'on_leave', 'suspended', 'resigned', 'terminated',
-                                        'absconded');
+                                        'absconded', 'offer_issued', 'documents_cleared');
 CREATE TYPE exit_reason        AS ENUM ('resigned', 'terminated', 'absconded', 'contract_ended', 'other');
 CREATE TYPE availability_state AS ENUM ('available', 'deployed', 'mobilizing', 'demobilizing', 'unavailable');
 CREATE TYPE document_type      AS ENUM ('passport', 'residency_visa', 'work_permit', 'labour_card',
                                         'medical_fitness', 'trade_certificate', 'safety_certificate',
                                         'driving_licence', 'other');
 CREATE TYPE document_status    AS ENUM ('pending_check', 'verified', 'rejected', 'expired');
-CREATE TYPE project_status     AS ENUM ('planning', 'active', 'on_hold', 'completed', 'cancelled');
+CREATE TYPE project_status     AS ENUM ('planning', 'active', 'on_hold', 'completed', 'cancelled',
+                                        'pre_construction', 'handover');
 CREATE TYPE request_status     AS ENUM ('draft', 'submitted', 'in_review', 'approved', 'partially_filled',
                                         'filled', 'rejected', 'cancelled');
 CREATE TYPE assignment_status  AS ENUM ('planned', 'active', 'completed', 'cancelled');
@@ -118,7 +119,9 @@ CREATE TABLE trades (
     id       uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     code     text NOT NULL UNIQUE,               -- 'steel_fixer', 'mason', 'electrician'
     name     text NOT NULL,
-    category text                                -- 'civil', 'mep', 'finishing', 'staff'
+    category text,                               -- 'civil', 'mep', 'finishing', 'staff'
+    kind     text NOT NULL DEFAULT 'labour' CHECK (kind IN ('labour', 'staff')),  -- migration 0016
+    department text                              -- staff discipline / labour trade group
 );
 
 CREATE TABLE employees (
@@ -148,8 +151,14 @@ CREATE TABLE employees (
     updated_at        timestamptz NOT NULL DEFAULT now(),
     email             text,                      -- optional; edited by HR (migration 0012)
     photo_key         text,                      -- where the photo is kept (migration 0015)
-    photo_type        text
+    photo_type        text,
+    project_id        uuid,                      -- where the person is placed (migration 0016; foreign key below)
+    discipline        text,
+    source            text CHECK (source IN ('local', 'overseas')),
+    uae_national      boolean NOT NULL DEFAULT false,
+    note              text
 );
+CREATE INDEX employees_project_idx ON employees (project_id);
 CREATE INDEX employees_trade_idx  ON employees (primary_trade_id, availability);
 CREATE INDEX employees_status_idx ON employees (employment_status);
 
@@ -270,9 +279,42 @@ CREATE TABLE projects (
     is_demo            boolean NOT NULL DEFAULT false,
     created_at         timestamptz NOT NULL DEFAULT now(),
     lead_employee_id   uuid REFERENCES employees(id),  -- the employee leading delivery (migration 0015)
+    kind               text NOT NULL DEFAULT 'project' CHECK (kind IN ('project', 'head_office')),
     CHECK (ends_on IS NULL OR starts_on IS NULL OR ends_on >= starts_on)
 );
 
+-- Employees are defined before projects, so this foreign key (migration 0016) is added here.
+ALTER TABLE employees ADD CONSTRAINT employees_project_id_fkey FOREIGN KEY (project_id) REFERENCES projects(id);
+
+-- Workforce planning (migration 0016): how many people each project plans per designation (the empty
+-- positions are planned minus joined and in the pipeline), and a history of what was done to the workforce.
+CREATE TABLE plan_lines (
+    id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id        uuid NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    trade_id          uuid NOT NULL REFERENCES trades(id),
+    discipline        text,
+    planned           integer NOT NULL CHECK (planned >= 0),
+    needed_by         date,
+    uae_national_only boolean NOT NULL DEFAULT false,
+    source            text CHECK (source IN ('local', 'overseas')),
+    updated_at        timestamptz NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX plan_lines_key ON plan_lines
+    (project_id, trade_id, uae_national_only);
+
+CREATE TABLE workforce_events (
+    id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    employee_id  uuid REFERENCES employees(id) ON DELETE SET NULL,
+    project_from uuid REFERENCES projects(id),
+    project_to   uuid REFERENCES projects(id),
+    kind         text NOT NULL CHECK (kind IN ('added', 'placed', 'moved', 'documents_cleared',
+                     'joined', 'resigned', 'plan_changed', 'imported')),
+    decided_by   text NOT NULL DEFAULT 'hr' CHECK (decided_by IN ('hr', 'ai')),
+    reason       text,
+    actor_id     uuid REFERENCES users(id),
+    created_at   timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX workforce_events_idx ON workforce_events (created_at DESC);
 CREATE TABLE project_sites (
     id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     project_id uuid NOT NULL REFERENCES projects(id) ON DELETE CASCADE,

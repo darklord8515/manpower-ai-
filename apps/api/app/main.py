@@ -29,6 +29,7 @@ from app.routes import (
     recruitment,
     requests,
     reservations,
+    tracker_import,
     worker_mail,
     worker_photo,
     workers,
@@ -101,6 +102,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(worker_photo.router)
     app.include_router(project_leadership.router)
     app.include_router(applicants.router)
+    app.include_router(tracker_import.router)
     app.include_router(executive.router)
     app.include_router(calendar.router)
     app.include_router(documents.router)
