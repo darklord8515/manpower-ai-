@@ -202,12 +202,12 @@ def auto_pick(session: Session, trade: Any, uae_person: bool) -> tuple[Line, str
     )
     best = open_lines[0]
     why = [f"{best.to_hire} of {best.planned} {best.label} places are still open"]
+    stage = STAGE_LABEL.get(best.project_stage, best.project_stage).lower()
     why.append(
         f"needed by {day(best.needed_by)}"
         if best.needed_by
-        else "no needed-by date is set, so it was ranked by stage and by how much is open"
+        else f"no needed-by date is set, so I compared the stage ({stage}) and how much of the plan is open"
     )
-    why.append(STAGE_LABEL.get(best.project_stage, best.project_stage).lower())
     others = [f"{r.project_name} ({r.to_hire} open)" for r in open_lines[1:3]]
     sentence = f"{best.project_name}: " + ", ".join(why) + "."
     if others:

@@ -6,6 +6,19 @@ import type {
   AlertFilters,
   AlertList,
   AlertSummary,
+  AddPersonBody,
+  TrackerSummary,
+  WBoard,
+  WChart,
+  WDesignation,
+  WHistory,
+  WKind,
+  WOverfilled,
+  WPeople,
+  WPersonDetail,
+  WPlacement,
+  WPlan,
+  WProject,
   ApplicantDetail,
   ApplicantList,
   Assignee,
@@ -71,6 +84,8 @@ export class ApiError extends Error {
     message: string,
     /** Seconds to wait before trying again (sent with 429). */
     readonly retryAfter?: number,
+    /** Set when a placement was refused because the project is full (HTTP 409). */
+    readonly overfilled?: WOverfilled,
   ) {
     super(message);
     this.name = "ApiError";
@@ -114,8 +129,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!response.ok) {
     if (response.status === 401 && !SIGN_IN_PATHS.includes(path)) onSessionEnded?.();
     let detail = "Something went wrong. Try again.";
+    let overfilled: WOverfilled | undefined;
     try {
-      const body = (await response.json()) as { detail?: unknown };
+      const body = (await response.json()) as { detail?: unknown; overfilled?: WOverfilled };
+      overfilled = body.overfilled;
       if (typeof body.detail === "string") detail = body.detail;
       else if (Array.isArray(body.detail) && body.detail.length > 0) {
         // FastAPI validation errors: [{ msg: "Value error, The end date must ..." }, ...]
@@ -130,6 +147,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       response.status,
       detail,
       Number.isFinite(retry) && retry > 0 ? retry : undefined,
+      overfilled,
     );
   }
   return (await response.json()) as T;
@@ -341,6 +359,72 @@ export const api = {
     request<WorkerDetail>(`/workers/${encodeURIComponent(code)}`, {
       method: "PATCH",
       body: JSON.stringify(body),
+    }),
+  // ---- workforce planning (Phase 8): see docs/workforce-api.md
+  wProjects: () => request<WProject[]>("/workforce/projects"),
+  wDesignations: () => request<WDesignation[]>("/workforce/designations"),
+  wPeople: (q: {
+    kind: WKind;
+    project?: string;
+    status?: string;
+    q?: string;
+    limit?: number;
+    offset?: number;
+  }) => {
+    const p = new URLSearchParams({ kind: q.kind, limit: String(q.limit ?? 200) });
+    if (q.project) p.set("project", q.project);
+    if (q.status) p.set("status", q.status);
+    if (q.q?.trim()) p.set("q", q.q.trim());
+    if (q.offset) p.set("offset", String(q.offset));
+    return request<WPeople>(`/workforce/people?${p}`);
+  },
+  wPerson: (code: string) =>
+    request<WPersonDetail>(`/workforce/people/${encodeURIComponent(code)}`),
+  wProjectPlan: (code: string) =>
+    request<WPlan>(`/workforce/projects/${encodeURIComponent(code)}/plan`),
+  wProjectPeople: (code: string) =>
+    request<{ staff: WPeople; labour: WPeople }>(
+      `/workforce/projects/${encodeURIComponent(code)}/people`,
+    ),
+  wSetPlan: (code: string, body: { designation: string; uae_only?: boolean; planned: number }) =>
+    request<WPlan>(`/workforce/projects/${encodeURIComponent(code)}/plan`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+  wPatchProject: (
+    code: string,
+    body: { stage?: string; starts_on?: string | null; ends_on?: string | null },
+  ) =>
+    request<{ code: string }>(`/workforce/projects/${encodeURIComponent(code)}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  wAddPerson: (body: AddPersonBody) =>
+    request<WPlacement>("/workforce/people", { method: "POST", body: JSON.stringify(body) }),
+  wMilestone: (code: string, to: "documents_cleared" | "active" | "resigned", on?: string) =>
+    request<{ code: string; status: string }>(
+      `/workforce/people/${encodeURIComponent(code)}/milestone`,
+      { method: "POST", body: JSON.stringify({ to, on }) },
+    ),
+  wMove: (code: string, projectCode: string, resolve?: "increase_plan") =>
+    request<{ message: string }>(`/workforce/people/${encodeURIComponent(code)}/move`, {
+      method: "POST",
+      body: JSON.stringify({ project_code: projectCode, resolve }),
+    }),
+  wBoard: (kind?: WKind) => request<WBoard>(`/workforce/recruitment${kind ? `?kind=${kind}` : ""}`),
+  wHistory: (by?: "ai" | "hr", project?: string) => {
+    const p = new URLSearchParams({ limit: "200" });
+    if (by) p.set("by", by);
+    if (project) p.set("project", project);
+    return request<WHistory[]>(`/workforce/history?${p}`);
+  },
+  wChart: () => request<WChart>("/workforce/chart"),
+  /** The tracker .xlsx goes as the raw request body. apply=false only reads and reports. */
+  importTracker: (kind: WKind, file: File, apply: boolean) =>
+    request<TrackerSummary>(`/imports/trackers?kind=${kind}&apply=${apply}`, {
+      method: "POST",
+      body: file,
+      headers: { "Content-Type": "application/octet-stream" },
     }),
   calendar: (start: string, end: string) =>
     request<CalendarView>(`/calendar?start=${start}&end=${end}`),

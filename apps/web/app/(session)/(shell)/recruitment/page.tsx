@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { RecruitmentScreen } from "@/components/recruitment/RecruitmentScreen";
+import { RecruitmentBoard } from "@/components/workforce/RecruitmentBoard";
 
 export const metadata: Metadata = { title: "Recruitment · HAMRA AI" };
 
@@ -7,5 +7,5 @@ export const metadata: Metadata = { title: "Recruitment · HAMRA AI" };
 export const instant = false;
 
 export default function RecruitmentPage() {
-  return <RecruitmentScreen />;
+  return <RecruitmentBoard />;
 }

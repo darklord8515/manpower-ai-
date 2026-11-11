@@ -18,7 +18,6 @@ const NOTICES: Record<string, string> = {
 
 const DEMO_ACCOUNTS: { role: DemoRole; title: string; person: string }[] = [
   { role: "hr_manager", title: "HR Manager", person: "Mr Imtiyaz" },
-  { role: "hr_executive", title: "HR Executive", person: "Priya" },
   { role: "ceo", title: "MD / CEO", person: "Mr Sanjay" },
 ];
 

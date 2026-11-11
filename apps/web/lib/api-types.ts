@@ -969,3 +969,171 @@ export type InterviewBody = {
   send_to?: string | null;
 };
 export type InterviewPreview = { to: string; subject: string; body: string };
+
+// ----------------------------------------------------------------- workforce planning (Phase 8)
+
+export type WKind = "staff" | "labour";
+export type WCounts = {
+  planned: number;
+  active: number;
+  pipeline: number;
+  to_hire: number;
+  over: number;
+};
+export type WPerson = {
+  code: string;
+  name: string;
+  designation: string;
+  kind: WKind;
+  discipline: string | null;
+  project_code: string | null;
+  project_name: string | null;
+  project_kind: "project" | "head_office" | null;
+  status: string;
+  joined_on: string | null;
+  exit_on: string | null;
+  source: "local" | "overseas" | null;
+  uae_national: boolean;
+  note: string | null;
+};
+export type WPeople = { items: WPerson[]; total: number; by_status: Record<string, number> };
+export type WHistory = {
+  at: string;
+  kind: string;
+  decided_by: "hr" | "ai";
+  reason: string | null;
+  person_code: string | null;
+  person_name: string | null;
+  from_project: string | null;
+  to_project: string | null;
+  by_user: string | null;
+};
+export type WPersonDetail = WPerson & {
+  phone: string | null;
+  email: string | null;
+  next_step: string | null;
+  history: WHistory[];
+};
+export type WProject = {
+  code: string;
+  name: string;
+  kind: "project" | "head_office";
+  stage: string;
+  stage_label: string;
+  starts_on: string | null;
+  ends_on: string | null;
+  staff: WCounts;
+  labour: WCounts;
+};
+export type WLine = {
+  designation: string;
+  role: string;
+  kind: WKind;
+  department: string | null;
+  uae_only: boolean;
+  planned: number;
+  active: number;
+  pipeline: number;
+  to_hire: number;
+  over: number;
+  needed_by: string | null;
+  source: "local" | "overseas" | null;
+};
+export type WPlan = {
+  project: {
+    code: string;
+    name: string;
+    kind: string;
+    stage: string;
+    starts_on: string | null;
+    ends_on: string | null;
+  };
+  staff: WLine[];
+  labour: WLine[];
+  totals: { staff: WCounts; labour: WCounts };
+};
+export type WBoardRow = {
+  designation: string;
+  role: string;
+  uae_only: boolean;
+  kind: WKind;
+  department: string | null;
+  to_hire: number;
+  could_move: number;
+  hire: number;
+  advice: string;
+  projects: {
+    project_code: string;
+    project_name: string;
+    stage: string;
+    planned: number;
+    active: number;
+    pipeline: number;
+    to_hire: number;
+    needed_by: string | null;
+    source: "local" | "overseas" | null;
+  }[];
+};
+export type WBoard = {
+  rows: WBoardRow[];
+  totals: { to_hire: number; hire: number; labour: number; staff: number };
+};
+export type WChart = {
+  projects: {
+    code: string;
+    name: string;
+    kind: "project" | "head_office";
+    stage: string;
+    planned: number;
+    active: number;
+    pipeline: number;
+    to_hire: number;
+  }[];
+  totals: WCounts;
+};
+export type WDesignation = { name: string; kind: WKind; department: string | null };
+export type WOverfilled = {
+  table: { project: string; designation: string; planned: number; now: number; after: number }[];
+  people: { code: string; name: string; status: string }[];
+  project: string;
+  options: string[];
+};
+export type WPlacement = {
+  code: string;
+  project_code: string;
+  project_name: string;
+  designation: string;
+  planned: number;
+  filled: number;
+  to_hire: number;
+  decided_by: "hr" | "ai";
+  reason: string | null;
+  message: string;
+};
+export type AddPersonBody = {
+  name: string;
+  designation: string;
+  project_code?: string | null;
+  auto?: boolean;
+  status?: "offer_issued" | "documents_cleared" | "active";
+  code?: string | null;
+  uae_national?: boolean;
+  source?: "local" | "overseas" | null;
+  resolve?: "increase_plan";
+};
+export type TrackerSummary = {
+  kind: WKind;
+  applied: boolean;
+  rows: number;
+  projects: { code: string; name: string; stage: string; head_office: boolean }[];
+  people: number;
+  by_status: Record<string, number>;
+  vacancies: number;
+  plan_lines: number;
+  planned_total: number;
+  uae_only_lines: number;
+  designations: number;
+  transfers_noted: number;
+  issue_count: number;
+  issues: string[];
+};

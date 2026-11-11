@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ProjectsScreen } from "@/components/projects/ProjectsScreen";
+import { ProjectsList } from "@/components/workforce/ProjectsList";
 
 export const metadata: Metadata = { title: "Projects · HAMRA AI" };
 
@@ -7,5 +7,5 @@ export const metadata: Metadata = { title: "Projects · HAMRA AI" };
 export const instant = false;
 
 export default function ProjectsPage() {
-  return <ProjectsScreen />;
+  return <ProjectsList />;
 }
