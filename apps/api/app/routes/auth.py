@@ -21,7 +21,8 @@ throttle = LoginThrottle()
 
 # The role switcher signs in as one of these seeded users through the normal session. It never
 # skips the permission checks: the session it creates is an ordinary one for that user.
-DEMO_ROLES = ("hr_manager", "hr_executive", "ceo")
+# Only two people sign in: HR and the MD. (The HR Executive role stays in the database.)
+DEMO_ROLES = ("hr_manager", "ceo")
 
 SessionDep = Annotated[Session, Depends(get_session)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
