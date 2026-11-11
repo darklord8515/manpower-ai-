@@ -7,12 +7,14 @@ import type {
   AlertList,
   AlertSummary,
   AddPersonBody,
+  EmpImportSummary,
   TrackerSummary,
   WBoard,
   WChart,
   WDesignation,
   WHistory,
   WKind,
+  WMobilization,
   WOverfilled,
   WPeople,
   WPersonDetail,
@@ -393,7 +395,12 @@ export const api = {
     }),
   wPatchProject: (
     code: string,
-    body: { stage?: string; starts_on?: string | null; ends_on?: string | null },
+    body: {
+      stage?: string;
+      starts_on?: string | null;
+      ends_on?: string | null;
+      actual_end_on?: string | null;
+    },
   ) =>
     request<{ code: string }>(`/workforce/projects/${encodeURIComponent(code)}`, {
       method: "PATCH",
@@ -411,6 +418,18 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ project_code: projectCode, resolve }),
     }),
+  wMobilization: (project?: string, kind?: WKind) => {
+    const p = new URLSearchParams();
+    if (project) p.set("project", project);
+    if (kind) p.set("kind", kind);
+    return request<WMobilization>(`/workforce/mobilization${p.size ? `?${p}` : ""}`);
+  },
+  /** The date HR expects someone to join; null clears it. It becomes their joining date when they join. */
+  wSetJoinDate: (code: string, date: string | null) =>
+    request<{ code: string; expected_join_on: string | null }>(
+      `/workforce/people/${encodeURIComponent(code)}/join-date`,
+      { method: "PATCH", body: JSON.stringify({ expected_join_on: date }) },
+    ),
   wBoard: (kind?: WKind) => request<WBoard>(`/workforce/recruitment${kind ? `?kind=${kind}` : ""}`),
   wHistory: (by?: "ai" | "hr", project?: string) => {
     const p = new URLSearchParams({ limit: "200" });
@@ -426,6 +445,28 @@ export const api = {
       body: file,
       headers: { "Content-Type": "application/octet-stream" },
     }),
+  /** A list of people (.xlsx, sent as base64). Nothing is written unless apply is true and every question is answered. */
+  importEmployees: async (
+    file: File,
+    decisions: Record<string, string>,
+    apply: boolean,
+    raisePlans: boolean,
+  ) => {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    }
+    return request<EmpImportSummary>("/imports/employees", {
+      method: "POST",
+      body: JSON.stringify({
+        file: btoa(binary),
+        decisions,
+        apply,
+        raise_plans: raisePlans,
+      }),
+    });
+  },
   calendar: (start: string, end: string) =>
     request<CalendarView>(`/calendar?start=${start}&end=${end}`),
   addCalendarEvent: (body: NewEvent) =>

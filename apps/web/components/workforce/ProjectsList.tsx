@@ -26,7 +26,12 @@ function Row({ label, c }: { label: string; c: WCounts }) {
   );
 }
 
-export function dateLine(p: Pick<WProject, "starts_on" | "ends_on">) {
+export function dateLine(
+  p: Pick<WProject, "starts_on" | "ends_on"> & { actual_end_on?: string | null },
+) {
+  if (p.actual_end_on) {
+    return `${p.starts_on ? formatDate(p.starts_on) : "Start not set"} to ${formatDate(p.actual_end_on)} (ended${p.ends_on ? `, expected ${formatDate(p.ends_on)}` : ""})`;
+  }
   if (!p.starts_on && !p.ends_on) return "Dates not set yet";
   return `${p.starts_on ? formatDate(p.starts_on) : "Start not set"} to ${p.ends_on ? formatDate(p.ends_on) : "end not set"}`;
 }

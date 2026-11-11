@@ -18,6 +18,7 @@ from app.routes import (
     auth,
     calendar,
     documents,
+    employee_import,
     executive,
     forecast,
     health,
@@ -104,6 +105,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(project_leadership.router)
     app.include_router(applicants.router)
     app.include_router(tracker_import.router)
+    app.include_router(employee_import.router)
     app.include_router(workforce.router)
     app.include_router(executive.router)
     app.include_router(calendar.router)

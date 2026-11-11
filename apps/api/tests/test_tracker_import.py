@@ -51,6 +51,8 @@ LABOUR = [
     [8003, "Hal Test", "Local", "Test Tower", "Steel Fixer", "Structure", "Offer issued", None, None],
     ["?", "Ivy Test", "Local", "Test Tower", "Steel Fixer", "Structure", "Offer issued", None, None],
     ["?", "TBA", "Overseas", "Test Tower", "Steel Fixer", "Structure", "Future Requirement", None, None],
+    [8004, "Jo Test", "Local", "Test Tower", "Steel Fixer", "Structure", "", None, None],  # a name, no status yet
+    [8005, "Kit Test", "Local", "Test Tower", "Steel Fixer", "Structure", "Offer issued", date(2027, 2, 1), None],
 ]  # fmt: skip
 
 
@@ -227,7 +229,7 @@ def test_labour_trades_reuse_the_ones_that_exist_and_a_person_over_the_plan_show
         line = next(
             r for r in headcount.lines(session, project_code="TT-L") if r.trade == "Steel fixer"
         )
-        assert (line.planned, line.active, line.pipeline, line.to_hire) == (5, 1, 2, 2)
+        assert (line.planned, line.active, line.pipeline, line.to_hire) == (7, 1, 4, 2)
         assert str(line.needed_by) == "2027-01-15" and line.source == "overseas"
 
 
@@ -252,7 +254,7 @@ def test_both_trackers_share_a_project_by_name_and_spelling_variants_are_one_rol
             for r in headcount.lines(session, project_code="ZA")
             if r.trade.lower() == "steel fixer"
         ]
-        assert len(steel) == 1 and steel[0].planned == 5  # "Steel Fixer" twice is one role
+        assert len(steel) == 1 and steel[0].planned == 7  # "Steel Fixer" twice is one role
 
 
 def test_only_hr_may_import_and_bad_uploads_get_plain_answers(
@@ -265,3 +267,29 @@ def test_only_hr_may_import_and_bad_uploads_get_plain_answers(
     wrong = manager.post("/imports/trackers?kind=staff", content=b"not a workbook")
     assert wrong.status_code == 422 and "not an Excel" in wrong.text
     assert manager.post("/imports/trackers?kind=other", content=STAFF_FILE).status_code == 422
+
+
+def test_a_named_person_with_no_status_goes_to_mobilization_and_a_sheet_date_is_the_expected_date(
+    desk: tuple[TestClient, TestClient], migrated_db: Engine
+) -> None:
+    manager, _ = desk
+    done = manager.post("/imports/trackers?kind=labour&apply=true", content=LABOUR_FILE)
+    assert done.status_code == 200 and any("had no status" in i for i in done.json()["issues"])
+    with migrated_db.connect() as c:
+        rows = {
+            r[0]: r[1:]
+            for r in c.execute(
+                text(
+                    """SELECT employee_code, employment_status::text, expected_join_on, joined_on
+                       FROM employees WHERE employee_code IN ('8004', '8005')"""
+                )
+            )
+        }
+    assert rows["8004"][0] == "offer_issued" and rows["8004"][2] is None
+    assert rows["8005"][0] == "offer_issued"
+    assert (
+        str(rows["8005"][1]) == "2027-02-01" and rows["8005"][2] is None
+    )  # not a joining date yet
+    board = manager.get("/workforce/mobilization").json()
+    offers = {p["name"] for c in board["columns"] if c["id"] == "offer_issued" for p in c["people"]}
+    assert {"Jo Test", "Kit Test"} <= offers

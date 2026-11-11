@@ -47,6 +47,7 @@ STAGES = {
     "handover": "handover", "completed": "completed", "on hold": "on_hold",
 }  # fmt: skip
 ISSUE_LIMIT = 40
+NOT_JOINED = ("offer_issued", "documents_cleared")  # these people are on the Mobilization board
 # A person on offer often has no company ID yet; the sheet shows "?" (the same one for every empty position).
 NO_ID = {"", "?", "-", "--", "na", "n/a", "tba", "tbc", "0"}
 
@@ -124,6 +125,7 @@ class Person:
     email: str | None
     source: str | None
     note: str | None
+    expected_join_on: date | None = None  # for people not yet joined: the date in the sheet
 
 
 @dataclass
@@ -251,6 +253,7 @@ def parse_workbook(content: bytes, kind: Kind) -> Parsed:
         str, str
     ] = {}  # "steel fixer" -> the first spelling seen, so variants are one role
     no_id = 0
+    blank_status = 0
     for position, row in enumerate(rows, start=1):
         if not any(v not in (None, "") for v in row[:12]):
             continue
@@ -260,6 +263,11 @@ def parse_workbook(content: bytes, kind: Kind) -> Parsed:
         designation, uae = split_uaen(_clean(cell(row, "trade")))
         designation = spelling.setdefault(designation.lower(), designation)
         status = map_status(cell(row, "status"))
+        name = _clean(cell(row, "name"))
+        if not _clean(cell(row, "status")) and name and name.lower() not in BLANK_NAMES:
+            # A named person with no status yet is on the way: they go to Mobilization as offer issued.
+            status = "offer_issued"
+            blank_status += 1
         if project is None or not designation or status == "unknown":
             reason = (
                 f"project “{_clean(cell(row, 'project'))}” is not in the Projects sheet" if project is None
@@ -271,7 +279,6 @@ def parse_workbook(content: bytes, kind: Kind) -> Parsed:
         uae = uae or "uae" in _clean(cell(row, "nat")).lower()
         discipline = _clean(cell(row, "disc")) or None
         parsed.designations.setdefault(designation, discipline)
-        name = _clean(cell(row, "name"))
         parsed.status_counts[status] += 1
         needed = _date(cell(row, "exit"))
         source = _clean(cell(row, "source")).lower()
@@ -319,13 +326,18 @@ def parse_workbook(content: bytes, kind: Kind) -> Parsed:
                 status="active" if status == "transfer_out" else status,
                 discipline=discipline,
                 uae=uae,
-                joined_on=_date(cell(row, "joined")),
+                joined_on=None if status in NOT_JOINED else _date(cell(row, "joined")),
+                expected_join_on=_date(cell(row, "joined")) if status in NOT_JOINED else None,
                 exit_on=needed if status in ("resigned", "terminated", "absconded") else None,
                 phone=phone,
                 email=_clean(cell(row, "email")).lower() or None,
                 source=source or None,
                 note=note,
             )  # fmt: skip
+        )
+    if blank_status:
+        parsed.issue(
+            f"{blank_status} named people had no status; they were put in Mobilization as offer issued"
         )
     if no_id:
         parsed.issue(f"{no_id} people have no company ID yet; each was given a temporary NEW- code")
@@ -483,17 +495,18 @@ def apply(session: Session, parsed: Parsed, actor_id: Any = None) -> dict[str, i
             text(
                 """INSERT INTO employees
                        (employee_code, full_name, phone, email, primary_trade_id, project_id, discipline,
-                        employment_status, availability, joined_on, exit_on, source, uae_national, note,
-                        is_demo)
+                        employment_status, availability, joined_on, expected_join_on, exit_on, source,
+                        uae_national, note, is_demo)
                    VALUES (:code, :name, :phone, :email, :trade, :project, :disc,
                            CAST(:status AS employment_status), CAST(:availability AS availability_state),
-                           :joined, :exit, :src, :uae, :note, false)
+                           :joined, :expected, :exit, :src, :uae, :note, false)
                    ON CONFLICT (employee_code) DO UPDATE
                       SET full_name = EXCLUDED.full_name, phone = EXCLUDED.phone, email = EXCLUDED.email,
                           primary_trade_id = EXCLUDED.primary_trade_id, project_id = EXCLUDED.project_id,
                           discipline = EXCLUDED.discipline,
                           employment_status = EXCLUDED.employment_status,
                           availability = EXCLUDED.availability, joined_on = EXCLUDED.joined_on,
+                          expected_join_on = EXCLUDED.expected_join_on,
                           exit_on = EXCLUDED.exit_on, source = EXCLUDED.source,
                           uae_national = EXCLUDED.uae_national, note = EXCLUDED.note,
                           updated_at = now()"""
@@ -502,7 +515,7 @@ def apply(session: Session, parsed: Parsed, actor_id: Any = None) -> dict[str, i
              "trade": trade_ids[person.trade], "project": project_ids[person.project],
              "disc": person.discipline, "status": person.status,
              "availability": "deployed" if person.status in ("active", "on_leave") else "available",
-             "joined": person.joined_on, "exit": person.exit_on, "src": person.source,
+             "joined": person.joined_on, "expected": person.expected_join_on, "exit": person.exit_on, "src": person.source,
              "uae": person.uae, "note": person.note},
         )  # fmt: skip
     session.execute(
@@ -518,3 +531,10 @@ def apply(session: Session, parsed: Parsed, actor_id: Any = None) -> dict[str, i
         "plan_lines": len(parsed.plan),
         "projects": len(parsed.projects),
     }
+
+
+# Public names for the helpers the employee-list import shares with this module.
+clean = _clean
+key = _key
+to_date = _date
+slug = _slug

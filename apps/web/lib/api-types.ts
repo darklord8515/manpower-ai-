@@ -991,6 +991,7 @@ export type WPerson = {
   project_kind: "project" | "head_office" | null;
   status: string;
   joined_on: string | null;
+  expected_join_on: string | null;
   exit_on: string | null;
   source: "local" | "overseas" | null;
   uae_national: boolean;
@@ -1022,6 +1023,7 @@ export type WProject = {
   stage_label: string;
   starts_on: string | null;
   ends_on: string | null;
+  actual_end_on: string | null;
   staff: WCounts;
   labour: WCounts;
 };
@@ -1047,6 +1049,7 @@ export type WPlan = {
     stage: string;
     starts_on: string | null;
     ends_on: string | null;
+    actual_end_on: string | null;
   };
   staff: WLine[];
   labour: WLine[];
@@ -1118,9 +1121,47 @@ export type AddPersonBody = {
   status?: "offer_issued" | "documents_cleared" | "active";
   code?: string | null;
   uae_national?: boolean;
+  expected_join_on?: string | null;
   source?: "local" | "overseas" | null;
   resolve?: "increase_plan";
 };
+/** A doubtful row in a people list: HR answers it before anything is written. */
+export type EmpImportQuestion = {
+  row: number;
+  kind: "moved" | "details" | "id_clash";
+  person_code: string;
+  person_name: string;
+  question: string;
+  options: { id: string; label: string }[];
+};
+
+export type EmpImportApplied = {
+  created: { staff: number; labour: number };
+  unchanged: number;
+  transferred: number;
+  updated: number;
+  ignored: number;
+  another: number;
+  plans_raised: number;
+  ai_placed: number;
+  skipped: string[];
+  blocked: string[];
+};
+
+export type EmpImportSummary = {
+  rows: number;
+  new: number;
+  new_staff: number;
+  new_labour: number;
+  unchanged: number;
+  ai_placed: number;
+  new_roles: string[];
+  overflow: { project: string; designation: string; planned: number; now: number; after: number }[];
+  conflicts: EmpImportQuestion[];
+  issues: string[];
+  applied: EmpImportApplied | null;
+};
+
 export type TrackerSummary = {
   kind: WKind;
   applied: boolean;
@@ -1136,4 +1177,26 @@ export type TrackerSummary = {
   transfers_noted: number;
   issue_count: number;
   issues: string[];
+};
+
+export type WMobilizationPerson = {
+  code: string;
+  name: string;
+  designation: string;
+  kind: WKind;
+  project_code: string | null;
+  project_name: string | null;
+  status: "offer_issued" | "documents_cleared";
+  expected_join_on: string | null;
+  late: boolean;
+};
+export type WMobilization = {
+  columns: {
+    id: "offer_issued" | "documents_cleared" | "can_join";
+    label: string;
+    hint: string;
+    people: WMobilizationPerson[];
+  }[];
+  total: number;
+  late: number;
 };

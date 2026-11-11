@@ -6,6 +6,7 @@ import { BUTTON, PRIMARY_BUTTON } from "@/components/ui/button-styles";
 import { DetailSheet } from "@/components/ui/DetailSheet";
 import { api } from "@/lib/api";
 import type { TrackerSummary, WKind } from "@/lib/api-types";
+import { EmployeeListImport } from "./EmployeeListImport";
 import { messageOf } from "./shared";
 
 type Props = { open: boolean; onClose: () => void; onChanged: () => void };
@@ -23,9 +24,10 @@ const STATUS_WORD: Record<string, string> = {
   on_leave: "On leave",
 };
 
-/** Import the labour or staff tracker: see what it contains first, then import it. */
+/** Import a list of people, or the labour / staff tracker: see what it contains first, then import it. */
 export function ImportSheet({ open, onClose, onChanged }: Props) {
-  const [kind, setKind] = useState<WKind>("labour");
+  const [mode, setMode] = useState<"people" | WKind>("people");
+  const kind: WKind = mode === "people" ? "labour" : mode;
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<TrackerSummary | null>(null);
   const [done, setDone] = useState<TrackerSummary | null>(null);
@@ -68,10 +70,37 @@ export function ImportSheet({ open, onClose, onChanged }: Props) {
         }
       }}
       title="Import from Excel"
-      meta="The labour or staff tracker"
+      meta="A list of people, or the labour or staff tracker"
     >
       <div className="flex flex-col gap-4">
-        {done && (
+        <fieldset className="m-0 flex flex-wrap gap-2 border-0 p-0">
+          <legend className="mb-1 text-xs font-medium text-muted">What are you importing</legend>
+          {(
+            [
+              ["people", "People list"],
+              ["labour", "Labour tracker"],
+              ["staff", "Staff tracker"],
+            ] as const
+          ).map(([m, label]) => (
+            <label
+              key={m}
+              className="flex cursor-pointer items-center gap-2 rounded-control border border-border-strong px-3 py-1.5 text-sm has-checked:bg-hover has-checked:font-medium"
+            >
+              <input
+                type="radio"
+                name="import-mode"
+                checked={mode === m}
+                onChange={() => {
+                  setMode(m);
+                  reset();
+                }}
+              />
+              {label}
+            </label>
+          ))}
+        </fieldset>
+        {mode === "people" && <EmployeeListImport key="people" onChanged={onChanged} />}
+        {mode !== "people" && done && (
           <p
             role="status"
             className="m-0 rounded-control bg-success-soft px-3 py-2 text-sm text-success-text"
@@ -80,27 +109,7 @@ export function ImportSheet({ open, onClose, onChanged }: Props) {
             tracker.
           </p>
         )}
-        <fieldset className="m-0 flex gap-2 border-0 p-0">
-          <legend className="mb-1 text-xs font-medium text-muted">Which tracker</legend>
-          {(["labour", "staff"] as const).map((k) => (
-            <label
-              key={k}
-              className="flex cursor-pointer items-center gap-2 rounded-control border border-border-strong px-3 py-1.5 text-sm has-checked:bg-hover has-checked:font-medium"
-            >
-              <input
-                type="radio"
-                name="tracker-kind"
-                checked={kind === k}
-                onChange={() => {
-                  setKind(k);
-                  reset();
-                }}
-              />
-              {k === "labour" ? "Labour" : "Staff"}
-            </label>
-          ))}
-        </fieldset>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className={mode === "people" ? "hidden" : "flex flex-wrap items-center gap-2"}>
           <input
             ref={picker}
             type="file"
@@ -126,7 +135,7 @@ export function ImportSheet({ open, onClose, onChanged }: Props) {
             {busy && !preview ? "Reading…" : "Preview"}
           </button>
         </div>
-        {problem && (
+        {mode !== "people" && problem && (
           <p
             role="alert"
             className="m-0 rounded-control bg-danger-soft px-3 py-2 text-sm text-danger-text"
@@ -135,7 +144,7 @@ export function ImportSheet({ open, onClose, onChanged }: Props) {
           </p>
         )}
 
-        {shown && (
+        {mode !== "people" && shown && (
           <section aria-label="What the file contains" className="flex flex-col gap-3">
             <dl className="m-0 text-sm">
               {[

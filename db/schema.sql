@@ -156,7 +156,8 @@ CREATE TABLE employees (
     discipline        text,
     source            text CHECK (source IN ('local', 'overseas')),
     uae_national      boolean NOT NULL DEFAULT false,
-    note              text
+    note              text,
+    expected_join_on  date                       -- when HR expects them to join (migration 0017)
 );
 CREATE INDEX employees_project_idx ON employees (project_id);
 CREATE INDEX employees_trade_idx  ON employees (primary_trade_id, availability);
@@ -280,7 +281,10 @@ CREATE TABLE projects (
     created_at         timestamptz NOT NULL DEFAULT now(),
     lead_employee_id   uuid REFERENCES employees(id),  -- the employee leading delivery (migration 0015)
     kind               text NOT NULL DEFAULT 'project' CHECK (kind IN ('project', 'head_office')),
-    CHECK (ends_on IS NULL OR starts_on IS NULL OR ends_on >= starts_on)
+    actual_end_on      date,                      -- the day it really finished (migration 0018)
+    CHECK (ends_on IS NULL OR starts_on IS NULL OR ends_on >= starts_on),
+    CONSTRAINT projects_actual_end_check
+        CHECK (actual_end_on IS NULL OR starts_on IS NULL OR actual_end_on >= starts_on)
 );
 
 -- Employees are defined before projects, so this foreign key (migration 0016) is added here.
@@ -308,7 +312,7 @@ CREATE TABLE workforce_events (
     project_from uuid REFERENCES projects(id),
     project_to   uuid REFERENCES projects(id),
     kind         text NOT NULL CHECK (kind IN ('added', 'placed', 'moved', 'documents_cleared',
-                     'joined', 'resigned', 'plan_changed', 'imported')),
+                     'joined', 'resigned', 'plan_changed', 'imported', 'join_date_set')),
     decided_by   text NOT NULL DEFAULT 'hr' CHECK (decided_by IN ('hr', 'ai')),
     reason       text,
     actor_id     uuid REFERENCES users(id),

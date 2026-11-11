@@ -20,6 +20,7 @@ export function AddPersonSheet({ open, onClose, onChanged }: Props) {
   const [designation, setDesignation] = useState("");
   const [status, setStatus] = useState<NonNullable<AddPersonBody["status"]>>("offer_issued");
   const [code, setCode] = useState("");
+  const [expected, setExpected] = useState("");
   const [uae, setUae] = useState(false);
   const [how, setHow] = useState<"project" | "auto">("auto");
   const [project, setProject] = useState("");
@@ -35,6 +36,7 @@ export function AddPersonSheet({ open, onClose, onChanged }: Props) {
     status,
     code: code.trim() || null,
     uae_national: uae,
+    ...(status !== "active" && expected ? { expected_join_on: expected } : {}),
     ...(how === "auto" ? { auto: true } : { project_code: project }),
     ...(resolve ? { resolve } : {}),
   });
@@ -154,15 +156,15 @@ export function AddPersonSheet({ open, onClose, onChanged }: Props) {
           </label>
           <div className="grid grid-cols-2 gap-3">
             <label className="flex flex-col gap-1 text-xs font-medium text-muted">
-              Where they are now
+              Mobilization step
               <select
                 className={FIELD}
                 value={status}
                 onChange={(e) => setStatus(e.target.value as typeof status)}
               >
-                <option value="offer_issued">Offer issued</option>
-                <option value="documents_cleared">Documents cleared</option>
-                <option value="active">Already joined</option>
+                <option value="offer_issued">Offer issued (goes to Mobilization)</option>
+                <option value="documents_cleared">Documents cleared (goes to Mobilization)</option>
+                <option value="active">Already joined (not in Mobilization)</option>
               </select>
             </label>
             <label className="flex flex-col gap-1 text-xs font-medium text-muted">
@@ -175,6 +177,17 @@ export function AddPersonSheet({ open, onClose, onChanged }: Props) {
               />
             </label>
           </div>
+          {status !== "active" && (
+            <label className="flex flex-col gap-1 text-xs font-medium text-muted">
+              Expected joining date (you can change it later in Mobilization)
+              <input
+                type="date"
+                className={FIELD}
+                value={expected}
+                onChange={(e) => setExpected(e.target.value)}
+              />
+            </label>
+          )}
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={uae} onChange={(e) => setUae(e.target.checked)} />
             UAE national
@@ -187,9 +200,9 @@ export function AddPersonSheet({ open, onClose, onChanged }: Props) {
                 [
                   "auto",
                   "Let AI decide",
-                  "It places them where this role is needed most, and says why.",
+                  "It places them on the project where this role is needed most, and says why. It only chooses projects.",
                 ],
-                ["project", "I will choose", ""],
+                ["project", "I will choose (any project, head office or camp)", ""],
               ] as const
             ).map(([id, label, hint]) => (
               <label

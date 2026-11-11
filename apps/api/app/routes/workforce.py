@@ -19,8 +19,9 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.audit import write_audit
-from app.auth.deps import AuthUser, require
+from app.auth.deps import AuthUser, get_clock, require
 from app.auth.scope import employee_scope
+from app.clock import Clock
 from app.db import get_session
 from app.services import headcount, workforce
 
@@ -31,6 +32,7 @@ Reader = Annotated[AuthUser, Depends(require("employee:read"))]
 Writer = Annotated[AuthUser, Depends(require("employee:write"))]
 ProjectWriter = Annotated[AuthUser, Depends(require("project:write"))]
 Kind = Literal["staff", "labour"]
+ClockDep = Annotated[Clock, Depends(get_clock)]
 STAGES = ("pre_construction", "active", "handover", "completed", "on_hold")
 
 
@@ -90,7 +92,7 @@ def projects(session: SessionDep, user: Reader) -> list[dict[str, Any]]:
         bucket["over"] += r.over
     rows = session.execute(
         text(
-            """SELECT code, name, kind, status::text AS stage, starts_on, ends_on
+            """SELECT code, name, kind, status::text AS stage, starts_on, ends_on, actual_end_on
                FROM projects ORDER BY (kind = 'head_office'), name"""
         )
     ).mappings()
@@ -106,45 +108,52 @@ def projects(session: SessionDep, user: Reader) -> list[dict[str, Any]]:
 class ProjectPatch(BaseModel):
     stage: Literal["pre_construction", "active", "handover", "completed", "on_hold"] | None = None
     starts_on: date | None = None
-    ends_on: date | None = None
+    ends_on: date | None = None  # the date HR expects it to finish
+    actual_end_on: date | None = None  # the day it really finished
 
 
 @router.patch("/projects/{code}")
 def patch_project(
     code: str, body: ProjectPatch, request: Request, session: SessionDep, user: ProjectWriter
 ) -> dict[str, Any]:
-    """HR sets a project's stage and its start and end dates (the trackers leave them blank)."""
+    """HR sets a project's stage, start date, expected end date and real end date."""
     _all_scope(user)
     project = _project(session, code)
     fields = body.model_dump(exclude_unset=True)
     starts = fields.get("starts_on", project["starts_on"])
     ends = fields.get("ends_on", project["ends_on"])
+    real_end = fields.get("actual_end_on", project["actual_end_on"])
     if starts and ends and ends < starts:
-        raise HTTPException(422, "The end date cannot be before the start date.")
+        raise HTTPException(422, "The expected end date cannot be before the start date.")
+    if starts and real_end and real_end < starts:
+        raise HTTPException(422, "The real end date cannot be before the start date.")
+    stage = fields.get("stage")
+    if stage is None and fields.get("actual_end_on") is not None:
+        stage = "completed"  # a project with a real end date is finished
     session.execute(
         text(
             """UPDATE projects SET
                    status = COALESCE(CAST(:stage AS project_status), status),
-                   starts_on = :s, ends_on = :e WHERE id = :id"""
+                   starts_on = :s, ends_on = :e, actual_end_on = :r WHERE id = :id"""
         ),
-        {"id": project["id"], "stage": fields.get("stage"), "s": starts, "e": ends},
+        {"id": project["id"], "stage": stage, "s": starts, "e": ends, "r": real_end},
     )
     write_audit(
         session, request, "project.updated", "project", user, entity_id=project["id"],
         before={"stage": project["stage"], "starts_on": str(project["starts_on"]),
-                "ends_on": str(project["ends_on"])},
-        after={k: str(v) for k, v in fields.items()},
+                "ends_on": str(project["ends_on"]), "actual_end_on": str(project["actual_end_on"])},
+        after={k: str(v) for k, v in fields.items()} | ({"stage": stage} if stage else {}),
     )  # fmt: skip
-    return {"code": code, "stage": fields.get("stage", project["stage"]),
-            "starts_on": starts, "ends_on": ends}  # fmt: skip
+    return {"code": code, "stage": stage or project["stage"], "starts_on": starts,
+            "ends_on": ends, "actual_end_on": real_end}  # fmt: skip
 
 
 def _project(session: Session, code: str) -> Any:
     row = (
         session.execute(
             text(
-                """SELECT id, code, name, kind, status::text AS stage, starts_on, ends_on
-                   FROM projects WHERE code = :c"""
+                """SELECT id, code, name, kind, status::text AS stage, starts_on, ends_on,
+                          actual_end_on FROM projects WHERE code = :c"""
             ),
             {"c": code},
         )
@@ -177,7 +186,7 @@ def plan(code: str, session: SessionDep, user: Reader) -> dict[str, Any]:
     return {
         "project": {"code": project["code"], "name": project["name"], "kind": project["kind"],
                     "stage": project["stage"], "starts_on": project["starts_on"],
-                    "ends_on": project["ends_on"]},
+                    "ends_on": project["ends_on"], "actual_end_on": project["actual_end_on"]},
         "staff": [_line(r) for r in rows if r.kind == "staff"],
         "labour": [_line(r) for r in rows if r.kind == "labour"],
         "totals": {k: headcount.totals([r for r in rows if r.kind == k]) for k in ("staff", "labour")},
@@ -240,7 +249,8 @@ def set_plan(
 _PEOPLE_SQL = """
 SELECT e.employee_code AS code, e.full_name AS name, t.name AS designation, t.kind,
        e.discipline, p.code AS project_code, p.name AS project_name, p.kind AS project_kind,
-       e.employment_status::text AS status, e.joined_on, e.exit_on, e.source, e.uae_national, e.note
+       e.employment_status::text AS status, e.joined_on, e.expected_join_on, e.exit_on, e.source,
+       e.uae_national, e.note
 FROM employees e
 JOIN trades t ON t.id = e.primary_trade_id
 LEFT JOIN projects p ON p.id = e.project_id
@@ -333,7 +343,7 @@ def person(code: str, session: SessionDep, user: Reader) -> dict[str, Any]:
             text(
                 f"""SELECT e.id, e.employee_code AS code, e.full_name AS name, t.name AS designation,
                            t.kind, e.discipline, p.code AS project_code, p.name AS project_name,
-                           e.employment_status::text AS status, e.joined_on, e.exit_on, e.source,
+                           e.employment_status::text AS status, e.joined_on, e.expected_join_on, e.exit_on, e.source,
                            e.uae_national, e.note, e.phone, e.email
                     FROM employees e JOIN trades t ON t.id = e.primary_trade_id
                     LEFT JOIN projects p ON p.id = e.project_id
@@ -366,6 +376,7 @@ class AddPerson(BaseModel):
     email: str | None = Field(default=None, max_length=120)
     uae_national: bool = False
     joined_on: date | None = None
+    expected_join_on: date | None = None  # for people not yet joined
     source: Literal["local", "overseas"] | None = None
     resolve: Literal["increase_plan"] | None = None
 
@@ -382,6 +393,7 @@ def add_person(
             project_code=body.project_code, auto=body.auto, status=body.status, code=body.code,
             phone=body.phone, email=body.email, uae_national=body.uae_national,
             joined_on=body.joined_on, source=body.source, resolve=body.resolve,
+            expected_join_on=body.expected_join_on,
         )  # fmt: skip
     except workforce.Overfilled as error:
         session.rollback()
@@ -507,3 +519,38 @@ def chart(session: SessionDep, user: Reader) -> dict[str, Any]:
         item["to_hire"] += r.to_hire
     items = sorted(per.values(), key=lambda p: (p["kind"] == "head_office", -p["planned"]))
     return {"projects": items, "totals": headcount.totals(headcount.lines(session))}
+
+
+# -------------------------------------------------------------------- the mobilization board
+
+
+@router.get("/mobilization")
+def mobilization(
+    session: SessionDep,
+    clock: ClockDep,
+    user: Reader,
+    project: Annotated[str | None, Query(max_length=20)] = None,
+    kind: Annotated[Kind | None, Query()] = None,
+) -> dict[str, Any]:
+    """People on the way in three columns: offer issued, documents cleared, can join."""
+    _all_scope(user)
+    return workforce.mobilization_board(session, clock.today(), project, kind)
+
+
+class JoinDateBody(BaseModel):
+    expected_join_on: date | None = None
+
+
+@router.patch("/people/{code}/join-date")
+def join_date(
+    code: str, body: JoinDateBody, request: Request, session: SessionDep, user: Writer
+) -> dict[str, Any]:
+    """Set (or clear) the date HR expects someone to join."""
+    _all_scope(user)
+    try:
+        done = workforce.set_join_date(session, user.id, code, body.expected_join_on)
+    except workforce.WorkforceError as error:
+        session.rollback()
+        raise _failure(error) from error
+    write_audit(session, request, "workforce.join_date", "employee", user, after=done)
+    return done

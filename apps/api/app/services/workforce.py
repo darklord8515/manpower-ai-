@@ -181,11 +181,14 @@ def ensure_room(session: Session, line: Line, resolve: str | None, actor: Any) -
 
 
 def auto_pick(session: Session, trade: Any, uae_person: bool) -> tuple[Line, str] | None:
-    """The project that needs this role most, and why. None when no project has an open place."""
+    """The project that needs this role most, and why. None when no project has an open place.
+
+    Only real projects are considered. Head office, the camp and the other groups are never chosen
+    by "let AI decide": HR places people there by hand."""
     open_lines = [
         r for r in headcount.lines(session)
         if r.trade_id == trade["id"] and r.to_hire > 0 and r.project_stage not in CLOSED_STAGES
-        and (uae_person or not r.uae_only)
+        and r.project_kind == "project" and (uae_person or not r.uae_only)
     ]  # fmt: skip
     if not open_lines:
         return None
@@ -224,6 +227,7 @@ def add_person(
     session: Session, actor: Any, *, name: str, designation: str, project_code: str | None,
     auto: bool, status: str, code: str | None, phone: str | None, email: str | None,
     uae_national: bool, joined_on: date | None, source: str | None, resolve: str | None,
+    expected_join_on: date | None = None,
 ) -> dict[str, Any]:  # fmt: skip
     """Add one person and place them. Raises WorkforceError, or Overfilled when the line is full."""
     if status not in MILESTONES:
@@ -244,8 +248,9 @@ def add_person(
         if picked is None:
             raise WorkforceError(
                 409,
-                f"No project has an open {trade['name']} place right now. Choose a project, "
-                "and say if its plan should grow by one.",
+                f"No project has an open {trade['name']} place right now (the AI only chooses "
+                "projects, not head office or camps). Choose where they go yourself, and say if "
+                "its plan should grow by one.",
             )
         line, reason = picked
         decided_by = "ai"
@@ -259,11 +264,11 @@ def add_person(
             text(
                 """INSERT INTO employees
                        (employee_code, full_name, phone, email, primary_trade_id, project_id,
-                        discipline, employment_status, availability, joined_on, source, uae_national,
-                        is_demo)
+                        discipline, employment_status, availability, joined_on, expected_join_on, source,
+                        uae_national, is_demo)
                    VALUES (:code, :name, :phone, :email, :trade, :project, :disc,
                            CAST(:status AS employment_status), CAST(:avail AS availability_state),
-                           :joined, :src, :uae, false)
+                           :joined, :expected, :src, :uae, false)
                    RETURNING id, employee_code"""
             ),
             {
@@ -277,6 +282,7 @@ def add_person(
                 "status": status,
                 "avail": "deployed" if status == "active" else "available",
                 "joined": joined_on or (date.today() if status == "active" else None),
+                "expected": expected_join_on if status != "active" else None,
                 "src": source,
                 "uae": uae_national,
             },
@@ -354,7 +360,7 @@ def milestone(session: Session, actor: Any, code: str, to: str, on: date | None)
     session.execute(
         text(
             """UPDATE employees SET employment_status = CAST(:to AS employment_status),
-                      joined_on = CASE WHEN :to = 'active' THEN COALESCE(:on, joined_on, current_date)
+                      joined_on = CASE WHEN :to = 'active' THEN COALESCE(:on, expected_join_on, joined_on, current_date)
                                        ELSE joined_on END,
                       availability = CASE WHEN :to = 'active' THEN 'deployed' ELSE availability END,
                       updated_at = now() WHERE id = :id"""
@@ -492,4 +498,90 @@ def board(session: Session, kind: str | None = None) -> dict[str, Any]:
             "labour": sum(r["to_hire"] for r in rows if r["kind"] == "labour"),
             "staff": sum(r["to_hire"] for r in rows if r["kind"] == "staff"),
         },
+    }
+
+
+# ------------------------------------------------------------------- the mobilization board
+
+NOT_JOINED = ("offer_issued", "documents_cleared")
+
+
+def set_join_date(session: Session, actor: Any, code: str, on: date | None) -> dict[str, Any]:
+    """The date HR expects someone to join. It becomes their joining date when they join."""
+    person = (
+        session.execute(
+            text(
+                """SELECT id, full_name, employment_status::text AS status, project_id
+                   FROM employees WHERE employee_code = :c"""
+            ),
+            {"c": code},
+        )
+        .mappings()
+        .first()
+    )
+    if person is None:
+        raise WorkforceError(404, "Person not found")
+    if person["status"] not in NOT_JOINED:
+        raise WorkforceError(
+            409, f"{person['full_name']} has already joined or left, so there is no date to expect."
+        )
+    session.execute(
+        text("UPDATE employees SET expected_join_on = :on, updated_at = now() WHERE id = :id"),
+        {"id": person["id"], "on": on},
+    )
+    reason = f"Expected joining date set to {day(on)}" if on else "Expected joining date cleared"
+    log(session, "join_date_set", person["id"], None, person["project_id"], "hr", reason, actor)
+    return {"code": code, "expected_join_on": on.isoformat() if on else None}
+
+
+def mobilization_board(
+    session: Session, today: date, project: str | None = None, kind: str | None = None
+) -> dict[str, Any]:
+    """Who is on the way, in three columns: offer issued, documents cleared, can join.
+
+    "Can join" is someone whose documents are cleared and who has an expected joining date.
+    """
+    rows = session.execute(
+        text(
+            """SELECT e.employee_code AS code, e.full_name AS name, t.name AS designation, t.kind,
+                      p.code AS project_code, p.name AS project_name,
+                      e.employment_status::text AS status, e.expected_join_on
+               FROM employees e
+               JOIN trades t ON t.id = e.primary_trade_id
+               LEFT JOIN projects p ON p.id = e.project_id
+               WHERE e.employment_status::text IN ('offer_issued', 'documents_cleared')
+                 AND (CAST(:project AS text) IS NULL OR p.code = :project)
+                 AND (CAST(:kind AS text) IS NULL OR t.kind = :kind)
+               ORDER BY e.expected_join_on NULLS LAST, e.full_name"""
+        ),
+        {"project": project, "kind": kind},
+    ).mappings()
+    columns: dict[str, list[dict[str, Any]]] = {
+        "offer_issued": [],
+        "documents_cleared": [],
+        "can_join": [],
+    }
+    late = 0
+    for r in rows:
+        item = dict(r)
+        item["late"] = bool(r["expected_join_on"] and r["expected_join_on"] < today)
+        late += item["late"]
+        if r["status"] == "offer_issued":
+            columns["offer_issued"].append(item)
+        elif r["expected_join_on"] is None:
+            columns["documents_cleared"].append(item)
+        else:
+            columns["can_join"].append(item)
+    labels = {
+        "offer_issued": ("Offer issued", "Waiting for documents"),
+        "documents_cleared": ("Documents cleared", "Set a joining date to move them to Can join"),
+        "can_join": ("Can join", "Ready, waiting for their joining date"),
+    }
+    return {
+        "columns": [
+            {"id": k, "label": labels[k][0], "hint": labels[k][1], "people": v}
+            for k, v in columns.items()
+        ],
+        "total": sum(len(v) for v in columns.values()),
+        "late": late,
     }

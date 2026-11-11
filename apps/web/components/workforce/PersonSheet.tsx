@@ -93,6 +93,8 @@ function Body({ p, onDone }: { p: WPersonDetail; onDone: (text: string) => void 
   const [busy, setBusy] = useState(false);
   const [target, setTarget] = useState("");
   const [resignOn, setResignOn] = useState("");
+  const [joinOn, setJoinOn] = useState(p.expected_join_on ?? "");
+  const notJoined = p.status === "offer_issued" || p.status === "documents_cleared";
   const [ask, setAsk] = useState<{ detail: string; data: WOverfilled } | null>(null);
   const left = ["resigned", "terminated", "absconded"].includes(p.status);
   const reached = STEPS.findIndex((s) => s.status === p.status);
@@ -219,6 +221,34 @@ function Body({ p, onDone }: { p: WPersonDetail; onDone: (text: string) => void 
               Move
             </button>
           </div>
+          {notJoined && (
+            <div className="flex flex-wrap items-end gap-2">
+              <label className="flex flex-col gap-1 text-xs font-medium text-muted">
+                Expected joining date
+                <input
+                  type="date"
+                  className={FIELD}
+                  value={joinOn}
+                  onChange={(e) => setJoinOn(e.target.value)}
+                />
+              </label>
+              <button
+                type="button"
+                className={BUTTON}
+                disabled={busy || joinOn === (p.expected_join_on ?? "")}
+                onClick={() =>
+                  void run(async () => {
+                    await api.wSetJoinDate(p.code, joinOn || null);
+                    return joinOn
+                      ? `${p.name} is expected to join on ${formatDate(joinOn)}.`
+                      : `${p.name}’s joining date was cleared.`;
+                  })
+                }
+              >
+                Save date
+              </button>
+            </div>
+          )}
           <div className="flex flex-wrap items-end gap-2">
             <label className="flex flex-col gap-1 text-xs font-medium text-muted">
               Last day (optional)
@@ -248,6 +278,14 @@ function Body({ p, onDone }: { p: WPersonDetail; onDone: (text: string) => void 
 
       <dl className="m-0 text-sm">
         {[
+          ...(notJoined
+            ? [
+                [
+                  "Expected to join",
+                  p.expected_join_on ? formatDate(p.expected_join_on) : "Not set",
+                ],
+              ]
+            : []),
           ["Joined on", p.joined_on ? formatDate(p.joined_on) : "Not yet"],
           ...(p.exit_on ? [["Left on", formatDate(p.exit_on)]] : []),
           [

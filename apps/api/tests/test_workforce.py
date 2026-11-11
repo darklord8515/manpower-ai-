@@ -238,3 +238,100 @@ def test_unknown_roles_and_duplicate_ids_get_plain_answers(
     assert make_client().get("/workforce/people").status_code == 401
     roles = desk.hr.get("/workforce/designations", params={"kind": "staff"}).json()
     assert any(r["name"] == "Site engineer" and r["kind"] == "staff" for r in roles)
+
+
+def test_let_ai_decide_only_chooses_real_projects_never_head_office(desk: Desk) -> None:
+    plan = {"designation": "Accountant", "planned": 2}
+    assert (
+        desk.hr.put("/workforce/projects/ZH/plan", json=plan).status_code == 200
+    )  # head office plans 2
+    auto = desk.add(name="Kim Test", designation="Accountant", auto=True)
+    assert auto.status_code == 409 and "only chooses projects" in auto.text
+    by_hand = desk.add(name="Kim Test", designation="Accountant", project_code="ZH")
+    assert by_hand.status_code == 201 and by_hand.json()["project_code"] == "ZH"
+
+
+def test_expected_joining_dates_fill_the_mobilization_board_and_become_the_joining_date(
+    desk: Desk,
+) -> None:
+    board = desk.hr.get("/workforce/mobilization").json()
+    cols = {c["id"]: c["people"] for c in board["columns"]}
+    assert [p["name"] for p in cols["offer_issued"]] == ["Bob Test"]
+    assert cols["documents_cleared"] == [] and cols["can_join"] == []
+    assert (
+        desk.hr.post(
+            "/workforce/people/9002/milestone", json={"to": "documents_cleared"}
+        ).status_code
+        == 200
+    )
+    cols = {c["id"]: c["people"] for c in desk.hr.get("/workforce/mobilization").json()["columns"]}
+    assert [p["name"] for p in cols["documents_cleared"]] == ["Bob Test"]  # no date yet
+    done = desk.hr.patch(
+        "/workforce/people/9002/join-date", json={"expected_join_on": "2026-11-20"}
+    )
+    assert done.status_code == 200 and done.json()["expected_join_on"] == "2026-11-20"
+    cols = {c["id"]: c["people"] for c in desk.hr.get("/workforce/mobilization").json()["columns"]}
+    assert [p["name"] for p in cols["can_join"]] == ["Bob Test"]  # documents cleared + a date
+    assert cols["can_join"][0]["late"] is False
+    assert (
+        desk.hr.patch(
+            "/workforce/people/9002/join-date", json={"expected_join_on": "2026-11-01"}
+        ).status_code
+        == 200
+    )
+    assert desk.hr.get("/workforce/mobilization").json()["late"] == 1  # the date has passed
+    assert (
+        desk.hr.patch(
+            "/workforce/people/9002/join-date", json={"expected_join_on": "2026-11-20"}
+        ).status_code
+        == 200
+    )
+    assert (
+        desk.hr.post("/workforce/people/9002/milestone", json={"to": "active"}).status_code == 200
+    )
+    assert (
+        desk.hr.get("/workforce/people/9002").json()["joined_on"] == "2026-11-20"
+    )  # the expected date
+    assert (
+        desk.hr.get("/workforce/mobilization").json()["total"] == 0
+    )  # joined people leave the board
+    assert (
+        desk.hr.patch(
+            "/workforce/people/9002/join-date", json={"expected_join_on": "2026-12-01"}
+        ).status_code
+        == 409
+    )
+    assert (
+        desk.ceo.patch(
+            "/workforce/people/9001/join-date", json={"expected_join_on": None}
+        ).status_code
+        == 403
+    )
+    assert desk.count("SELECT count(*) FROM workforce_events WHERE kind = 'join_date_set'") == 3
+
+
+def test_a_project_has_a_start_date_an_expected_end_and_a_real_end(desk: Desk) -> None:
+    ok = desk.hr.patch(
+        "/workforce/projects/ZA", json={"starts_on": "2026-01-01", "ends_on": "2027-06-30"}
+    )
+    assert ok.status_code == 200 and ok.json()["actual_end_on"] is None
+    early = desk.hr.patch("/workforce/projects/ZA", json={"actual_end_on": "2025-12-01"})
+    assert early.status_code == 422 and "real end date" in early.text  # before the start
+    done = desk.hr.patch("/workforce/projects/ZA", json={"actual_end_on": "2027-05-20"})
+    assert (
+        done.status_code == 200 and done.json()["stage"] == "completed"
+    )  # a real end completes it
+    shown = next(p for p in desk.hr.get("/workforce/projects").json() if p["code"] == "ZA")
+    assert (shown["starts_on"], shown["ends_on"], shown["actual_end_on"]) == (
+        "2026-01-01", "2027-06-30", "2027-05-20",
+    )  # fmt: skip
+    plan = desk.hr.get("/workforce/projects/ZA/plan").json()["project"]
+    assert plan["actual_end_on"] == "2027-05-20" and plan["stage"] == "completed"
+    cleared = desk.hr.patch(
+        "/workforce/projects/ZA", json={"actual_end_on": None, "stage": "active"}
+    )
+    assert cleared.json()["actual_end_on"] is None and cleared.json()["stage"] == "active"
+    assert (
+        desk.ceo.patch("/workforce/projects/ZA", json={"actual_end_on": "2027-05-20"}).status_code
+        == 403
+    )

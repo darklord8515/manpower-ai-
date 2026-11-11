@@ -24,13 +24,15 @@ No list ever carries a phone number or email; one person's profile shows them to
 | `GET /workforce/history?by=ai\|hr&project=` | what was done: kind, who decided (`hr` or `ai`), reason, person, from/to project |
 | `GET /workforce/chart` | per project planned / active / pipeline / to_hire, and totals, for the graph |
 | `GET /workforce/designations?kind=` | the role list for dropdowns |
+| `GET /workforce/mobilization?project=&kind=` | the Mobilization board: `columns` offer_issued, documents_cleared, can_join (documents cleared + an expected joining date), each with people (`expected_join_on`, `late`), plus `total` and `late` |
 
 ## Writing
 | Route | Body | Notes |
 |---|---|---|
-| `POST /workforce/people` | `{name, designation, project_code?, auto?, status?, code?, phone?, email?, uae_national?, joined_on?, source?, resolve?}` | with `project_code` the person is placed there; with `auto: true` the system picks the project that needs the role most and says why (`decided_by: "ai"`, `reason`). Returns the placement and a plain-words `message` |
+| `POST /workforce/people` | `{name, designation, project_code?, auto?, status?, code?, phone?, email?, uae_national?, joined_on?, source?, resolve?}` | with `project_code` the person is placed there; with `auto: true` the system picks the real project (never head office, camp or other groups) that needs the role most and says why (`decided_by: "ai"`, `reason`). Returns the placement and a plain-words `message` |
 | `POST /workforce/people/{code}/milestone` | `{to: documents_cleared\|active\|resigned, on?}` | out-of-order steps are 409 |
 | `POST /workforce/people/{code}/move` | `{project_code, resolve?}` | |
+| `PATCH /workforce/people/{code}/join-date` | `{expected_join_on: date or null}` | the date HR expects someone to join; it becomes their joining date when they are marked joined. Only for people who have not joined |
 | `PUT /workforce/projects/{code}/plan` | `{designation, uae_only?, planned, needed_by?, source?}` | sets a planned count |
 | `PATCH /workforce/projects/{code}` | `{stage?, starts_on?, ends_on?}` | stages: `pre_construction, active, handover, completed, on_hold` |
 | `POST /imports/trackers?kind=labour\|staff&apply=false\|true` | the .xlsx as the raw body | preview first; apply writes |

@@ -284,6 +284,7 @@ function EditProject({
   );
   const [starts, setStarts] = useState(plan.project.starts_on ?? "");
   const [ends, setEnds] = useState(plan.project.ends_on ?? "");
+  const [real, setReal] = useState(plan.project.actual_end_on ?? "");
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   async function save() {
@@ -294,6 +295,7 @@ function EditProject({
         stage,
         starts_on: starts || null,
         ends_on: ends || null,
+        actual_end_on: real || null,
       });
       onSaved();
       onClose();
@@ -347,6 +349,21 @@ function EditProject({
             />
           </label>
         </div>
+        <label className="flex flex-col gap-1 text-xs font-medium text-muted">
+          Real end date (when it actually finished)
+          <input
+            type="date"
+            className={FIELD}
+            value={real}
+            onChange={(e) => {
+              setReal(e.target.value);
+              if (e.target.value) setStage("completed"); // a project that has ended is completed
+            }}
+          />
+          <span className="font-normal">
+            Leave empty while the project is running. Setting it marks the project as completed.
+          </span>
+        </label>
         {problem && (
           <p
             role="alert"
