@@ -175,7 +175,7 @@ def test_people_who_arrived_stay_for_two_weeks_then_leave_the_pipeline(pipeline:
     with pipeline.engine.begin() as c:
         c.execute(
             text(
-                """UPDATE employee_assignments SET arrived_at = TIMESTAMPTZ '2026-10-16 09:00+04'  -- 20 days before the demo date
+                """UPDATE employee_assignments SET arrived_at = TIMESTAMPTZ '2026-10-16 09:00+04'
                    WHERE id = (SELECT assignment_id FROM mobilizations WHERE mob_no = :n)"""
             ),
             {"n": "MOB-2026-0101"},
