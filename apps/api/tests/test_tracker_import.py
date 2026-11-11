@@ -167,7 +167,7 @@ def test_the_headcount_counts_joined_pipeline_and_what_is_still_to_hire(
     )
     with Session(migrated_db) as session:
         rows = {(r.project_code, r.trade, r.uae_only): r for r in headcount.lines(session)}
-        engineers = rows[("ZA", "Site Engineer", False)]
+        engineers = rows[("ZA", "Site engineer", False)]
         assert (engineers.planned, engineers.active, engineers.pipeline) == (4, 1, 1)
         assert (engineers.to_hire, engineers.over, engineers.kind) == (2, 0, "staff")
         assert (
@@ -190,11 +190,11 @@ def test_the_headcount_counts_joined_pipeline_and_what_is_still_to_hire(
                 """INSERT INTO employees (employee_code, full_name, primary_trade_id, project_id,
                                          employment_status, is_demo)
                    SELECT 'T-1', 'New Engineer', t.id, p.id, CAST('offer_issued' AS employment_status), false
-                   FROM trades t, projects p WHERE t.name = 'Site Engineer' AND p.code = 'ZA'"""
+                   FROM trades t, projects p WHERE t.name = 'Site engineer' AND p.code = 'ZA'"""
             )
         )
         again = {(r.project_code, r.trade, r.uae_only): r for r in headcount.lines(session)}
-        assert again[("ZA", "Site Engineer", False)].to_hire == 1
+        assert again[("ZA", "Site engineer", False)].to_hire == 1
         session.rollback()
 
 

@@ -165,9 +165,16 @@ def seed_demo(connection: Connection, settings: Settings) -> dict[str, int]:
     trades = {name: demo_id("trade", name) for name in trade_names}
     _insert(
         connection,
-        "INSERT INTO trades (id, code, name, category) VALUES (:id, :code, :name, :category)",
+        """INSERT INTO trades (id, code, name, category, kind, department)
+           VALUES (:id, :code, :name, :category, :kind, :category)""",
         [
-            {"id": trades[n], "code": _trade_code(n), "name": n, "category": TRADE_GROUPS[n]}
+            {
+                "id": trades[n],
+                "code": _trade_code(n),
+                "name": n,
+                "category": TRADE_GROUPS[n],
+                "kind": "staff" if TRADE_GROUPS[n] == "Staff" else "labour",
+            }
             for n in trade_names
         ],
     )

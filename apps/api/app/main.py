@@ -33,6 +33,7 @@ from app.routes import (
     worker_mail,
     worker_photo,
     workers,
+    workforce,
 )
 
 # Routes that need no login. Everything else must declare require("resource:action") (or
@@ -103,6 +104,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(project_leadership.router)
     app.include_router(applicants.router)
     app.include_router(tracker_import.router)
+    app.include_router(workforce.router)
     app.include_router(executive.router)
     app.include_router(calendar.router)
     app.include_router(documents.router)
